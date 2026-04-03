@@ -1,5 +1,5 @@
 // 咖啡伴侣 Service Worker
-const CACHE_NAME = 'coffee-companion-v1';
+const CACHE_NAME = 'coffee-companion-v7';
 const OFFLINE_URLS = [
   './coffee_v6.html',
   './manifest.json',
