@@ -164,8 +164,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
 .edit-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:var(--ink)}
 .ed-star{font-size:24px;cursor:pointer;color:var(--b2);user-select:none;line-height:1;transition:color .12s}
 .ed-star.on{color:var(--a)}
-  border:none;background:var(--b1);border-radius:50%;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;color:var(--i3);font-size:14px}
 
 /* Empty */
 .empty{padding:56px 20px;text-align:center}
@@ -1361,6 +1359,7 @@ if(!recs.length && !localStorage.getItem('cf6_demo_injected')){
 
 // ── INIT ──
 function getApiKey(){return localStorage.getItem('cf6_apikey')||'';}
+function apiHeaders(){return{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'};}
 function saveApiKey(){
   const v=document.getElementById('apikey-input').value.trim();
   const err=document.getElementById('apikey-err');
@@ -1390,6 +1389,8 @@ function setGreeting(){
 
 // ── NAVIGATION ──
 function go(id){
+  const editOv=document.getElementById('edit-overlay');
+  editOv.classList.remove('on');editOv.style.display='none';
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.bni').forEach(b=>b.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
@@ -1415,7 +1416,7 @@ async function loadMorning(){
   const sys=`你是用户的咖啡伴侣。夜间整理了他所有的记录后，清晨用一句有洞察的话告诉他你发现了什么。不超过50字。像老朋友说话，不是助手报告。说最有感触的一件事，不列数字统计。`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:apiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:120,system:sys,
         messages:[{role:'user',content:ctx}]})});
     const d=await r.json();
@@ -1534,8 +1535,7 @@ async function handleCameraInput(input){
       const base64=e.target.result.split(',')[1];
       const mime=file.type||'image/jpeg';
       const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
-          'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        headers:apiHeaders(),
         body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:mime,data:base64}},
@@ -1731,7 +1731,7 @@ async function getReply(rec,all){
 如果标记了惊艳时刻，先表达一下兴奋，说说为什么这杯值得记住。`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:apiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:sys,
         messages:[{role:'user',content:ctx}]})});
     const d=await r.json();
@@ -2251,8 +2251,6 @@ function closeShopDetail(e){
   }
 }
 
-function handleAuth(){}
-
 function installPWA(){
   if(deferredPrompt){
     deferredPrompt.prompt();
@@ -2320,8 +2318,7 @@ async function loadPrescription(force){
 {"title":"处方名（诗意，结合风味偏好，≤8字）","origin":"推荐产区1-2个","process":"推荐处理法","roast":"烘焙度","brew":"冲煮方式和关键参数（≤20字）","target":"目标风味（≤25字，口语化）","note":"给咖啡师的一句话（≤30字）"}`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
-        'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:apiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,
         messages:[{role:'user',content:`记录${recs.length}杯，惊艳时刻：${wowNames}\n\n最近记录：\n${summary}`}]})});
     const d=await r.json();
