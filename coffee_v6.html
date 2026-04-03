@@ -122,6 +122,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
 .rc-ai{margin-top:8px;padding-top:8px;border-top:1px solid var(--b1)}
 .rc-ai-lbl{font-size:10px;color:var(--a);letter-spacing:.08em;margin-bottom:4px}
 .rc-ai-txt{font-size:12px;color:var(--i2);line-height:1.7}
+.rc-del{background:none;border:none;color:var(--i3);font-size:15px;cursor:pointer;
+  padding:0;margin-top:5px;line-height:1;opacity:.5;transition:opacity .15s;display:block;margin-left:auto}
+.rc-del:active{opacity:1;color:var(--rd)}
 
 /* Share card overlay */
 .share-overlay{position:fixed;inset:0;background:rgba(6,4,2,.88);backdrop-filter:blur(16px);
@@ -1344,7 +1347,7 @@ async function loadMorning(){
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:120,system:sys,
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:120,system:sys,
         messages:[{role:'user',content:ctx}]})});
     const d=await r.json();
     const txt=d.content?.map(c=>c.text||'').join('').trim()||'你的感受越来越有自己的语言了。';
@@ -1377,6 +1380,7 @@ function renderHome(){
         <div class="rc-right">
           ${r.rating?`<div class="rc-stars">${'★'.repeat(r.rating)}</div>`:''}
           <div class="rc-date">${r.date}</div>
+          <button class="rc-del" onclick="deleteRec(${r.id});event.stopPropagation()" title="删除">×</button>
         </div>
       </div>
       ${r.feel?`<div class="rc-feel">「${r.feel}」</div>`:''}
@@ -1463,7 +1467,7 @@ async function handleCameraInput(input){
       const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
           'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:mime,data:base64}},
             {type:'text',text:`这是一张咖啡相关照片（可能是咖啡杯、豆袋包装、菜单黑板或收据）。请识别并只返回JSON，不确定的字段留空字符串：
@@ -1561,6 +1565,7 @@ async function saveRec(){
   },2300);
 }
 function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
+function deleteRec(id){recs=recs.filter(r=>r.id!==id);save();renderHome();}
 
 function typewrite(el,text){
   el.textContent='';let i=0;
@@ -1592,7 +1597,7 @@ async function getReply(rec,all){
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,system:sys,
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:sys,
         messages:[{role:'user',content:ctx}]})});
     const d=await r.json();
     return d.content?.map(c=>c.text||'').join('').trim()||'记下来了，每一杯都在积累。';
@@ -1904,12 +1909,12 @@ function distStr(m){return +m>=1000?(+m/1000).toFixed(1)+'km':Math.round(+m)+'m'
 
 function amapLocate(){
   return new Promise((resolve,reject)=>{
-    const geo=new AMap.Geolocation({enableHighAccuracy:true,timeout:8000,
-      GeoLocationFirst:true,needAddress:false,buttonOffset:new AMap.Pixel(10,20)});
-    geo.getCurrentPosition((status,r)=>{
-      if(status==='complete') resolve({lng:r.position.getLng(),lat:r.position.getLat()});
-      else reject(new Error(r.message||'定位失败，将使用IP定位'));
-    });
+    if(!navigator.geolocation){reject(new Error('浏览器不支持定位'));return;}
+    navigator.geolocation.getCurrentPosition(
+      pos=>resolve({lng:pos.coords.longitude,lat:pos.coords.latitude}),
+      ()=>reject(new Error('定位失败，尝试IP定位')),
+      {enableHighAccuracy:true,timeout:10000,maximumAge:60000}
+    );
   });
 }
 
@@ -2122,7 +2127,7 @@ async function loadPrescription(force){
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
         'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:sys,
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,
         messages:[{role:'user',content:`记录${recs.length}杯，惊艳时刻：${wowNames}\n\n最近记录：\n${summary}`}]})});
     const d=await r.json();
     const txt=d.content?.[0]?.text||'{}';
