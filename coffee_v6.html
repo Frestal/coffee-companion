@@ -496,6 +496,12 @@ textarea.fi{resize:none;line-height:1.65}
 .sco-right{text-align:right;flex-shrink:0;margin-left:10px}
 .sco-rating{font-size:13px;color:var(--a);letter-spacing:.5px}
 .sco-dist{font-size:10px;color:var(--i3);margin-top:2px}
+.sco-chain-badge{font-size:10px;padding:1px 6px;border-radius:2px;background:var(--a3);color:var(--a);border:1px solid rgba(200,152,104,.25);font-weight:400}
+.sco-branches{border-top:1px solid var(--b1);padding:6px 15px 10px;display:flex;flex-direction:column;gap:6px}
+.sco-branch{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:5px 8px;border-radius:4px;background:var(--b1)}
+.sco-branch:active{background:var(--b2)}
+.sco-branch-name{font-size:12px;color:var(--i2)}
+.sco-branch-dist{font-size:11px;color:var(--i3);flex-shrink:0;margin-left:8px}
 /* New products bar */
 .sco-new-bar{border-top:1px solid var(--b1);padding:10px 15px;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none}
 .sco-new-bar::-webkit-scrollbar{display:none}
@@ -2036,39 +2042,118 @@ let _amapPois = [];
 
 function distStr(m){return +m>=1000?(+m/1000).toFixed(1)+'km':Math.round(+m)+'m';}
 
-function amapLocate(){
+// 三级定位降级：原生GPS → AMap.Geolocation（含IP回落）→ CitySearch IP
+function getLocation(){
   return new Promise((resolve,reject)=>{
-    if(!navigator.geolocation){reject(new Error('浏览器不支持定位'));return;}
-    navigator.geolocation.getCurrentPosition(
-      pos=>resolve({lng:pos.coords.longitude,lat:pos.coords.latitude}),
-      ()=>reject(new Error('定位失败，尝试IP定位')),
-      {enableHighAccuracy:true,timeout:10000,maximumAge:60000}
-    );
-  });
-}
-
-function amapIpLocate(){
-  return new Promise((resolve,reject)=>{
-    AMap.plugin('AMap.CitySearch',()=>{
-      new AMap.CitySearch().getLocalCity((s,r)=>{
-        if(s==='complete'&&r.rectangle){
-          const b=r.rectangle.split(';');
-          const c0=b[0].split(','),c1=b[1].split(',');
-          resolve({lng:(+c0[0]+ +c1[0])/2,lat:(+c0[1]+ +c1[1])/2});
-        } else reject(new Error('IP定位也失败了'));
+    function tryAmapGeo(){
+      try{
+        const geo=new AMap.Geolocation({enableHighAccuracy:true,timeout:6000,
+          GeoLocationFirst:false,needAddress:false});
+        geo.getCurrentPosition((status,r)=>{
+          if(status==='complete') resolve({lng:r.position.getLng(),lat:r.position.getLat()});
+          else tryIp();
+        });
+      }catch(e){tryIp();}
+    }
+    function tryIp(){
+      AMap.plugin('AMap.CitySearch',()=>{
+        new AMap.CitySearch().getLocalCity((s,r)=>{
+          if(s==='complete'&&r.rectangle){
+            const b=r.rectangle.split(';');
+            const c0=b[0].split(','),c1=b[1].split(',');
+            resolve({lng:(+c0[0]+ +c1[0])/2,lat:(+c0[1]+ +c1[1])/2,isIp:true});
+          } else reject(new Error('无法获取位置，请检查浏览器定位权限'));
+        });
       });
+    }
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
+        pos=>resolve({lng:pos.coords.longitude,lat:pos.coords.latitude}),
+        ()=>tryAmapGeo(),
+        {enableHighAccuracy:true,timeout:8000,maximumAge:60000}
+      );
+    } else tryAmapGeo();
+  });
+}
+
+function amapSearch(lng,lat,radius){
+  return new Promise((resolve,reject)=>{
+    const r=radius||3000;
+    const ps=new AMap.PlaceSearch({type:'050500',pageSize:20,extensions:'all'});
+    ps.searchNearBy('咖啡',[lng,lat],r,(status,result)=>{
+      if(status==='complete'&&result.poiList?.pois?.length) resolve(result.poiList.pois);
+      else if(r<6000) amapSearch(lng,lat,6000).then(resolve).catch(()=>
+        reject(new Error('附近未找到咖啡馆，请尝试重新定位'))
+      );
+      else reject(new Error('附近未找到咖啡馆（'+result?.info+'）'));
     });
   });
 }
 
-function amapSearch(lng,lat){
-  return new Promise((resolve,reject)=>{
-    const ps=new AMap.PlaceSearch({type:'050500',pageSize:20,extensions:'all'});
-    ps.searchNearBy('咖啡',[lng,lat],3000,(status,result)=>{
-      if(status==='complete'&&result.poiList?.pois?.length) resolve(result.poiList.pois);
-      else reject(new Error('附近3公里内暂无咖啡馆'));
-    });
+// 品牌名归一化：去掉括号内容和末尾店名后缀
+function normBrand(name){
+  return name
+    .replace(/[（(（][^）)）]{0,15}[）)）]/g,'')
+    .replace(/[\s·•\-—]*([\u4e00-\u9fa5]{1,4}店|门店|分店|旗舰店|总店|\d+号店|店$)$/,'')
+    .trim()||name;
+}
+
+function groupPois(pois){
+  const map=new Map();
+  pois.forEach((s,i)=>{
+    const key=normBrand(s.name).toLowerCase();
+    if(!map.has(key))map.set(key,[]);
+    map.get(key).push(Object.assign({},s,{_idx:i}));
   });
+  // 每组按距离排序，整体按最近门店排序
+  return [...map.values()]
+    .map(g=>g.sort((a,b)=>(+a.distance||9e9)-(+b.distance||9e9)))
+    .sort((a,b)=>(+a[0].distance||9e9)-(+b[0].distance||9e9));
+}
+
+function renderPoiGroups(groups){
+  return groups.map(group=>{
+    const s=group[0];
+    const rating=s.rating||'';
+    const cost=s.price?`¥${s.price}/人`:'';
+    const dist=s.distance?distStr(s.distance):'';
+    const tags=(s.type||'').split(';').filter(Boolean).slice(-2);
+    const forYou=recs.length>=3?'<span class="tag-foryou">For you</span>':'';
+    if(group.length===1){
+      return `<div class="shop-card-outer" onclick="openShopDetailAmap(${s._idx})">
+        <div class="sco-top">
+          <div class="sco-left">
+            <div class="sco-name">${s.name}${forYou}</div>
+            <div class="sco-addr">${s.address||s.adname||''}</div>
+            <div class="sco-chips">${tags.map(t=>`<span class="sco-chip">${t}</span>`).join('')}${cost?`<span class="sco-chip">${cost}</span>`:''}</div>
+          </div>
+          <div class="sco-right">
+            <div class="sco-rating">${rating?'★ '+rating:''}</div>
+            <div class="sco-dist">${dist}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+    const brand=normBrand(s.name);
+    return `<div class="shop-card-outer">
+      <div class="sco-top">
+        <div class="sco-left">
+          <div class="sco-name">${brand}${forYou}<span class="sco-chain-badge">${group.length}家门店</span></div>
+          <div class="sco-chips">${tags.map(t=>`<span class="sco-chip">${t}</span>`).join('')}${cost?`<span class="sco-chip">${cost}</span>`:''}</div>
+        </div>
+        <div class="sco-right">
+          <div class="sco-rating">${rating?'★ '+rating:''}</div>
+          <div class="sco-dist">${dist}起</div>
+        </div>
+      </div>
+      <div class="sco-branches">${group.map(b=>`
+        <div class="sco-branch" onclick="openShopDetailAmap(${b._idx})">
+          <span class="sco-branch-name">${b.address||b.name}</span>
+          <span class="sco-branch-dist">${b.distance?distStr(b.distance):''}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function renderShopScreen(){
@@ -2086,31 +2171,12 @@ async function renderShopScreen(){
   wrap.innerHTML=`<div style="padding:48px 20px;text-align:center;color:var(--i3);font-size:13px">
     <div style="font-size:28px;margin-bottom:10px;opacity:.5">📍</div>获取位置中…</div>`;
   try{
-    let pos;
-    try{ pos=await amapLocate(); }
-    catch(e){ pos=await amapIpLocate(); }
-    const {lng,lat}=pos;
+    const pos=await getLocation();
+    const {lng,lat,isIp}=pos;
     const pois=await amapSearch(lng,lat);
     _amapPois=pois;
-    wrap.innerHTML=pois.map((s,i)=>{
-      const rating=s.rating||'';
-      const cost=s.price?`¥${s.price}/人`:'';
-      const dist=s.distance?distStr(s.distance):'';
-      const tags=(s.type||'').split(';').filter(Boolean).slice(-2);
-      return `<div class="shop-card-outer" onclick="openShopDetailAmap(${i})">
-        <div class="sco-top">
-          <div class="sco-left">
-            <div class="sco-name">${s.name}${recs.length>=3?'<span class="tag-foryou">For you</span>':''}</div>
-            <div class="sco-addr">${s.address||s.adname||''}</div>
-            <div class="sco-chips">${tags.map(t=>`<span class="sco-chip">${t}</span>`).join('')}${cost?`<span class="sco-chip">${cost}</span>`:''}</div>
-          </div>
-          <div class="sco-right">
-            <div class="sco-rating">${rating?'★ '+rating:''}</div>
-            <div class="sco-dist">${dist}</div>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+    const groups=groupPois(pois);
+    wrap.innerHTML=(isIp?`<div style="padding:6px 14px;font-size:11px;color:var(--i3);text-align:center">已使用 IP 定位，结果精度有限</div>`:'')+renderPoiGroups(groups);
   }catch(e){
     wrap.innerHTML=`<div style="padding:48px 20px;text-align:center">
       <div style="font-size:32px;opacity:.25;margin-bottom:12px">📍</div>
