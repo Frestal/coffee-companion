@@ -1,8 +1,8 @@
 // 咖啡伴侣 Service Worker
-const CACHE_NAME = 'coffee-companion-v7';
+const CACHE_NAME = 'coffee-companion-v8';
 const STATIC_ASSETS = [
   './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Noto+Serif+SC:wght@300;400;500&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap'
+  'https://fonts.loli.net/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Noto+Serif+SC:wght@300;400;500&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap'
 ];
 
 // 安装：只缓存静态资源，HTML 不预缓存
