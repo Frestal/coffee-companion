@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230C0805'/><text y='.9em' font-size='80' x='10'>☕</text></svg>">
 <title>咖啡伴侣</title>
-<script src="https://webapi.amap.com/maps?v=2.0&key=5e88e88c37d7d93b208fffe5d3d0922f&plugin=AMap.PlaceSearch,AMap.Geolocation"></script>
+<script src="https://webapi.amap.com/maps?v=1.4.15&key=5e88e88c37d7d93b208fffe5d3d0922f&plugin=AMap.PlaceSearch,AMap.Geolocation,AMap.CitySearch"></script>
 <link href="https://fonts.loli.net/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Noto+Serif+SC:wght@300;400;500&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -1916,11 +1916,13 @@ function getLocation(){
 function amapSearch(lng,lat,radius){
   return new Promise((resolve,reject)=>{
     const r=radius||3000;
-    const ps=new AMap.PlaceSearch({pageSize:20,extensions:'all'});
-    ps.searchNearBy('咖啡',[lng,lat],r,(status,result)=>{
-      if(status==='complete'&&result.poiList?.pois?.length) resolve(result.poiList.pois);
-      else if(r<10000) amapSearch(lng,lat,Math.min(r*2,10000)).then(resolve).catch(reject);
-      else reject(new Error('附近未找到咖啡馆（'+status+' · '+(result?.info||'')+'）'));
+    AMap.plugin('AMap.PlaceSearch',()=>{
+      const ps=new AMap.PlaceSearch({pageSize:20,extensions:'all'});
+      ps.searchNearBy('咖啡',[lng,lat],r,(status,result)=>{
+        if(status==='complete'&&result.poiList?.pois?.length) resolve(result.poiList.pois);
+        else if(r<10000) amapSearch(lng,lat,Math.min(r*2,10000)).then(resolve).catch(reject);
+        else reject(new Error('附近未找到咖啡馆（'+status+'·'+(result?.info||'')+'）'));
+      });
     });
   });
 }
