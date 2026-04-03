@@ -150,6 +150,20 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
 .share-btn.primary{background:var(--a);color:var(--bg);border-color:var(--a)}
 .share-btn:active{opacity:.8}
 .share-close{position:absolute;top:14px;right:14px;width:24px;height:24px;
+
+/* ── EDIT OVERLAY ── */
+.edit-overlay{position:fixed;inset:0;background:rgba(6,4,2,.82);backdrop-filter:blur(14px);
+  z-index:300;display:none;align-items:flex-end;justify-content:center}
+.edit-overlay.on{display:flex}
+.edit-sheet{background:var(--s1);border-radius:12px 12px 0 0;width:100%;max-width:430px;
+  max-height:88vh;overflow-y:auto;padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.32,1,.28,1)}
+.edit-overlay.on .edit-sheet{transform:translateY(0)}
+.edit-hd{padding:16px 16px 12px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--b1);position:sticky;top:0;background:var(--s1);z-index:1}
+.edit-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:var(--ink)}
+.ed-star{font-size:24px;cursor:pointer;color:var(--b2);user-select:none;line-height:1;transition:color .12s}
+.ed-star.on{color:var(--a)}
   border:none;background:var(--b1);border-radius:50%;cursor:pointer;
   display:flex;align-items:center;justify-content:center;color:var(--i3);font-size:14px}
 
@@ -879,6 +893,55 @@ textarea.fi{resize:none;line-height:1.65}
   </div>
 </div>
 
+<!-- EDIT OVERLAY -->
+<div class="edit-overlay" id="edit-overlay" onclick="closeEditOutside(event)">
+  <div class="edit-sheet" id="edit-sheet">
+    <div class="edit-hd">
+      <div class="edit-title">编辑记录</div>
+      <button class="share-close" style="position:static;margin:0" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="fb">
+      <label>品名</label>
+      <input class="fi" id="ed-name" type="text" autocomplete="off">
+    </div>
+    <div class="fb">
+      <label>用你自己的话说说这杯</label>
+      <textarea class="feel-ta" id="ed-feel" rows="3" style="margin-top:6px" placeholder="像梅子汽水、有点焦糖甜……"></textarea>
+    </div>
+    <div class="fb">
+      <label>评分</label>
+      <div class="star-row" id="ed-star-row">
+        <span class="ed-star" data-v="1">★</span><span class="ed-star" data-v="2">★</span>
+        <span class="ed-star" data-v="3">★</span><span class="ed-star" data-v="4">★</span>
+        <span class="ed-star" data-v="5">★</span>
+      </div>
+    </div>
+    <div class="wow-toggle" id="ed-wow-toggle" onclick="edToggleWow()">
+      <div class="wow-l">
+        <div class="wow-ico">✦</div>
+        <div><div class="wow-t">惊艳时刻</div><div class="wow-s">超出预期，这杯值得被单独记住</div></div>
+      </div>
+      <div class="wow-ck" id="ed-wow-ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+    </div>
+    <div class="fb">
+      <label>还会再来吗</label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button id="ed-rp-y" onclick="edSetRp('yes')" style="flex:1;padding:9px;border-radius:4px;border:1px solid var(--b1);background:transparent;font-size:12px;color:var(--i2);cursor:pointer;font-family:inherit;transition:all .14s">✓ 会的</button>
+        <button id="ed-rp-m" onclick="edSetRp('maybe')" style="flex:1;padding:9px;border-radius:4px;border:1px solid var(--b1);background:transparent;font-size:12px;color:var(--i2);cursor:pointer;font-family:inherit;transition:all .14s">看心情</button>
+        <button id="ed-rp-n" onclick="edSetRp('no')" style="flex:1;padding:9px;border-radius:4px;border:1px solid var(--b1);background:transparent;font-size:12px;color:var(--i2);cursor:pointer;font-family:inherit;transition:all .14s">不了</button>
+      </div>
+    </div>
+    <div class="fb">
+      <label>补充笔记（可选）</label>
+      <textarea class="fi" id="ed-notes" rows="2" placeholder="前段 · 中段 · 余韵，或者就是此刻的心情…"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;padding:8px 14px 16px">
+      <button onclick="closeEdit()" style="flex:1;padding:11px;border-radius:var(--r);border:1px solid var(--b2);background:transparent;font-size:13px;color:var(--i2);cursor:pointer;font-family:inherit">取消</button>
+      <button onclick="saveEdit()" style="flex:2;padding:11px;border-radius:var(--r);border:none;background:var(--a);font-size:13px;color:var(--bg);cursor:pointer;font-family:inherit;font-weight:500">保存修改</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const WIKI=[
 // ===产区===
@@ -1306,7 +1369,7 @@ function openApiKeySetup(){document.getElementById('apikey-overlay').classList.a
 
 function init(){
   initTheme();
-  setGreeting();initStars();initCats();renderWiki();renderHome();renderMy();
+  setGreeting();initStars();initEdStars();initCats();renderWiki();renderHome();renderMy();
   if(!getApiKey()) openApiKeySetup();
   else if(recs.length>=3) loadMorning();
 }
@@ -1371,7 +1434,7 @@ function renderHome(){
     return;
   }
   el.innerHTML=`<div class="feed-wrap">`+recs.slice(0,20).map(r=>`
-    <div class="rc anim">
+    <div class="rc anim" onclick="openEdit(${r.id})" style="cursor:pointer">
       <div class="rc-top">
         <div>
           <div class="rc-name">${r.name}${r.wow?'<span class="rc-wow-badge">✦</span>':''}</div>
@@ -1566,6 +1629,72 @@ async function saveRec(){
 }
 function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
 function deleteRec(id){recs=recs.filter(r=>r.id!==id);save();renderHome();}
+
+// ── EDIT RECORD ──
+let editId=null,editRating=0,editWow=false,editRp='';
+
+function openEdit(id){
+  const r=recs.find(x=>x.id===id);if(!r)return;
+  editId=id;editRating=r.rating||0;editWow=!!r.wow;editRp=r.repurchase||'';
+  document.getElementById('ed-name').value=r.name||'';
+  document.getElementById('ed-feel').value=r.feel||'';
+  document.getElementById('ed-notes').value=r.notes||'';
+  edHighlightStars(editRating);
+  document.getElementById('ed-wow-toggle').classList.toggle('on',editWow);
+  edHighlightRp(editRp);
+  const ov=document.getElementById('edit-overlay');
+  ov.style.display='flex';setTimeout(()=>ov.classList.add('on'),10);
+}
+
+function closeEdit(){
+  const ov=document.getElementById('edit-overlay');
+  ov.classList.remove('on');
+  setTimeout(()=>{ov.style.display='none';},280);
+}
+
+function closeEditOutside(e){if(e.target===document.getElementById('edit-overlay'))closeEdit();}
+
+function edHighlightStars(n){
+  document.querySelectorAll('.ed-star').forEach(s=>s.classList.toggle('on',+s.dataset.v<=n));
+  editRating=n;
+}
+
+function edToggleWow(){
+  editWow=!editWow;
+  document.getElementById('ed-wow-toggle').classList.toggle('on',editWow);
+}
+
+function edSetRp(v){
+  editRp=v;
+  ['y','m','n'].forEach(k=>{
+    const btn=document.getElementById('ed-rp-'+k);
+    const active=(k==='y'&&v==='yes')||(k==='m'&&v==='maybe')||(k==='n'&&v==='no');
+    btn.style.background=active?'var(--a)':'transparent';
+    btn.style.color=active?'var(--bg)':'var(--i2)';
+    btn.style.borderColor=active?'var(--a)':'var(--b1)';
+  });
+}
+
+function saveEdit(){
+  const r=recs.find(x=>x.id===editId);if(!r)return;
+  const name=document.getElementById('ed-name').value.trim();if(!name)return;
+  r.name=name;
+  r.feel=document.getElementById('ed-feel').value.trim();
+  r.notes=document.getElementById('ed-notes').value.trim();
+  r.rating=editRating;
+  r.wow=editWow;
+  r.repurchase=editRp;
+  save();renderHome();closeEdit();
+}
+
+// init ed-star click listeners (called once after DOM ready)
+function initEdStars(){
+  document.querySelectorAll('.ed-star').forEach(s=>{
+    s.addEventListener('mouseover',()=>edHighlightStars(+s.dataset.v));
+    s.addEventListener('mouseleave',()=>edHighlightStars(editRating));
+    s.addEventListener('click',()=>edHighlightStars(+s.dataset.v));
+  });
+}
 
 function typewrite(el,text){
   el.textContent='';let i=0;
