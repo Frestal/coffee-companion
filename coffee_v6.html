@@ -1767,7 +1767,111 @@ function initTheme(){
   else applyTheme('dark');
 }
 
-// ── SHOP DATA (模拟) ──
+// ── SHOP ──
+const AMAP_KEY = '5e88e88c37d7d93b208fffe5d3d0922f';
+let _amapPois = []; // 缓存当次搜索结果
+
+// WGS84 → GCJ02（高德坐标系）
+function wgs84ToGcj02(lng, lat){
+  const a=6378245.0, ee=0.00669342162296594323;
+  if(lng<72.004||lng>137.8347||lat<0.8293||lat>55.8271) return {lng,lat};
+  let dLat=((x,y)=>{let r=-100+2*x+3*y+.2*y*y+.1*x*y+.2*Math.sqrt(Math.abs(x));r+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;r+=(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3;r+=(160*Math.sin(y/12*Math.PI)+320*Math.sin(y*Math.PI/30))*2/3;return r;})(lng-105,lat-35);
+  let dLng=((x,y)=>{let r=300+x+2*y+.1*x*x+.1*x*y+.1*Math.sqrt(Math.abs(x));r+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;r+=(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3;r+=(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3;return r;})(lng-105,lat-35);
+  const radLat=lat/180*Math.PI; let magic=Math.sin(radLat); magic=1-ee*magic*magic; const sq=Math.sqrt(magic);
+  return {lat:lat+(dLat*180)/((a*(1-ee))/(magic*sq)*Math.PI), lng:lng+(dLng*180)/(a/sq*Math.cos(radLat)*Math.PI)};
+}
+
+function getLocation(){
+  return new Promise((resolve,reject)=>{
+    if(!navigator.geolocation){reject(new Error('浏览器不支持定位'));return;}
+    navigator.geolocation.getCurrentPosition(
+      p=>resolve(wgs84ToGcj02(p.coords.longitude,p.coords.latitude)),
+      ()=>reject(new Error('定位失败，请在浏览器允许位置权限后重试')),
+      {timeout:10000,maximumAge:60000}
+    );
+  });
+}
+
+async function fetchNearbyShops(lng,lat){
+  const url=`https://restapi.amap.com/v3/place/around?key=${AMAP_KEY}&location=${lng},${lat}&keywords=精品咖啡|手冲咖啡|咖啡馆&types=050500&radius=3000&offset=20&page=1&extensions=all`;
+  const r=await fetch(url);
+  const d=await r.json();
+  if(d.status!=='1'||!d.pois?.length) throw new Error('附近3公里内暂无咖啡馆数据');
+  return d.pois;
+}
+
+function distStr(m){return m>=1000?(m/1000).toFixed(1)+'km':Math.round(m)+'m';}
+
+async function renderShopScreen(){
+  // 特征码同步
+  const fcCode=document.getElementById('fc-code');
+  const codeEl=document.getElementById('csc-code');
+  const styleEl=document.getElementById('csc-style');
+  if(fcCode?.textContent&&fcCode.textContent!=='——'){
+    codeEl.textContent=fcCode.textContent;
+    styleEl.textContent=document.getElementById('pc-style')?.textContent||'';
+  }
+  document.getElementById('shop-page-sub').textContent=recs.length>=3?'基于你的特征码，为你推荐':'积累3杯记录后将获得个性化推荐';
+
+  const wrap=document.getElementById('shop-list-wrap');
+  wrap.innerHTML=`<div style="padding:48px 20px;text-align:center;color:var(--i3);font-size:13px">
+    <div style="font-size:28px;margin-bottom:10px;opacity:.5">📍</div>获取位置中…</div>`;
+  try{
+    const {lng,lat}=await getLocation();
+    const pois=await fetchNearbyShops(lng,lat);
+    _amapPois=pois;
+    wrap.innerHTML=pois.map((s,i)=>{
+      const rating=s.biz_ext?.rating||'';
+      const cost=s.biz_ext?.cost?`¥${s.biz_ext.cost}/人`:'';
+      const dist=s.distance?distStr(+s.distance):'';
+      const tags=(s.type||'').split(';').filter(Boolean).slice(-2);
+      return `<div class="shop-card-outer" onclick="openShopDetailAmap(${i})">
+        <div class="sco-top">
+          <div class="sco-left">
+            <div class="sco-name">${s.name}${recs.length>=3?'<span class="tag-foryou">For you</span>':''}</div>
+            <div class="sco-addr">${s.address||s.adname||''}</div>
+            <div class="sco-chips">${tags.map(t=>`<span class="sco-chip">${t}</span>`).join('')}${cost?`<span class="sco-chip">${cost}</span>`:''}</div>
+          </div>
+          <div class="sco-right">
+            <div class="sco-rating">${rating?'★ '+rating:''}</div>
+            <div class="sco-dist">${dist}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    wrap.innerHTML=`<div style="padding:48px 20px;text-align:center">
+      <div style="font-size:32px;opacity:.25;margin-bottom:12px">📍</div>
+      <div style="font-size:13px;color:var(--i3)">${e.message}</div>
+      <button onclick="renderShopScreen()" style="margin-top:14px;padding:8px 20px;border-radius:var(--r);border:1px solid var(--b2);background:transparent;color:var(--a);font-size:12px;cursor:pointer;font-family:inherit">重新定位</button>
+    </div>`;
+  }
+}
+
+function openShopDetailAmap(idx){
+  const s=_amapPois[idx]; if(!s) return;
+  document.getElementById('sd-name').textContent=s.name;
+  document.getElementById('sd-meta').textContent=(s.address||'')+(s.distance?` · 距你${distStr(+s.distance)}`:'');
+  const tags=(s.type||'').split(';').filter(Boolean).slice(-2);
+  document.getElementById('sd-tags').innerHTML=tags.map(t=>`<span class="sd-tag">${t}</span>`).join('');
+  const rating=s.biz_ext?.rating||''; const cost=s.biz_ext?.cost||''; const tel=s.tel||''; const hours=s.opentime_week||s.biz_ext?.opentime||'';
+  const photos=Array.isArray(s.photos)&&s.photos.length?`<div class="sd-sec"><h3>店内照片</h3><div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px">${s.photos.slice(0,4).map(p=>`<img src="${p.url}" style="width:120px;height:90px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">`).join('')}</div></div>`:'';
+  document.getElementById('sd-body').innerHTML=`
+    <div class="sd-sec"><h3>基本信息</h3><div class="ig">
+      ${rating?`<div class="ic"><label>评分</label><p>★ ${rating}</p></div>`:''}
+      ${cost?`<div class="ic"><label>人均</label><p>¥${cost}</p></div>`:''}
+      ${tel?`<div class="ic"><label>电话</label><p style="font-size:11px">${tel}</p></div>`:''}
+      ${hours?`<div class="ic"><label>营业时间</label><p style="font-size:11px">${hours}</p></div>`:''}
+    </div></div>
+    <div class="sd-sec"><h3>地址</h3><div class="dd">${s.address||s.adname||'暂无地址'}</div></div>
+    ${photos}
+    <button class="buy-btn" onclick="window.open('https://uri.amap.com/navigation?to=${s.location},${encodeURIComponent(s.name)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>
+  `;
+  const ov=document.getElementById('shop-detail-overlay');
+  ov.style.display='flex'; setTimeout(()=>ov.classList.add('on'),10);
+}
+
+// ── SHOP DATA (静态备用，不再直接渲染) ──
 const REAL_SHOPS = [
 {id:'sz-seesaw',city:'深圳',name:'Seesaw Coffee',addr:'深圳多区均有门店',tags:['连锁精品','手冲','意式'],style:'国内领先精品咖啡连锁，出品广受好评',features:['手冲单品','SOE浓缩','拿铁'],priceRange:'35-65'},
 {id:'sz-gee',city:'深圳',name:'Gee Coffee',addr:'罗湖区梅园路75号万象华府',tags:['自烘焙','产业链完整','品鉴课'],style:'完整产业链（种植-采收-烘焙-出品），可喝到巴拿马翡翠庄园瑰夏',features:['手冲单品','瑰夏','品鉴沙龙'],priceRange:'38-188'},
@@ -1930,15 +2034,7 @@ function closeShopDetail(e){
   }
 }
 
-function handleAuth(shopId, action){
-  const s = REAL_SHOPS.find(x=>x.id===shopId);
-  if(!s) return;
-  if(action==='allow') s.authStatus='authorized';
-  else if(action==='deny') s.authStatus='none';
-  else if(action==='request') s.authStatus='requested';
-  // Re-render detail
-  openShopDetail(shopId);
-}
+function handleAuth(){}
 
 function installPWA(){
   if(deferredPrompt){
