@@ -56,7 +56,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
   opacity:var(--grain-op,.45);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E")}
 
 /* ── SCREENS ── */
-.scr{display:none;min-height:100vh;padding-bottom:76px}
+.scr{display:none;min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
 .scr.on{display:block}
 
 /* ── BOTTOM NAV ── */
@@ -230,6 +230,43 @@ textarea.fi{resize:none;line-height:1.65}
   display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
 .wow-toggle.on .wow-ck{background:var(--sp);border-color:var(--sp)}
 .wow-ck svg{width:11px;height:11px;stroke:var(--bg);fill:none;stroke-width:2.5}
+
+/* Wiki shortcut in rec page */
+.wiki-shortcut{display:flex;align-items:center;justify-content:flex-end;
+  margin:-4px 14px 10px;gap:4px;cursor:pointer}
+.wiki-shortcut svg{width:13px;height:13px;stroke:var(--a);fill:none;stroke-width:1.5}
+.wiki-shortcut span{font-size:11px;color:var(--a);letter-spacing:.04em}
+
+/* Camera preview */
+.cam-preview{margin:0 14px 12px;border-radius:var(--r);overflow:hidden;
+  position:relative;display:none}
+.cam-preview img{width:100%;max-height:180px;object-fit:cover;display:block}
+.cam-preview-lbl{position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(0,0,0,.6));
+  font-size:10px;color:rgba(255,255,255,.8);padding:12px 10px 7px;letter-spacing:.06em}
+
+/* Prescription card */
+.rx-card{background:linear-gradient(135deg,var(--s2),var(--s1));
+  border:1px solid var(--b2);border-radius:var(--r);padding:16px;
+  cursor:pointer;position:relative;overflow:hidden}
+.rx-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--a),transparent)}
+.rx-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.rx-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;
+  font-style:italic;color:var(--ink);line-height:1.2}
+.rx-hcode{font-family:'DM Mono',monospace;font-size:9px;color:var(--a);
+  letter-spacing:.06em;margin-top:3px;text-align:right}
+.rx-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.rx-row{background:var(--s3);border-radius:4px;padding:7px 9px}
+.rx-k{font-size:9px;color:var(--i3);display:block;margin-bottom:2px;letter-spacing:.06em;text-transform:uppercase}
+.rx-v{font-size:12px;color:var(--ink)}
+.rx-target{font-size:13px;color:var(--ink);margin-bottom:6px;font-style:italic;
+  border-left:2px solid var(--a);padding-left:9px;line-height:1.5}
+.rx-note{font-size:11px;color:var(--i2);margin-bottom:10px;line-height:1.5}
+.rx-copy{font-size:10px;color:var(--a);letter-spacing:.06em;text-align:center;
+  padding-top:8px;border-top:1px solid var(--b1)}
+.rx-refresh{font-size:10px;color:var(--i3);text-align:right;
+  margin-top:8px;cursor:pointer;letter-spacing:.04em}
 
 /* Save btn */
 .save-btn{display:block;margin:12px 14px 0;width:calc(100% - 28px);
@@ -519,10 +556,24 @@ textarea.fi{resize:none;line-height:1.65}
       <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     </button>
     <div class="rec-hd-t">记录这一杯</div>
+    <div style="flex:1"></div>
+    <div class="wiki-shortcut" onclick="go('exp')">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <span>图鉴</span>
+    </div>
+  </div>
+
+  <!-- Hidden file input for camera/gallery -->
+  <input type="file" id="camera-input" accept="image/*" style="display:none" onchange="handleCameraInput(this)">
+
+  <!-- Image preview -->
+  <div class="cam-preview" id="cam-preview">
+    <img id="cam-img" src="" alt="">
+    <div class="cam-preview-lbl">AI 识别中…</div>
   </div>
 
   <!-- Step 1: Scan -->
-  <div class="scan-zone" id="scan-zone" onclick="doScan()">
+  <div class="scan-zone" id="scan-zone" onclick="triggerCamera()">
     <div class="scan-progress" id="scan-prog"></div>
     <div class="scan-ico">📷</div>
     <div class="scan-t">拍摄咖啡 / 标签</div>
@@ -713,6 +764,13 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="bubbles" id="bubbles"></div>
   </div>
 
+  <!-- Prescription -->
+  <div class="sec" id="rx-lbl" style="display:none">调配处方</div>
+  <div id="rx-wrap" style="display:none;margin:0 14px 14px">
+    <div id="rx-content"></div>
+    <div class="rx-refresh" id="rx-refresh" onclick="refreshPrescription()">重新生成 ↻</div>
+  </div>
+
   <!-- Shop journey -->
   <div class="sec" id="shop-lbl" style="display:none">店铺足迹</div>
   <div class="shop-card" id="shop-card" style="display:none">
@@ -736,6 +794,17 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
     <div style="font-size:11px;color:var(--a)">修改 →</div>
   </div>
+  <div style="margin:0 14px 14px;padding:12px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleTheme()">
+    <div style="font-size:13px;color:var(--ink)">外观</div>
+    <div id="theme-label-my" style="font-size:11px;color:var(--a)">切换日/夜 →</div>
+  </div>
+  <div style="margin:0 14px 14px;padding:12px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="go('exp')">
+    <div>
+      <div style="font-size:13px;color:var(--ink);margin-bottom:2px">咖啡图鉴</div>
+      <div style="font-size:11px;color:var(--i3)">58个词条 · 产区/豆种/处理法/器具</div>
+    </div>
+    <div style="font-size:11px;color:var(--a)">浏览 →</div>
+  </div>
 <div class="sp"></div>
 </div>
 
@@ -749,10 +818,6 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="ring"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
     <span>记录</span>
   </button>
-  <button class="bni" id="n-exp" onclick="go('exp')">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <span>图鉴</span>
-  </button>
   <button class="bni" id="n-shop" onclick="go('shop')">
     <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/><path d="M3 9h18"/></svg>
     <span>探店</span>
@@ -760,10 +825,6 @@ textarea.fi{resize:none;line-height:1.65}
   <button class="bni" id="n-my" onclick="go('my')">
     <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     <span>我的</span>
-  </button>
-  <button class="bni" id="n-theme" onclick="toggleTheme()" title="切换日/夜模式">
-    <svg id="theme-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-    <span id="theme-label">夜间</span>
   </button>
 </nav>
 
@@ -1365,34 +1426,95 @@ function setRp(v){
 }
 
 // ── SCAN ──
-function doScan(){
-  const prog=document.getElementById('scan-prog');
-  prog.style.width='0';
-  const zone=document.getElementById('scan-zone');
-  zone.style.opacity='.6';
-  // animate progress bar
-  setTimeout(()=>{prog.style.width='100%';},50);
-  setTimeout(()=>{
-    zone.style.opacity='1';
-    zone.style.display='none';
-    const ex=SCAN_EXAMPLES[Math.floor(Math.random()*SCAN_EXAMPLES.length)];
-    scanData=ex;
-    const fields=[
-      ['品名',ex.name],['店铺',ex.shop],['价格','¥'+ex.price],['冲煮',ex.method]
-    ];
-    document.getElementById('sr-fields').innerHTML=fields.map(([k,v])=>
-      `<span class="sr-key">${k}</span><span class="sr-val">${v}</span>`).join('');
-    document.getElementById('scan-res').style.display='block';
-    document.getElementById('manual-name-block').style.display='none';
-    document.getElementById('r-feel').focus();
-  },900);
+function triggerCamera(){
+  document.getElementById('camera-input').value='';
+  document.getElementById('camera-input').click();
 }
+
+async function handleCameraInput(input){
+  const file=input.files[0];
+  if(!file) return;
+
+  // Show image preview immediately
+  const preview=document.getElementById('cam-preview');
+  const img=document.getElementById('cam-img');
+  const reader=new FileReader();
+  reader.onload=async(e)=>{
+    img.src=e.target.result;
+    preview.style.display='block';
+
+    const zone=document.getElementById('scan-zone');
+    zone.style.display='none';
+    const prog=document.getElementById('scan-prog');
+    prog.style.width='0';
+    setTimeout(()=>{prog.style.width='70%';},50);
+
+    if(!getApiKey()){
+      // No API key — show manual input
+      prog.style.width='0';
+      preview.querySelector('.cam-preview-lbl').textContent='请先设置 API Key';
+      setTimeout(openApiKeySetup,800);
+      return;
+    }
+
+    try{
+      const base64=e.target.result.split(',')[1];
+      const mime=file.type||'image/jpeg';
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
+          'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,
+          messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:mime,data:base64}},
+            {type:'text',text:`这是一张咖啡相关照片（可能是咖啡杯、豆袋包装、菜单黑板或收据）。请识别并只返回JSON，不确定的字段留空字符串：
+{"name":"咖啡品名或豆子名称","shop":"店铺名","price":"价格数字","method":"冲煮方式","origin":"产区","process":"处理法","variety":"品种"}`}
+          ]}]})});
+      const d=await r.json();
+      const txt=d.content?.[0]?.text||'{}';
+      let ex={};
+      try{ex=JSON.parse(txt.match(/\{[\s\S]*?\}/)?.[0]||'{}');}catch(_){}
+
+      prog.style.width='100%';
+      preview.querySelector('.cam-preview-lbl').textContent='识别完成';
+
+      const name=ex.name||'';const shop=ex.shop||'';
+      if(name||shop){
+        scanData={name,shop,price:ex.price||'',method:ex.method||'',
+          origin:ex.origin||'',process:ex.process||'',variety:ex.variety||''};
+        const fields=[
+          name&&['品名',name],shop&&['店铺',shop],
+          ex.price&&['价格','¥'+ex.price],ex.method&&['冲煮',ex.method],
+          ex.origin&&['产区',ex.origin],ex.process&&['处理法',ex.process],
+          ex.variety&&['品种',ex.variety]
+        ].filter(Boolean);
+        document.getElementById('sr-fields').innerHTML=fields.map(([k,v])=>
+          `<span class="sr-key">${k}</span><span class="sr-val">${v}</span>`).join('');
+        document.getElementById('scan-res').style.display='block';
+        document.getElementById('manual-name-block').style.display='none';
+        if(name) document.getElementById('r-name').value=name;
+      } else {
+        preview.querySelector('.cam-preview-lbl').textContent='未能识别，请手动填写';
+        document.getElementById('manual-name-block').style.display='block';
+      }
+      document.getElementById('r-feel').focus();
+    }catch(err){
+      preview.querySelector('.cam-preview-lbl').textContent='识别失败，请手动填写';
+      document.getElementById('manual-name-block').style.display='block';
+      document.getElementById('scan-zone').style.display='block';
+      prog.style.width='0';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
 function resetScan(){
   scanData=null;
   document.getElementById('scan-res').style.display='none';
+  document.getElementById('cam-preview').style.display='none';
   document.getElementById('scan-zone').style.display='block';
   document.getElementById('manual-name-block').style.display='block';
   document.getElementById('scan-prog').style.width='0';
+  document.getElementById('camera-input').value='';
 }
 
 // ── SAVE ──
@@ -1501,6 +1623,13 @@ function renderMy(){
           <span class="wi-share" onclick="openShare(${r.id})">分享这一刻 →</span>
         </div>
       </div>`).join('');
+  }
+
+  // Prescription (≥5 records)
+  if(recs.length>=5){
+    document.getElementById('rx-lbl').style.display='block';
+    document.getElementById('rx-wrap').style.display='block';
+    loadPrescription(false);
   }
 
   // Profile + code
@@ -1968,6 +2097,84 @@ window.addEventListener('appinstalled',()=>{
   if(el) el.style.display='none';
   deferredPrompt=null;
 });
+
+// ── PRESCRIPTION ──
+async function loadPrescription(force){
+  const cached=localStorage.getItem('cf6_rx');
+  const cachedTs=+(localStorage.getItem('cf6_rx_ts')||0);
+  const cachedCount=+(localStorage.getItem('cf6_rx_count')||0);
+  // Use cache if same record count and within 48h
+  if(!force&&cached&&cachedCount===recs.length&&Date.now()-cachedTs<48*3600000){
+    showPrescription(JSON.parse(cached));return;
+  }
+  const rxContent=document.getElementById('rx-content');
+  rxContent.innerHTML='<div style="font-size:12px;color:var(--i3);padding:20px 0;text-align:center;letter-spacing:.04em">正在分析你的口味档案…</div>';
+  document.getElementById('rx-refresh').style.display='none';
+  if(!getApiKey()){rxContent.innerHTML='<div style="font-size:12px;color:var(--i3);padding:12px 0">请先设置 API Key</div>';return;}
+  const summary=recs.slice(0,20).map(r=>`${r.name}${r.feel?`（${r.feel.slice(0,25)}）`:''}${r.wow?'✦':''} ${r.repurchase==='yes'?'↻':''}`).join('\n');
+  const wowNames=recs.filter(r=>r.wow).map(r=>r.name).join('、')||'暂无';
+  const sys=`你是一位精通精品咖啡的烘焙师，根据用户的咖啡记录为他生成个性化调配处方。只返回JSON，不要其他文字：
+{"title":"处方名（诗意，结合风味偏好，≤8字）","origin":"推荐产区1-2个","process":"推荐处理法","roast":"烘焙度","brew":"冲煮方式和关键参数（≤20字）","target":"目标风味（≤25字，口语化）","note":"给咖啡师的一句话（≤30字）"}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
+        'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:sys,
+        messages:[{role:'user',content:`记录${recs.length}杯，惊艳时刻：${wowNames}\n\n最近记录：\n${summary}`}]})});
+    const d=await r.json();
+    const txt=d.content?.[0]?.text||'{}';
+    let rx={};
+    try{rx=JSON.parse(txt.match(/\{[\s\S]*?\}/)?.[0]||'{}');}catch(_){}
+    if(rx.title){
+      localStorage.setItem('cf6_rx',JSON.stringify(rx));
+      localStorage.setItem('cf6_rx_ts',String(Date.now()));
+      localStorage.setItem('cf6_rx_count',String(recs.length));
+      showPrescription(rx);
+    } else {
+      rxContent.innerHTML='<div style="font-size:12px;color:var(--i3);padding:12px 0">生成失败，请稍后重试</div>';
+      document.getElementById('rx-refresh').style.display='block';
+    }
+  }catch(e){
+    rxContent.innerHTML='<div style="font-size:12px;color:var(--i3);padding:12px 0">网络错误，请重试</div>';
+    document.getElementById('rx-refresh').style.display='block';
+  }
+}
+
+function showPrescription(rx){
+  const code=document.getElementById('fc-code')?.textContent||'';
+  document.getElementById('rx-content').innerHTML=`
+    <div class="rx-card" onclick="copyPrescription()">
+      <div class="rx-header">
+        <div class="rx-title">${rx.title}</div>
+        <div class="rx-hcode">${code}</div>
+      </div>
+      <div class="rx-grid">
+        <div class="rx-row"><span class="rx-k">产区</span><span class="rx-v">${rx.origin||'—'}</span></div>
+        <div class="rx-row"><span class="rx-k">处理法</span><span class="rx-v">${rx.process||'—'}</span></div>
+        <div class="rx-row"><span class="rx-k">烘焙度</span><span class="rx-v">${rx.roast||'—'}</span></div>
+        <div class="rx-row"><span class="rx-k">冲煮</span><span class="rx-v">${rx.brew||'—'}</span></div>
+      </div>
+      <div class="rx-target">${rx.target||''}</div>
+      <div class="rx-note">给咖啡师：${rx.note||''}</div>
+      <div class="rx-copy" id="rx-copy-hint">点击复制 · 出示给门店</div>
+    </div>`;
+  document.getElementById('rx-refresh').style.display='block';
+}
+
+function copyPrescription(){
+  const rx=JSON.parse(localStorage.getItem('cf6_rx')||'{}');
+  const code=document.getElementById('fc-code')?.textContent||'';
+  const text=`☕ 咖啡伴侣 · 调配处方\n${rx.title||''}\n特征码：${code}\n\n产区：${rx.origin||''}\n处理法：${rx.process||''}\n烘焙度：${rx.roast||''}\n冲煮：${rx.brew||''}\n\n目标风味：${rx.target||''}\n\n给咖啡师：${rx.note||''}`;
+  navigator.clipboard?.writeText(text).then(()=>{
+    const hint=document.getElementById('rx-copy-hint');
+    if(hint){hint.textContent='已复制 ✓';setTimeout(()=>{hint.textContent='点击复制 · 出示给门店';},2000);}
+  }).catch(()=>{});
+}
+
+function refreshPrescription(){
+  localStorage.removeItem('cf6_rx');
+  loadPrescription(true);
+}
 </script>
 </body>
 </html>
