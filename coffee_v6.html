@@ -11,6 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230C0805'/><text y='.9em' font-size='80' x='10'>☕</text></svg>">
 <title>咖啡伴侣</title>
+<script src="https://webapi.amap.com/maps?v=2.0&key=5e88e88c37d7d93b208fffe5d3d0922f&plugin=AMap.PlaceSearch,AMap.Geolocation"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Noto+Serif+SC:wght@300;400;500&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -1768,44 +1769,43 @@ function initTheme(){
 }
 
 // ── SHOP ──
-const AMAP_REST_KEY = '1530583408549c443822965f3610fae9';
 let _amapPois = [];
 
-function distStr(m){return m>=1000?(m/1000).toFixed(1)+'km':Math.round(m)+'m';}
+function distStr(m){return +m>=1000?(+m/1000).toFixed(1)+'km':Math.round(+m)+'m';}
 
-function getLocation(){
+function amapLocate(){
   return new Promise((resolve,reject)=>{
-    if(!navigator.geolocation){reject(new Error('浏览器不支持定位'));return;}
-    navigator.geolocation.getCurrentPosition(
-      p=>resolve({lng:p.coords.longitude,lat:p.coords.latitude}),
-      ()=>reject(new Error('定位失败，请允许浏览器位置权限后重试')),
-      {timeout:10000,maximumAge:60000}
-    );
+    const geo=new AMap.Geolocation({enableHighAccuracy:true,timeout:8000,
+      GeoLocationFirst:true,needAddress:false,buttonOffset:new AMap.Pixel(10,20)});
+    geo.getCurrentPosition((status,r)=>{
+      if(status==='complete') resolve({lng:r.position.getLng(),lat:r.position.getLat()});
+      else reject(new Error(r.message||'定位失败，将使用IP定位'));
+    });
   });
 }
 
-// WGS84→GCJ02
-function toGcj02(lng,lat){
-  const a=6378245,ee=0.00669342162296594323;
-  if(lng<72||lng>137.9||lat<0.8||lat>55.9)return{lng,lat};
-  const x=lng-105,y=lat-35;
-  let dLat=-100+2*x+3*y+.2*y*y+.1*x*y+.2*Math.sqrt(Math.abs(x));
-  dLat+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;
-  dLat+=(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3;
-  dLat+=(160*Math.sin(y/12*Math.PI)+320*Math.sin(y/30*Math.PI))*2/3;
-  let dLng=300+x+2*y+.1*x*x+.1*x*y+.1*Math.sqrt(Math.abs(x));
-  dLng+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;
-  dLng+=(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3;
-  dLng+=(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3;
-  const rl=lat/180*Math.PI,s=Math.sin(rl),m=1-ee*s*s,sq=Math.sqrt(m);
-  return{lat:lat+dLat*180/((a*(1-ee))/(m*sq)*Math.PI),lng:lng+dLng*180/(a/sq*Math.cos(rl)*Math.PI)};
+function amapIpLocate(){
+  return new Promise((resolve,reject)=>{
+    AMap.plugin('AMap.CitySearch',()=>{
+      new AMap.CitySearch().getLocalCity((s,r)=>{
+        if(s==='complete'&&r.rectangle){
+          const b=r.rectangle.split(';');
+          const c0=b[0].split(','),c1=b[1].split(',');
+          resolve({lng:(+c0[0]+ +c1[0])/2,lat:(+c0[1]+ +c1[1])/2});
+        } else reject(new Error('IP定位也失败了'));
+      });
+    });
+  });
 }
 
-async function fetchNearby(lng,lat){
-  const r=await fetch(`https://restapi.amap.com/v3/place/around?key=${AMAP_REST_KEY}&location=${lng},${lat}&keywords=咖啡&types=050500&radius=3000&offset=20&extensions=all`);
-  const d=await r.json();
-  if(d.status!=='1'||!d.pois?.length)throw new Error('附近3公里内暂无咖啡馆');
-  return d.pois;
+function amapSearch(lng,lat){
+  return new Promise((resolve,reject)=>{
+    const ps=new AMap.PlaceSearch({type:'050500',pageSize:20,extensions:'all'});
+    ps.searchNearBy('咖啡',[lng,lat],3000,(status,result)=>{
+      if(status==='complete'&&result.poiList?.pois?.length) resolve(result.poiList.pois);
+      else reject(new Error('附近3公里内暂无咖啡馆'));
+    });
+  });
 }
 
 async function renderShopScreen(){
@@ -1823,14 +1823,16 @@ async function renderShopScreen(){
   wrap.innerHTML=`<div style="padding:48px 20px;text-align:center;color:var(--i3);font-size:13px">
     <div style="font-size:28px;margin-bottom:10px;opacity:.5">📍</div>获取位置中…</div>`;
   try{
-    const wgs=await getLocation();
-    const {lng,lat}=toGcj02(wgs.lng,wgs.lat);
-    const pois=await fetchNearby(lng,lat);
+    let pos;
+    try{ pos=await amapLocate(); }
+    catch(e){ pos=await amapIpLocate(); }
+    const {lng,lat}=pos;
+    const pois=await amapSearch(lng,lat);
     _amapPois=pois;
     wrap.innerHTML=pois.map((s,i)=>{
-      const rating=s.biz_ext?.rating||'';
-      const cost=s.biz_ext?.cost?`¥${s.biz_ext.cost}/人`:'';
-      const dist=s.distance?distStr(+s.distance):'';
+      const rating=s.rating||'';
+      const cost=s.price?`¥${s.price}/人`:'';
+      const dist=s.distance?distStr(s.distance):'';
       const tags=(s.type||'').split(';').filter(Boolean).slice(-2);
       return `<div class="shop-card-outer" onclick="openShopDetailAmap(${i})">
         <div class="sco-top">
@@ -1861,9 +1863,9 @@ function openShopDetailAmap(idx){
   document.getElementById('sd-meta').textContent=(s.address||'')+(s.distance?` · 距你${distStr(+s.distance)}`:'');
   const tags=(s.type||'').split(';').filter(Boolean).slice(-2);
   document.getElementById('sd-tags').innerHTML=tags.map(t=>`<span class="sd-tag">${t}</span>`).join('');
-  const rating=s.biz_ext?.rating||''; const cost=s.biz_ext?.cost||''; const tel=s.tel||''; const hours=s.opentime_week||'';
-  const photoArr=Array.isArray(s.photos)?s.photos:[];
-  const photos=photoArr.length?`<div class="sd-sec"><h3>店内照片</h3><div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px">${photoArr.slice(0,4).map(p=>`<img src="${p.url||p}" style="width:120px;height:90px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">`).join('')}</div></div>`:'';
+  const rating=s.rating||''; const cost=s.price||''; const tel=(Array.isArray(s.tel)?s.tel[0]:s.tel)||''; const hours=s.opentime||'';
+  const photoArr=Array.isArray(s.photos)?s.photos:(s.photos?[s.photos]:[]);
+  const photos=photoArr.length?`<div class="sd-sec"><h3>店内照片</h3><div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px">${photoArr.slice(0,4).map(p=>`<img src="${typeof p==='string'?p:p.url}" style="width:120px;height:90px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">`).join('')}</div></div>`:'';
   document.getElementById('sd-body').innerHTML=`
     <div class="sd-sec"><h3>基本信息</h3><div class="ig">
       ${rating?`<div class="ic"><label>评分</label><p>★ ${rating}</p></div>`:''}
@@ -1873,7 +1875,7 @@ function openShopDetailAmap(idx){
     </div></div>
     <div class="sd-sec"><h3>地址</h3><div class="dd">${s.address||s.adname||'暂无地址'}</div></div>
     ${photos}
-    <button class="buy-btn" onclick="window.open('https://uri.amap.com/navigation?to=${s.location},${encodeURIComponent(s.name)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>
+    <button class="buy-btn" onclick="window.open('https://uri.amap.com/navigation?to=${s.location?.getLng?.()??s.location},${s.location?.getLat?.()??''},${encodeURIComponent(s.name)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>
   `;
   const ov=document.getElementById('shop-detail-overlay');
   ov.style.display='flex'; setTimeout(()=>ov.classList.add('on'),10);
