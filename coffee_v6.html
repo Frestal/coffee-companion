@@ -11,7 +11,6 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230C0805'/><text y='.9em' font-size='80' x='10'>☕</text></svg>">
 <title>咖啡伴侣</title>
-<script src="https://webapi.amap.com/maps?v=1.4.15&key=5e88e88c37d7d93b208fffe5d3d0922f&plugin=AMap.PlaceSearch,AMap.Geolocation,AMap.CitySearch"></script>
 <link href="https://fonts.loli.net/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Noto+Serif+SC:wght@300;400;500&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -1879,52 +1878,41 @@ let _amapPois = [];
 
 function distStr(m){return +m>=1000?(+m/1000).toFixed(1)+'km':Math.round(+m)+'m';}
 
-// 三级定位降级：原生GPS → AMap.Geolocation（含IP回落）→ CitySearch IP
+const AMAP_KEY='1530583408549c443822965f3610fae9';
+
 function getLocation(){
   return new Promise((resolve,reject)=>{
-    function tryAmapGeo(){
-      try{
-        const geo=new AMap.Geolocation({enableHighAccuracy:true,timeout:6000,
-          GeoLocationFirst:false,needAddress:false});
-        geo.getCurrentPosition((status,r)=>{
-          if(status==='complete') resolve({lng:r.position.getLng(),lat:r.position.getLat()});
-          else tryIp();
-        });
-      }catch(e){tryIp();}
-    }
-    function tryIp(){
-      AMap.plugin('AMap.CitySearch',()=>{
-        new AMap.CitySearch().getLocalCity((s,r)=>{
-          if(s==='complete'&&r.rectangle){
-            const b=r.rectangle.split(';');
+    function ipFallback(){
+      fetch(`https://restapi.amap.com/v3/ip?key=${AMAP_KEY}`)
+        .then(r=>r.json())
+        .then(d=>{
+          if(d.status==='1'&&d.rectangle){
+            const b=d.rectangle.split(';');
             const c0=b[0].split(','),c1=b[1].split(',');
             resolve({lng:(+c0[0]+ +c1[0])/2,lat:(+c0[1]+ +c1[1])/2,isIp:true});
-          } else reject(new Error('无法获取位置，请检查浏览器定位权限'));
-        });
-      });
+          } else reject(new Error('无法获取位置，请允许浏览器定位权限'));
+        })
+        .catch(()=>reject(new Error('无法获取位置，请检查网络')));
     }
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(
         pos=>resolve({lng:pos.coords.longitude,lat:pos.coords.latitude}),
-        ()=>tryAmapGeo(),
+        ()=>ipFallback(),
         {enableHighAccuracy:true,timeout:8000,maximumAge:60000}
       );
-    } else tryAmapGeo();
+    } else ipFallback();
   });
 }
 
 function amapSearch(lng,lat,radius){
-  return new Promise((resolve,reject)=>{
-    const r=radius||3000;
-    AMap.plugin('AMap.PlaceSearch',()=>{
-      const ps=new AMap.PlaceSearch({pageSize:20,extensions:'all'});
-      ps.searchNearBy('咖啡',[lng,lat],r,(status,result)=>{
-        if(status==='complete'&&result.poiList?.pois?.length) resolve(result.poiList.pois);
-        else if(r<10000) amapSearch(lng,lat,Math.min(r*2,10000)).then(resolve).catch(reject);
-        else reject(new Error('附近未找到咖啡馆（'+status+'·'+(result?.info||'')+'）'));
-      });
+  const r=radius||3000;
+  return fetch(`https://restapi.amap.com/v3/place/around?key=${AMAP_KEY}&location=${lng},${lat}&keywords=咖啡&radius=${r}&offset=20&extensions=all&output=json`)
+    .then(res=>res.json())
+    .then(d=>{
+      if(d.status==='1'&&d.pois?.length) return d.pois;
+      if(r<10000) return amapSearch(lng,lat,Math.min(r*2,10000));
+      throw new Error('附近未找到咖啡馆，换个位置试试');
     });
-  });
 }
 
 // 品牌名归一化：去掉括号内容和末尾店名后缀
