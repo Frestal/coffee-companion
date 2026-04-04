@@ -1856,20 +1856,27 @@ async function getRouteCard(rec){
       const score=calcMatchScore(user,profile,s);
       return{s,profile,score,openStatus:isShopOpen(s)};
     }).filter(i=>i.openStatus!==false)
-      .sort((a,b)=>b.score.total-a.score.total).slice(0,6);
+      .sort((a,b)=>{
+        // 路条候选排序：质量×权重 为主，距离为辅（每1km扣0.15分）
+        const distA=Math.min(0.25,(parseFloat(a.s.distance)||5000)/5000*0.25);
+        const distB=Math.min(0.25,(parseFloat(b.s.distance)||5000)/5000*0.25);
+        const qa=a.profile.specialty*a.profile.weight-distA;
+        const qb=b.profile.specialty*b.profile.weight-distB;
+        return qb-qa;
+      }).slice(0,6);
     routePois=open.map(i=>i.s);
     if(open.length){
       hasShops=true;
       shopLines=open.map(i=>{
         const brand=BRAND_KB.find(b=>b.aliases.some(a=>normBrand(i.s.name).toLowerCase().includes(a)));
         const brandNote=brand?`精品度${Math.round(brand.specialty*100)}%，${brand.note.slice(0,28)}`:shopTrait(i.profile);
-        return`- ${normBrand(i.s.name)}（${distStr(i.s.distance)}，${brandNote}）`;
+        return`- ${normBrand(i.s.name)}（${distStr(i.s.distance)}，精品度${Math.round(i.profile.specialty*100)}%，${brandNote}）`;
       }).join('\n');
     }
   }catch(e){console.log('[route] shops skipped:',e.message);}
 
   const shopInstruction=hasShops
-    ?`2. shop：从上面列表中选最适合他的一家（完整原样输出店名）`
+    ?`2. shop：从上面列表中选最适合他的一家（完整原样输出店名）。优先选精品度≥60%的门店；只有在距离差异悬殊（近1km以上）且用户感受偏向大众时才考虑低精品度连锁。`
     :`2. shop：输出空字符串""`;
 
   const user=getUserProfile();
