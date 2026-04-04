@@ -499,35 +499,49 @@ textarea.fi{resize:none;line-height:1.65}
   font-size:12px;color:var(--a);cursor:pointer;font-family:'Noto Serif SC',serif;transition:all .15s}
 .csc-btn:active{background:var(--a3)}
 
-.shop-card-outer{margin:0 14px 10px;background:var(--s1);border:1px solid var(--b1);
+/* ── 探店卡片 ── */
+/* Hero card — For You 精准推荐 */
+.sco-hero{margin:0 14px 12px;background:var(--s1);border:1px solid var(--b2);
+  border-top:2px solid var(--a);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .2s}
+.sco-hero:active{border-color:var(--a)}
+.sco-hero-label{font-size:9px;color:var(--a);letter-spacing:.12em;text-transform:uppercase;padding:11px 15px 0}
+.sco-hero-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
+  color:var(--ink);padding:3px 15px 0;line-height:1.2}
+.sco-hero-reason{font-size:12px;color:var(--i2);font-style:italic;
+  font-family:'Cormorant Garamond',serif;padding:4px 15px 0;line-height:1.5}
+.sco-hero-foot{display:flex;justify-content:space-between;align-items:center;padding:9px 15px 13px}
+/* Regular card */
+.shop-card-outer{margin:0 14px 8px;background:var(--s1);border:1px solid var(--b1);
   border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .2s}
 .shop-card-outer:active{border-color:var(--b2)}
-.sco-top{padding:14px 15px 10px;display:flex;justify-content:space-between;align-items:flex-start}
+.sco-top{padding:13px 15px 11px;display:flex;justify-content:space-between;align-items:flex-start}
 .sco-left{flex:1;min-width:0}
-.sco-name{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.tag-new{font-size:10px;padding:1px 7px;border-radius:2px;background:rgba(78,138,98,.15);
-  border:1px solid rgba(78,138,98,.3);color:var(--gn);letter-spacing:.05em}
-.tag-foryou{font-size:10px;padding:1px 7px;border-radius:2px;background:var(--a3);
-  border:1px solid var(--b2);color:var(--a);letter-spacing:.04em}
-.sco-addr{font-size:11px;color:var(--i3);margin-bottom:5px}
-.sco-chips{display:flex;flex-wrap:wrap;gap:5px}
-.sco-chip{font-size:10px;padding:2px 8px;border:1px solid var(--b1);border-radius:10px;color:var(--i2)}
-.sco-right{text-align:right;flex-shrink:0;margin-left:10px}
-.sco-rating{font-size:13px;color:var(--a);letter-spacing:.5px}
-.sco-dist{font-size:10px;color:var(--i3);margin-top:2px}
-.sco-chain-badge{font-size:10px;padding:1px 6px;border-radius:2px;background:var(--a3);color:var(--a);border:1px solid rgba(200,152,104,.25);font-weight:400}
+.sco-name{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sco-reason{font-size:11px;color:var(--i3);font-style:italic;line-height:1.4}
+.sco-right{text-align:right;flex-shrink:0;margin-left:10px;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.sco-open{font-size:10px;color:var(--gn);letter-spacing:.02em}
+.sco-closed-lbl{font-size:10px;color:var(--i3)}
+.sco-dist{font-size:10px;color:var(--i3)}
+.sco-dimmed{opacity:.38;pointer-events:none}
+.sco-chain-badge{font-size:10px;padding:1px 6px;border-radius:2px;background:var(--a3);
+  color:var(--a);border:1px solid rgba(200,152,104,.25);font-weight:400}
 .sco-branches{border-top:1px solid var(--b1);padding:6px 15px 10px;display:flex;flex-direction:column;gap:6px}
-.sco-branch{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:5px 8px;border-radius:4px;background:var(--b1)}
+.sco-branch{display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+  padding:5px 8px;border-radius:4px;background:var(--b1)}
 .sco-branch:active{background:var(--b2)}
 .sco-branch-name{font-size:12px;color:var(--i2)}
 .sco-branch-dist{font-size:11px;color:var(--i3);flex-shrink:0;margin-left:8px}
-/* New products bar */
-.sco-new-bar{border-top:1px solid var(--b1);padding:10px 15px;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none}
-.sco-new-bar::-webkit-scrollbar{display:none}
-.new-item{flex-shrink:0;background:var(--s2);border-radius:var(--r);padding:8px 12px;min-width:130px}
-.ni-name{font-size:12px;color:var(--ink);margin-bottom:3px;display:flex;align-items:center;gap:5px}
-.ni-price{font-size:11px;color:var(--i2)}
-.ni-foryou{font-size:10px;color:var(--a);margin-top:2px;font-style:italic}
+/* 探店详情 — 用户沟通桥 */
+.sd-bridge{margin-top:18px;padding-top:14px;border-top:1px solid var(--b1)}
+.sd-bridge-title{font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--i3);margin-bottom:10px}
+.sd-bridge-voice{font-size:13px;color:var(--ink);line-height:1.65;margin-bottom:12px;
+  font-family:'Cormorant Garamond',serif;font-style:italic}
+.sd-bridge-code{font-family:'DM Mono',monospace;font-size:13px;color:var(--a);
+  letter-spacing:.05em;padding:8px 12px;background:var(--s2);border-radius:4px;
+  cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.sd-bridge-hint{font-size:10px;color:var(--i3);margin-top:5px}
 
 /* Shop detail sheet */
 .shop-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);
@@ -2019,49 +2033,159 @@ function groupPois(pois){
     .sort((a,b)=>(+a[0].distance||9e9)-(+b[0].distance||9e9));
 }
 
-function renderPoiGroups(groups){
-  return groups.map(group=>{
-    const s=group[0];
-    const rating=s.rating||'';
-    const cost=s.price?`¥${s.price}/人`:'';
-    const dist=s.distance?distStr(s.distance):'';
-    const tags=(s.type||'').split(';').filter(Boolean).slice(-2);
-    const forYou=recs.length>=3?'<span class="tag-foryou">For you</span>':'';
-    if(group.length===1){
-      return `<div class="shop-card-outer" onclick="openShopDetailAmap(${s._idx})">
-        <div class="sco-top">
-          <div class="sco-left">
-            <div class="sco-name">${s.name}${forYou}</div>
-            <div class="sco-addr">${s.address||s.adname||''}</div>
-            <div class="sco-chips">${tags.map(t=>`<span class="sco-chip">${t}</span>`).join('')}${cost?`<span class="sco-chip">${cost}</span>`:''}</div>
-          </div>
-          <div class="sco-right">
-            <div class="sco-rating">${rating?'★ '+rating:''}</div>
-            <div class="sco-dist">${dist}</div>
-          </div>
-        </div>
-      </div>`;
-    }
-    const brand=normBrand(s.name);
-    return `<div class="shop-card-outer">
-      <div class="sco-top">
-        <div class="sco-left">
-          <div class="sco-name">${brand}${forYou}<span class="sco-chain-badge">${group.length}家门店</span></div>
-          <div class="sco-chips">${tags.map(t=>`<span class="sco-chip">${t}</span>`).join('')}${cost?`<span class="sco-chip">${cost}</span>`:''}</div>
-        </div>
-        <div class="sco-right">
-          <div class="sco-rating">${rating?'★ '+rating:''}</div>
-          <div class="sco-dist">${dist}起</div>
-        </div>
-      </div>
-      <div class="sco-branches">${group.map(b=>`
-        <div class="sco-branch" onclick="openShopDetailAmap(${b._idx})">
-          <span class="sco-branch-name">${b.address||b.name}</span>
-          <span class="sco-branch-dist">${b.distance?distStr(b.distance):''}</span>
-        </div>`).join('')}
-      </div>
+// ── BRAND KNOWLEDGE BASE (v1 · 2026-04) ──
+const BRAND_KB=[
+  {aliases:['%arabica','arabica'],acidity:[.70,.88],body:[.18,.42],specialty:.92,weight:1,note:'日系极简，浅烘明亮，单一产区'},
+  {aliases:['blue bottle','bluebottle','蓝瓶'],acidity:[.60,.82],body:[.25,.52],specialty:.90,weight:1,note:'美系精品，48h新鲜，干净明亮'},
+  {aliases:['seesaw'],acidity:[.65,.85],body:[.22,.48],specialty:.80,weight:.65,note:'国内精品先驱，2025年收缩降权'},
+  {aliases:['metal hands','铁手'],acidity:[.40,.62],body:[.28,.48],specialty:.85,weight:1,note:'北京精品，自烘焙，亚洲Top50'},
+  {aliases:['greybox','灰盒子'],acidity:[.62,.82],body:[.38,.58],specialty:.85,weight:1,note:'SCA 80+，极严萃取'},
+  {aliases:["peet's",'peets','皮爷'],acidity:[.25,.52],body:[.58,.80],specialty:.58,weight:1,note:'美系传统，坚果焦糖，21-28天新鲜'},
+  {aliases:['manner'],acidity:[.22,.68],body:[.58,.82],specialty:.65,weight:1,note:'平价精品，产品线宽，提供产区信息'},
+  {aliases:['m stand','mstand'],acidity:[.18,.42],body:[.55,.72],specialty:.52,weight:1,note:'空间溢价，创意特调为主'},
+  {aliases:['starbucks','星巴克'],acidity:[.18,.45],body:[.55,.75],specialty:.28,weight:1,note:'深烘标准化，大众连锁'},
+  {aliases:['luckin','瑞幸'],acidity:[.28,.52],body:[.42,.65],specialty:.18,weight:1,note:'大众连锁，价格战主力'},
+  {aliases:['nowwa','挪瓦'],acidity:[.22,.48],body:[.42,.62],specialty:.20,weight:1,note:'大众连锁，性价比'},
+  {aliases:['costa'],acidity:[.22,.48],body:[.55,.75],specialty:.30,weight:.85,note:'英系，中国市场收缩中'},
+  {aliases:['tim hortons','tims','天好'],acidity:[.22,.45],body:[.55,.72],specialty:.30,weight:1,note:'加拿大连锁，大众定位'},
+];
+
+function inferShopProfile(poi){
+  const n=(poi.name||'').toLowerCase();
+  const brand=BRAND_KB.find(b=>b.aliases.some(a=>n.includes(a)));
+  if(brand)return{...brand,source:'brand'};
+  // 关键词推断兜底
+  const all=n+' '+(poi.tag||'').toLowerCase();
+  const cost=parseFloat(poi.price)||0;
+  const isSpec=/精品|单品|specialty|手冲|soe/i.test(all);
+  const isPour=/手冲|pour|v60|chemex/i.test(all);
+  const hasAcid=/明亮|花香|果香|埃塞|肯尼亚|耶加/i.test(all);
+  const hasBody=/醇厚|浓郁|深烘|曼特宁/i.test(all);
+  const specialty=Math.min(.88,(isSpec?.16:0)+(isPour?.12:0)+(cost>60?.20:cost>40?.12:cost>25?.06:0)+.44);
+  return{
+    aliases:[],source:'inferred',specialty,weight:1,
+    acidity:hasAcid?[.55,.82]:hasBody?[.20,.48]:[.35,.65],
+    body:hasBody?[.52,.78]:hasAcid?[.22,.50]:[.35,.62],
+  };
+}
+
+function getUserProfile(){
+  if(!recs.length)return null;
+  const vecs=recs.map(r=>extractSensoryVector(r.feel,r.scanData,r.id));
+  const avgA=vecs.reduce((s,v)=>s+v.acidity,0)/vecs.length;
+  const avgB=vecs.reduce((s,v)=>s+v.body,0)/vecs.length;
+  const wowRate=recs.filter(r=>r.wow).length/recs.length;
+  const uniq=new Set(recs.map(r=>r.name)).size;
+  const visitedShops=new Set(recs.map(r=>r.scanData?.shop).filter(Boolean));
+  return{avgA,avgB,wowRate,exploreRate:uniq/recs.length,visitedShops,count:recs.length};
+}
+
+function calcMatchScore(user,profile,poi){
+  if(!user||user.count<3)return{total:.50,flavor:.50,forYou:false};
+  const clamp=(v,lo,hi)=>Math.max(0,1-Math.max(0,v<lo?lo-v:v>hi?v-hi:0)*4);
+  const flavor=clamp(user.avgA,profile.acidity[0],profile.acidity[1])*.6
+              +clamp(user.avgB,profile.body[0],profile.body[1])*.4;
+  const specAff=user.wowRate>.25?profile.specialty:.5+profile.specialty*.3;
+  const nm=(poi.name||'').slice(0,8);
+  const visited=[...user.visitedShops].some(s=>nm.includes(s.slice(0,5))||s.includes(nm.slice(0,5)));
+  const novelty=visited?.35:1;
+  const recent=recs.some(r=>{
+    const rs=r.scanData?.shop||'';
+    return rs&&nm.includes(rs.slice(0,5))&&Date.now()-r.ts<7*24*3600000;
+  });
+  const dist=parseFloat(poi.distance)||5000;
+  const distScore=Math.max(0,1-dist/2500);
+  const raw=(flavor*.40+specAff*.20+novelty*.25+distScore*.15)*profile.weight*(recent?.7:1);
+  const total=Math.min(1,Math.max(0,raw));
+  return{total,flavor,forYou:total>.72&&flavor>.65&&user.count>=3};
+}
+
+function isShopOpen(poi){
+  const raw=poi.opentime_week||poi.opentime||'';
+  if(!raw)return null;
+  const now=new Date();
+  const cur=now.getHours()*60+now.getMinutes();
+  const m=raw.match(/(\d{1,2})[:\uff1a](\d{2})\s*[-~～至]\s*(\d{1,2})[:\uff1a](\d{2})/);
+  if(!m)return null;
+  const open=parseInt(m[1])*60+parseInt(m[2]);
+  let close=parseInt(m[3])*60+parseInt(m[4]);
+  if(close<open)close+=1440;
+  return cur>=open&&cur<=close;
+}
+
+function getMatchReason(user,profile,score){
+  if(!user||user.count<3)return'附近的咖啡馆';
+  const{avgA,avgB,wowRate,exploreRate,visitedShops}=user;
+  const nm=profile._name||'';
+  const visited=[...visitedShops].some(s=>nm.includes(s.slice(0,5)));
+  if(score.forYou){
+    if(avgA>.65&&profile.acidity[0]>.55)return'明亮果酸，和你的口味很搭';
+    if(avgB>.60&&profile.body[0]>.52)return'醇厚风格，符合你的口味重心';
+    if(wowRate>.3&&profile.specialty>.80)return'精品豆为主，容易遇到惊艳时刻';
+    return'综合来看，这里和你的口味最近';
+  }
+  if(!visited&&exploreRate>.6)return'你还没来过，也许值得探索';
+  if(profile.specialty>.82)return'精品单品为主';
+  if(avgA>.6&&profile.acidity[1]>.65)return'有你喜欢的明亮风格';
+  if(avgB>.6&&profile.body[1]>.65)return'有你喜欢的醇厚选择';
+  return'附近的咖啡馆';
+}
+
+function renderShopCard({group,s,profile,openStatus,score,isForYou},user){
+  const name=normBrand(s.name);
+  const dist=s.distance?distStr(s.distance):'';
+  const isClosed=openStatus===false;
+  const openEl=openStatus===true?'<span class="sco-open">营业中</span>':
+                openStatus===false?'<span class="sco-closed-lbl">已打烊</span>':'';
+  const reason=getMatchReason(user,{...profile,_name:s.name},score);
+  const dimCls=isClosed?' sco-dimmed':'';
+  const branches=group.length>1?`<div class="sco-branches">${
+    group.map(b=>`<div class="sco-branch" onclick="openShopDetailAmap(${b._idx})">
+      <span class="sco-branch-name">${b.address||b.name}</span>
+      <span class="sco-branch-dist">${b.distance?distStr(b.distance):''}</span>
+    </div>`).join('')}</div>`:'';
+  if(isForYou){
+    return`<div class="sco-hero${dimCls}" onclick="openShopDetailAmap(${s._idx})">
+      <div class="sco-hero-label">For You</div>
+      <div class="sco-hero-name">${name}</div>
+      <div class="sco-hero-reason">${reason}</div>
+      <div class="sco-hero-foot">${openEl}<span class="sco-dist">${dist}</span></div>
+      ${branches}
     </div>`;
-  }).join('');
+  }
+  return`<div class="shop-card-outer${dimCls}" ${group.length===1?`onclick="openShopDetailAmap(${s._idx})"`:''}>
+    <div class="sco-top">
+      <div class="sco-left">
+        <div class="sco-name">${name}${group.length>1?`<span class="sco-chain-badge">${group.length}家</span>`:''}</div>
+        <div class="sco-reason">${reason}</div>
+      </div>
+      <div class="sco-right">${openEl}<div class="sco-dist">${dist}</div></div>
+    </div>
+    ${branches}
+  </div>`;
+}
+
+function renderPoiGroups(groups,user){
+  const scored=groups.map(group=>{
+    const s=group[0];
+    const profile=inferShopProfile(s);
+    const openStatus=isShopOpen(s);
+    const score=calcMatchScore(user,profile,s);
+    return{group,s,profile,openStatus,score};
+  });
+  // 排序：营业中优先，再按匹配分；已打烊沉底
+  scored.sort((a,b)=>{
+    const aOk=a.openStatus!==false,bOk=b.openStatus!==false;
+    if(aOk!==bOk)return aOk?-1:1;
+    return b.score.total-a.score.total;
+  });
+  // For You：最多2家，需营业且过阈值
+  let fyCount=0;
+  scored.forEach(item=>{
+    item.isForYou=item.score.forYou&&fyCount<2&&item.openStatus!==false;
+    if(item.isForYou)fyCount++;
+  });
+  return scored.map(item=>renderShopCard(item,user)).join('');
 }
 
 async function renderShopScreen(){
@@ -2073,8 +2197,9 @@ async function renderShopScreen(){
     codeEl.textContent=fcCode.textContent;
     styleEl.textContent=document.getElementById('pc-style')?.textContent||'';
   }
-  document.getElementById('shop-page-sub').textContent=recs.length>=3?'基于你的特征码，为你推荐':'积累3杯记录后将获得个性化推荐';
+  document.getElementById('shop-page-sub').textContent=recs.length>=3?'为你找到附近相配的咖啡馆':'积累3杯记录后将获得个性化推荐';
 
+  const user=getUserProfile();
   const wrap=document.getElementById('shop-list-wrap');
   wrap.innerHTML=`<div style="padding:48px 20px;text-align:center;color:var(--i3);font-size:13px">
     <div style="font-size:28px;margin-bottom:10px;opacity:.5">📍</div>获取位置中…</div>`;
@@ -2084,7 +2209,7 @@ async function renderShopScreen(){
     const pois=await amapSearch(lng,lat);
     _amapPois=pois;
     const groups=groupPois(pois);
-    wrap.innerHTML=(isIp?`<div style="padding:6px 14px;font-size:11px;color:var(--i3);text-align:center">已使用 IP 定位，结果精度有限</div>`:'')+renderPoiGroups(groups);
+    wrap.innerHTML=(isIp?`<div style="padding:6px 14px;font-size:11px;color:var(--i3);text-align:center">已使用 IP 定位，结果精度有限</div>`:'')+renderPoiGroups(groups,user);
   }catch(e){
     wrap.innerHTML=`<div style="padding:48px 20px;text-align:center">
       <div style="font-size:32px;opacity:.25;margin-bottom:12px">📍</div>
@@ -2103,6 +2228,26 @@ function openShopDetailAmap(idx){
   const rating=s.rating||''; const cost=s.price||''; const tel=(Array.isArray(s.tel)?s.tel[0]:s.tel)||''; const hours=s.opentime||'';
   const photoArr=Array.isArray(s.photos)?s.photos:(s.photos?[s.photos]:[]);
   const photos=photoArr.length?`<div class="sd-sec"><h3>店内照片</h3><div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px">${photoArr.slice(0,4).map(p=>`<img src="${typeof p==='string'?p:p.url}" style="width:120px;height:90px;object-fit:cover;border-radius:6px;flex-shrink:0" loading="lazy">`).join('')}</div></div>`:'';
+  // 用户沟通桥：特征码 + 调配处方 voice
+  const fcCode=document.getElementById('fc-code')?.textContent||'';
+  const rxVoice=(()=>{
+    const el=document.getElementById('rx-content');
+    if(!el)return'';
+    // 提取 voice 字段（调配处方中"我通常追求"那句）
+    const txt=el.textContent||'';
+    const m=txt.match(/我通常追求[^。！\n]{5,60}[。！]?/);
+    return m?m[0]:'';
+  })();
+  const hasBridge=fcCode&&fcCode!=='——';
+  const bridgeHtml=hasBridge?`<div class="sd-bridge">
+    <div class="sd-bridge-title">告诉咖啡师</div>
+    ${rxVoice?`<div class="sd-bridge-voice">${rxVoice}</div>`:''}
+    <div class="sd-bridge-code" id="sd-bridge-code-el">${fcCode}
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(200,152,104,.5)" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </div>
+    <div class="sd-bridge-hint">特征码 · 点击复制，出示给咖啡师</div>
+  </div>`:'';
+
   document.getElementById('sd-body').innerHTML=`
     <div class="sd-sec"><h3>基本信息</h3><div class="ig">
       ${rating?`<div class="ic"><label>评分</label><p>★ ${rating}</p></div>`:''}
@@ -2112,8 +2257,16 @@ function openShopDetailAmap(idx){
     </div></div>
     <div class="sd-sec"><h3>地址</h3><div class="dd">${s.address||s.adname||'暂无地址'}</div></div>
     ${photos}
-    <button class="buy-btn" onclick="window.open('https://uri.amap.com/navigation?to=${s.location?.getLng?.()??s.location},${s.location?.getLat?.()??''},${encodeURIComponent(s.name)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>
+    ${bridgeHtml}
+    <button class="buy-btn" style="margin-top:${hasBridge?'14':'0'}px" onclick="window.open('https://uri.amap.com/navigation?to=${s.location?.getLng?.()??s.location},${s.location?.getLat?.()??''},${encodeURIComponent(s.name)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>
   `;
+  // 特征码复制
+  document.getElementById('sd-bridge-code-el')?.addEventListener('click',function(){
+    navigator.clipboard?.writeText(fcCode).then(()=>{
+      this.style.color='var(--gn)';
+      setTimeout(()=>this.style.color='',1200);
+    });
+  });
   const ov=document.getElementById('shop-detail-overlay');
   ov.style.display='flex'; setTimeout(()=>ov.classList.add('on'),10);
 }
