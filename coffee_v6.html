@@ -527,8 +527,15 @@ textarea.fi{resize:none;line-height:1.65}
 .sco-right{text-align:right;flex-shrink:0;margin-left:10px;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .sco-open{font-size:10px;color:var(--gn);letter-spacing:.02em}
 .sco-closed-lbl{font-size:10px;color:var(--i3)}
+.sco-time{font-size:10px;color:var(--i3)}
 .sco-dist{font-size:10px;color:var(--i3)}
 .sco-dimmed{opacity:.38;pointer-events:none}
+.sco-page-info{text-align:center;font-size:10px;color:var(--i3);padding:6px 0 4px;letter-spacing:.04em}
+.sco-more-btn{display:block;width:calc(100% - 28px);margin:4px 14px 16px;padding:12px;
+  background:transparent;border:1px solid var(--b2);border-radius:var(--r);
+  color:var(--i2);font-size:12px;font-family:inherit;cursor:pointer;
+  letter-spacing:.04em;transition:border-color .2s,color .2s}
+.sco-more-btn:active{border-color:var(--a);color:var(--a)}
 .sco-chain-badge{font-size:10px;padding:1px 6px;border-radius:2px;background:var(--a3);
   color:var(--a);border:1px solid rgba(200,152,104,.25);font-weight:400}
 .sco-branches{border-top:1px solid var(--b1);padding:6px 15px 10px;display:flex;flex-direction:column;gap:6px}
@@ -1977,6 +1984,8 @@ function initTheme(){
 
 // ── SHOP ──
 let _amapPois = [];
+let _shopPool = [], _shopOffset = 0, _shopUser = null;
+const SHOPS_PER_PAGE = 5;
 
 function distStr(m){return +m>=1000?(+m/1000).toFixed(1)+'km':Math.round(+m)+'m';}
 
@@ -2126,21 +2135,37 @@ function isShopOpen(poi){
   return cur>=open&&cur<=close;
 }
 
+function getOpenTimeStr(poi){
+  const raw=poi.biz_opentime||poi.opentime_week||poi.opentime||poi.business_hours||'';
+  if(!raw)return'';
+  if(/全天|24\s*小时|24h/i.test(raw))return'全天';
+  const m=raw.match(/(\d{1,2})[:\uff1a](\d{2})\s*[-~～至\u2014\u2013]\s*(\d{1,2})[:\uff1a](\d{2})/);
+  if(!m)return'';
+  return`${m[1].padStart(2,'0')}:${m[2]}–${m[3].padStart(2,'0')}:${m[4]}`;
+}
+
 function getMatchReason(user,profile,score){
-  if(!user||user.count<3)return'附近的咖啡馆';
-  const{avgA,avgB,wowRate,exploreRate,visitedShops}=user;
+  if(!user||user.count<3)return'附近的精品咖啡馆';
+  const{avgA,avgB,wowRate,exploreRate,visitedShops,count}=user;
   const nm=profile._name||'';
   const visited=[...visitedShops].some(s=>nm.includes(s.slice(0,5)));
+  const wowPct=Math.round(wowRate*100);
   if(score.forYou){
-    if(avgA>.65&&profile.acidity[0]>.55)return'明亮果酸，和你的口味很搭';
-    if(avgB>.60&&profile.body[0]>.52)return'醇厚风格，符合你的口味重心';
-    if(wowRate>.3&&profile.specialty>.80)return'精品豆为主，容易遇到惊艳时刻';
-    return'综合来看，这里和你的口味最近';
+    if(avgA>.68&&profile.acidity[0]>.60&&wowRate>.25)
+      return`你 ${wowPct}% 的惊艳时刻都偏亮酸，这里豆子风格和你对上了`;
+    if(avgA>.65&&profile.acidity[0]>.55)
+      return`你喝了 ${count} 杯，果酸倾向明显，这里的豆子正好在这个区间`;
+    if(avgB>.62&&profile.body[0]>.55)
+      return`你偏醇厚口感，这里的豆子厚度和你的记录匹配`;
+    if(wowRate>.3&&profile.specialty>.80)
+      return`你有 ${wowPct}% 的惊艳记录，精品豆比例高的地方更容易复现`;
+    return`综合你 ${count} 条记录，这里和你现在的口味最近`;
   }
-  if(!visited&&exploreRate>.6)return'你还没来过，也许值得探索';
-  if(profile.specialty>.82)return'精品单品为主';
-  if(avgA>.6&&profile.acidity[1]>.65)return'有你喜欢的明亮风格';
-  if(avgB>.6&&profile.body[1]>.65)return'有你喜欢的醇厚选择';
+  if(!visited&&profile.specialty>.82)return'精品为主，你还没来过';
+  if(visited)return'你来过，也许豆单又换了';
+  if(avgA>.6&&profile.acidity[1]>.65)return'有你偏爱的明亮风格';
+  if(avgB>.6&&profile.body[1]>.65)return'有你偏好的醇厚选择';
+  if(profile.specialty>.75)return'精品豆比例不低';
   return'附近的咖啡馆';
 }
 
@@ -2148,8 +2173,12 @@ function renderShopCard({group,s,profile,openStatus,score,isForYou,isFeatured},u
   const name=normBrand(s.name);
   const dist=s.distance?distStr(s.distance):'';
   const isClosed=openStatus===false;
-  const openEl=openStatus===true?'<span class="sco-open">营业中</span>':
-                openStatus===false?'<span class="sco-closed-lbl">已打烊</span>':'';
+  const timeStr=getOpenTimeStr(s);
+  const openEl=openStatus===true
+    ?`<span class="sco-open">营业中${timeStr?' · '+timeStr:''}</span>`
+    :openStatus===false
+    ?`<span class="sco-closed-lbl">已打烊${timeStr?' · '+timeStr:''}</span>`
+    :timeStr?`<span class="sco-time">${timeStr}</span>`:'';
   const reason=getMatchReason(user,{...profile,_name:s.name},score);
   const dimCls=isClosed?' sco-dimmed':'';
   const branches=group.length>1?`<div class="sco-branches">${
@@ -2166,11 +2195,16 @@ function renderShopCard({group,s,profile,openStatus,score,isForYou,isFeatured},u
       ${branches}
     </div>`;
   }
+  // 动态尺寸：score.total 越高，卡片名字越大、内边距越宽
+  const t=score.total;
+  const scale=Math.max(0,Math.min(1,(t-.38)/.45)); // 0.38→0, 0.83→1
+  const namePx=Math.round(13+scale*4); // 13–17px
+  const padV=Math.round(11+scale*5);   // 11–16px
   const cardCls=isFeatured?'sco-featured':'shop-card-outer';
-  return`<div class="${cardCls}${dimCls}" ${group.length===1?`onclick="openShopDetailAmap(${s._idx})"`:''}>
-    <div class="sco-top">
+  return`<div class="${cardCls}${dimCls}" style="--pad-v:${padV}px" ${group.length===1?`onclick="openShopDetailAmap(${s._idx})"`:''}>
+    <div class="sco-top" style="padding:${padV}px 15px ${padV-2}px">
       <div class="sco-left">
-        <div class="sco-name">${name}${group.length>1?`<span class="sco-chain-badge">${group.length}家</span>`:''}</div>
+        <div class="sco-name" style="font-size:${namePx}px">${name}${group.length>1?`<span class="sco-chain-badge">${group.length}家</span>`:''}</div>
         <div class="sco-reason">${reason}</div>
       </div>
       <div class="sco-right">${openEl}<div class="sco-dist">${dist}</div></div>
@@ -2187,25 +2221,44 @@ function renderPoiGroups(groups,user){
     const score=calcMatchScore(user,profile,s);
     return{group,s,profile,openStatus,score};
   });
-  // 排序：营业中优先，再按匹配分；已打烊沉底
   scored.sort((a,b)=>{
     const aOk=a.openStatus!==false,bOk=b.openStatus!==false;
     if(aOk!==bOk)return aOk?-1:1;
     return b.score.total-a.score.total;
   });
-  // 三层分级：Hero(For You) → Featured(score>.55) → Standard
-  // 总量上限：营业中最多8家，打烊店最多3家置底
-  let fyCount=0;
+  // 池：营业中全部 + 打烊最多5家置底（分页后每批看5家）
   const open=scored.filter(i=>i.openStatus!==false);
   const closed=scored.filter(i=>i.openStatus===false);
-  const visible=[...open.slice(0,8),...closed.slice(0,3)];
+  _shopPool=[...open,...closed.slice(0,5)];
+  _shopOffset=0;
+  _shopUser=user;
+  return`<div id="shop-cards-inner">${renderShopBatch()}</div>`;
+}
 
-  visible.forEach(item=>{
+function renderShopBatch(){
+  const batch=_shopPool.slice(_shopOffset,_shopOffset+SHOPS_PER_PAGE);
+  if(!batch.length)return'<div style="padding:32px 20px;text-align:center;color:var(--i3);font-size:12px">附近暂时没有更多咖啡馆</div>';
+  let fyCount=0;
+  batch.forEach(item=>{
     item.isForYou=item.score.forYou&&fyCount<2&&item.openStatus!==false;
     if(item.isForYou)fyCount++;
     item.isFeatured=!item.isForYou&&item.score.total>.55&&item.openStatus!==false;
   });
-  return visible.map(item=>renderShopCard(item,user)).join('');
+  const cards=batch.map(item=>renderShopCard(item,_shopUser)).join('');
+  const totalOpen=_shopPool.filter(i=>i.openStatus!==false).length;
+  const hasMore=_shopPool.length>_shopOffset+SHOPS_PER_PAGE;
+  const pageInfo=`<div class="sco-page-info">${_shopOffset+1}–${Math.min(_shopOffset+SHOPS_PER_PAGE,_shopPool.length)} / ${totalOpen} 家营业中</div>`;
+  const btn=hasMore
+    ?`<button class="sco-more-btn" onclick="showNextShopBatch()">这批不感兴趣，换一批 →</button>`
+    :`<button class="sco-more-btn" onclick="showNextShopBatch()">回到第一批</button>`;
+  return cards+pageInfo+btn;
+}
+
+function showNextShopBatch(){
+  _shopOffset+=SHOPS_PER_PAGE;
+  if(_shopOffset>=_shopPool.length)_shopOffset=0;
+  const el=document.getElementById('shop-cards-inner');
+  if(el)el.innerHTML=renderShopBatch();
 }
 
 async function renderShopScreen(){
