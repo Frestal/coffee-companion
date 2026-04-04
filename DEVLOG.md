@@ -90,6 +90,10 @@ Gemini 建议做 3D 坐标系（Three.js），经讨论认为：
 
 推送前 git commit 当前状态，iCloud 保留 `coffee_v6.html` 原始副本。
 
+### 状态：✅ 已完成并推送（2026-04-04）
+
+commit: `c067e70`
+
 ---
 
 ## v6.2-rx · 调配处方重构（待规划）
