@@ -1860,7 +1860,11 @@ async function getRouteCard(rec){
     routePois=open.map(i=>i.s);
     if(open.length){
       hasShops=true;
-      shopLines=open.map(i=>`- ${normBrand(i.s.name)}（${distStr(i.s.distance)}，${i.profile.note?.slice(0,20)||shopTrait(i.profile)}）`).join('\n');
+      shopLines=open.map(i=>{
+        const brand=BRAND_KB.find(b=>b.aliases.some(a=>normBrand(i.s.name).toLowerCase().includes(a)));
+        const brandNote=brand?`精品度${Math.round(brand.specialty*100)}%，${brand.note.slice(0,28)}`:shopTrait(i.profile);
+        return`- ${normBrand(i.s.name)}（${distStr(i.s.distance)}，${brandNote}）`;
+      }).join('\n');
     }
   }catch(e){console.log('[route] shops skipped:',e.message);}
 
@@ -1868,10 +1872,13 @@ async function getRouteCard(rec){
     ?`2. shop：从上面列表中选最适合他的一家（完整原样输出店名）`
     :`2. shop：输出空字符串""`;
 
+  const user=getUserProfile();
+  const userCtx=user&&user.count>=3?`用户口味画像：酸质偏好${user.avgA>.6?'偏亮酸':user.avgA<.4?'偏低酸':'中等'}，醇度偏好${user.avgB>.6?'偏醇厚':user.avgB<.4?'偏轻盈':'中等'}，惊艳率${Math.round(user.wowRate*100)}%。`:'（新用户，暂无口味画像）';
   const prompt=`用户刚记录了一杯咖啡：
 名称：${rec.name}
 感受：${rec.feel||'暂无描述'}
 ${rec.wow?'这杯让他惊艳了。':'这杯没有特别惊艳他。'}
+${userCtx}
 
 附近正在营业的咖啡馆：
 ${shopLines}
@@ -1904,7 +1911,7 @@ function showRouteCard(result){
   let navBtn='';
   if(poi){
     const loc=typeof poi.location==='string'?poi.location:(poi.location?.getLng?.()+','+poi.location?.getLat?.());
-    navBtn=`<button class="rc-nav" onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>`;
+    navBtn=`<button class="rc-nav" onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion','_blank');setTimeout(dismissRoute,800)">出发 →</button>`;
   }
   // 持久化到 localStorage（首页持续显示直到用户行动）
   localStorage.setItem('cf6_route',JSON.stringify({hook,shop,drink,tip,loc:poi?(typeof poi.location==='string'?poi.location:(poi.location?.getLng?.()+','+poi.location?.getLat?.())):null,dist}));
@@ -1937,7 +1944,7 @@ function renderHomeRoute(){
   const el=document.getElementById('home-route-card');
   if(!raw){if(el)el.remove();return;}
   const{hook,shop,drink,tip,loc,dist}=JSON.parse(raw);
-  const navBtn=loc&&shop?`<button class="hrc-nav" onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>`:'';
+  const navBtn=loc&&shop?`<button class="hrc-nav" onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion','_blank');setTimeout(dismissRoute,800)">出发 →</button>`:'';
   const html=`<div id="home-route-card">
     <div class="hrc-card">
       <button class="hrc-dismiss" onclick="dismissRoute()">×</button>
@@ -1946,7 +1953,10 @@ function renderHomeRoute(){
       ${shop?`<div class="hrc-meta"><span class="hrc-shop">${shop}</span><span class="hrc-dist">${dist||''}</span></div>`:''}
       <div class="hrc-drink">${drink}</div>
       <div class="hrc-tip">告诉咖啡师：${tip}</div>
-      ${navBtn}
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+        ${navBtn}
+        <button onclick="dismissRoute()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--b2);border-radius:20px;font-size:12px;color:var(--i3);cursor:pointer;font-family:inherit">下次再说</button>
+      </div>
     </div>
   </div>`;
   if(el){el.outerHTML=html;}else{
@@ -2025,8 +2035,8 @@ function renderMy(){
       </div>`).join('');
   }
 
-  // Prescription (≥5 records)
-  if(recs.length>=5){
+  // Prescription (≥3 records)
+  if(recs.length>=3){
     document.getElementById('rx-lbl').style.display='block';
     document.getElementById('rx-wrap').style.display='block';
     loadPrescription(false);
