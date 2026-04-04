@@ -690,9 +690,6 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
   </div>
 
-  <!-- Hidden file input for camera/gallery -->
-  <input type="file" id="camera-input" accept="image/*" style="display:none" onchange="handleCameraInput(this)">
-
   <!-- Image preview -->
   <div class="cam-preview" id="cam-preview">
     <img id="cam-img" src="" alt="">
@@ -963,6 +960,9 @@ textarea.fi{resize:none;line-height:1.65}
   </div>
 <div class="sp"></div>
 </div>
+
+<!-- Global file input — 放在所有 .scr 之外，任意屏幕均可触发 -->
+<input type="file" id="camera-input" accept="image/*" style="display:none" onchange="handleCameraInput(this)">
 
 <!-- BOTTOM NAV -->
 <nav class="bnav">
@@ -1524,7 +1524,7 @@ function renderHome(){
       <div class="fca-title">拍下手里的咖啡<br>找到更好的下一杯</div>
       <div class="fca-sub">一张照片，一句描述<br>我来告诉你附近哪里有更适合你的那一杯</div>
       <button class="fca-btn" onclick="startWithCamera()">拍照记录 →</button>
-      <div class="fca-alt" onclick="showTab('rec')">没有照片？用文字描述也行</div>
+      <div class="fca-alt" onclick="go('rec')">没有照片？用文字描述也行</div>
     </div>`;
     return;
   }
@@ -1593,8 +1593,8 @@ function triggerCamera(){
   document.getElementById('camera-input').click();
 }
 function startWithCamera(){
-  showTab('rec');
-  // 同一手势内直接触发，不走 setTimeout，避免浏览器拦截
+  // camera-input 现在是全局元素，不在隐藏容器内，可直接触发
+  // 选完照片后 handleCameraInput 会自动 go('rec')
   document.getElementById('camera-input').value='';
   document.getElementById('camera-input').click();
 }
@@ -1602,6 +1602,8 @@ function startWithCamera(){
 async function handleCameraInput(input){
   const file=input.files[0];
   if(!file) return;
+  // 确保在记录页（从首页触发时自动跳转）
+  if(!document.getElementById('s-rec').classList.contains('on')) go('rec');
 
   // Show image preview immediately
   const preview=document.getElementById('cam-preview');
