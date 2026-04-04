@@ -354,24 +354,42 @@ textarea.fi{resize:none;line-height:1.65}
 .sm-header{padding:11px 14px 7px;background:var(--s1);display:flex;align-items:baseline;justify-content:space-between}
 .sm-title{font-size:12px;color:var(--i2)}
 .sm-sub{font-size:10px;color:var(--i3);font-style:italic}
-.sm-canvas-wrap{position:relative;background:#0C0805;cursor:pointer;line-height:0}
+.sm-canvas-wrap{position:relative;cursor:pointer;line-height:0;background:#0D0906}
+:root.light .sm-canvas-wrap,:root:not(.dark) .sm-canvas-wrap{background:#1E0F06}
+@media(prefers-color-scheme:light){:root:not(.dark) .sm-canvas-wrap{background:#1E0F06}}
 #star-canvas{display:block;width:100%}
-.sm-legend{display:flex;gap:10px;padding:5px 13px 6px;background:#0C0805;flex-wrap:wrap}
-.sm-lg-item{display:flex;align-items:center;gap:4px;font-size:9px;color:rgba(237,227,208,.28);
-  font-family:'DM Mono',monospace;letter-spacing:.03em}
-.sm-lg-icon{font-size:10px;color:rgba(200,152,104,.55)}
-.sm-tooltip{position:absolute;background:rgba(8,5,3,.92);border:1px solid rgba(200,152,104,.28);
-  border-radius:5px;padding:7px 10px;pointer-events:none;backdrop-filter:blur(12px);
-  z-index:10;min-width:130px;max-width:175px}
-.sm-tt-name{font-size:12px;color:var(--ink);margin-bottom:3px;font-weight:500;line-height:1.3}
-.sm-tt-feel{font-size:11px;color:var(--i2);font-style:italic;line-height:1.5;margin-bottom:3px;
+/* DOM axis labels — rendered by browser, crisp at any DPR */
+.sm-axis-labels{position:absolute;inset:0;pointer-events:none;z-index:2}
+.sm-al{position:absolute;font-size:10px;font-family:'DM Mono',monospace;
+  letter-spacing:.05em;color:rgba(237,227,208,.32);transition:color .3s;white-space:nowrap}
+:root.light .sm-al{color:rgba(237,200,160,.45)}
+@media(prefers-color-scheme:light){:root:not(.dark) .sm-al{color:rgba(237,200,160,.45)}}
+.sm-al.active{color:rgba(237,227,208,.72)}
+:root.light .sm-al.active{color:rgba(237,200,160,.9)}
+.sm-al-top{top:7px;left:50%;transform:translateX(-50%)}
+.sm-al-bottom{bottom:7px;left:50%;transform:translateX(-50%)}
+.sm-al-left{left:6px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center center}
+.sm-al-right{right:6px;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:center center}
+.sm-legend{display:flex;gap:10px;padding:5px 13px 6px;flex-wrap:wrap;
+  background:#0D0906;border-top:1px solid rgba(237,227,208,.05)}
+:root.light .sm-legend,:root:not(.dark) .sm-legend{background:#1E0F06}
+@media(prefers-color-scheme:light){:root:not(.dark) .sm-legend{background:#1E0F06}}
+.sm-lg-item{display:flex;align-items:center;gap:4px;font-size:9px;
+  color:rgba(237,227,208,.3);font-family:'DM Mono',monospace;letter-spacing:.03em}
+.sm-lg-icon{font-size:10px;color:rgba(200,152,104,.5)}
+.sm-tooltip{position:absolute;background:rgba(8,5,3,.94);border:1px solid rgba(200,152,104,.3);
+  border-radius:6px;padding:9px 12px;pointer-events:none;backdrop-filter:blur(16px);
+  z-index:10;min-width:140px;max-width:180px;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.sm-tt-name{font-size:13px;color:var(--ink);margin-bottom:4px;font-weight:500;line-height:1.3}
+.sm-tt-feel{font-size:12px;color:var(--i2);font-style:italic;line-height:1.55;margin-bottom:4px;
   font-family:'Cormorant Garamond',serif}
 .sm-tt-meta{font-size:10px;color:var(--i3)}
-.sm-words{display:none;flex-wrap:wrap;gap:5px;padding:8px 12px 10px;
+.sm-words{display:none;flex-wrap:wrap;gap:5px;padding:9px 13px 11px;
   background:var(--s1);border-top:1px solid var(--b1)}
-.sm-words-label{width:100%;font-size:10px;color:var(--i3);letter-spacing:.06em;margin-bottom:4px}
-.sm-word{font-size:11px;padding:2px 9px;border:1px solid var(--b2);border-radius:10px;
-  color:var(--i2);font-family:'Cormorant Garamond',serif;font-style:italic;cursor:default;
+.sm-words-label{width:100%;font-size:10px;color:var(--i3);letter-spacing:.06em;
+  text-transform:uppercase;margin-bottom:5px}
+.sm-word{font-size:12px;padding:3px 10px;border:1px solid var(--b2);border-radius:20px;
+  color:var(--i2);font-family:'Cormorant Garamond',serif;font-style:italic;
   background:rgba(200,152,104,.04)}
 
 /* Shop journey */
@@ -787,6 +805,13 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
     <div class="sm-canvas-wrap" id="sm-canvas-wrap">
       <canvas id="star-canvas"></canvas>
+      <!-- DOM axis labels — crisp text, theme-aware -->
+      <div class="sm-axis-labels" id="sm-axis-labels">
+        <span class="sm-al sm-al-top">轻盈 · 花香</span>
+        <span class="sm-al sm-al-bottom">浓郁 · 厚重</span>
+        <span class="sm-al sm-al-left">醇厚</span>
+        <span class="sm-al sm-al-right">明亮</span>
+      </div>
       <div class="sm-tooltip" id="sm-tooltip" style="display:none">
         <div class="sm-tt-name" id="sm-tt-name"></div>
         <div class="sm-tt-feel" id="sm-tt-feel"></div>
@@ -2289,52 +2314,34 @@ function drawShape(ctx,shape,x,y,r){
   ctx.fill();
 }
 
-// ── STAR MAP (Canvas) ──
+// ── STAR MAP (Canvas — points/lines/glow only, no text) ──
 function renderStarMap(){
   const canvas=document.getElementById('star-canvas');
   if(!canvas)return;
   const wrap=document.getElementById('sm-canvas-wrap');
   const W=wrap.offsetWidth||340;
-  const H=Math.round(W*0.6);
+  const H=Math.round(W*0.62);
   const dpr=window.devicePixelRatio||1;
   canvas.width=W*dpr;canvas.height=H*dpr;
   canvas.style.width=W+'px';canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
 
-  // Background
-  ctx.fillStyle='#0C0805';
+  // Theme-aware background
+  const isLight=document.documentElement.classList.contains('light')||
+    (!document.documentElement.classList.contains('dark')&&
+     window.matchMedia('(prefers-color-scheme:light)').matches);
+  ctx.fillStyle=isLight?'#1E0F06':'#0D0906';
   ctx.fillRect(0,0,W,H);
 
-  // Axis label areas — leave padding for them
-  const pad={t:24,b:22,l:38,r:22};
+  // Uniform padding — DOM labels handle the edges
+  const pad={t:18,b:18,l:18,r:18};
   const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
 
-  // Axis guides (very faint cross)
-  ctx.strokeStyle='rgba(237,227,208,0.05)';ctx.lineWidth=0.5;
+  // Very faint cross guides — orientation hint, not chart
+  ctx.strokeStyle='rgba(237,227,208,0.04)';ctx.lineWidth=0.5;
   ctx.beginPath();ctx.moveTo(pad.l,H/2);ctx.lineTo(W-pad.r,H/2);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(pad.l+pw/2,pad.t);ctx.lineTo(pad.l+pw/2,H-pad.b);ctx.stroke();
-
-  // Axis labels drawn in canvas
-  ctx.font=`9px 'DM Mono',monospace`;
-  ctx.fillStyle='rgba(237,227,208,0.22)';
-  ctx.textAlign='center';
-  // Top: light & floral
-  ctx.fillText('轻盈 · 花香',pad.l+pw/2,pad.t-7);
-  // Bottom: heavy & rich
-  ctx.fillText('浓郁 · 厚重',pad.l+pw/2,H-5);
-  // Left: rich dark roast (rotated)
-  ctx.save();
-  ctx.translate(10,H/2);ctx.rotate(-Math.PI/2);
-  ctx.textAlign='center';
-  ctx.fillText('← 醇厚深烘',0,0);
-  ctx.restore();
-  // Right: bright acid
-  ctx.save();
-  ctx.translate(W-6,H/2);ctx.rotate(Math.PI/2);
-  ctx.textAlign='center';
-  ctx.fillText('明亮酸质 →',0,0);
-  ctx.restore();
+  ctx.beginPath();ctx.moveTo(W/2,pad.t);ctx.lineTo(W/2,H-pad.b);ctx.stroke();
 
   // Compute positions
   const pts=recs.map(r=>{
@@ -2346,58 +2353,58 @@ function renderStarMap(){
     return{...r,x,y,sv,shape:getCoffeeShape(r)};
   });
 
-  // Nebula — grows and intensifies with more records
+  // Nebula — warm amber cloud at taste centroid, grows with records
   if(pts.length>=2){
     const cx=pts.reduce((s,p)=>s+p.x,0)/pts.length;
     const cy=pts.reduce((s,p)=>s+p.y,0)/pts.length;
-    const density=Math.min(1,pts.length/20); // 0→1 as records grow to 20
-    const radius=Math.min(pw,ph)*(0.3+density*0.25);
-    const inner=0.04+density*0.1;
-    const mid=0.02+density*0.05;
-    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,radius);
-    g.addColorStop(0,`rgba(200,152,104,${inner})`);
-    g.addColorStop(0.45,`rgba(200,152,104,${mid})`);
-    g.addColorStop(1,'rgba(200,152,104,0)');
-    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    const density=Math.min(1,pts.length/16);
+    const r1=Math.min(pw,ph)*(0.22+density*0.3);
+    const r2=Math.min(pw,ph)*(0.4+density*0.35);
+    // Inner core
+    const g1=ctx.createRadialGradient(cx,cy,0,cx,cy,r1);
+    g1.addColorStop(0,`rgba(200,152,104,${0.12+density*0.16})`);
+    g1.addColorStop(1,'rgba(200,152,104,0)');
+    ctx.fillStyle=g1;ctx.fillRect(0,0,W,H);
+    // Outer halo
+    const g2=ctx.createRadialGradient(cx,cy,0,cx,cy,r2);
+    g2.addColorStop(0,`rgba(200,120,60,${0.05+density*0.07})`);
+    g2.addColorStop(1,'rgba(200,120,60,0)');
+    ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
   }
 
-  // Trail lines (chronological)
+  // Trail lines
   if(pts.length>1){
     const sorted=[...pts].sort((a,b)=>a.ts-b.ts);
-    ctx.strokeStyle='rgba(200,152,104,0.15)';ctx.lineWidth=0.7;
-    ctx.setLineDash([2,5]);
+    ctx.strokeStyle='rgba(200,152,104,0.18)';ctx.lineWidth=0.8;
+    ctx.setLineDash([2,6]);
     ctx.beginPath();
     sorted.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
     ctx.stroke();ctx.setLineDash([]);
   }
 
-  // Stars (shapes)
+  // Stars — larger, stronger glow, two-layer rendering
   pts.forEach(p=>{
-    const size=1.8+(p.rating||3)*0.48+(p.wow?2.2:0);
+    const base=3+(p.rating||3)*0.8+(p.wow?3.5:0);
     const hA=p.sv.acidity;
-    const sR=Math.round(172+hA*42),sG=Math.round(108+hA*52),sB=Math.round(48+hA*28);
-    if(p.wow){
-      ctx.shadowColor='#EFC840';ctx.shadowBlur=18;
-      ctx.fillStyle='#EFC840';
-    } else {
-      ctx.shadowColor=`rgba(${sR},${sG},${sB},0.6)`;ctx.shadowBlur=10;
-      ctx.fillStyle=`rgba(${sR},${sG},${sB},0.92)`;
-    }
-    drawShape(ctx,p.shape,p.x,p.y,size);
+    const sR=Math.round(175+hA*45),sG=Math.round(112+hA*55),sB=Math.round(50+hA*30);
+    const col=p.wow?'#EFC840':`rgb(${sR},${sG},${sB})`;
+
+    // Outer soft glow (large, transparent)
+    ctx.shadowColor=p.wow?'rgba(239,200,64,0.5)':`rgba(${sR},${sG},${sB},0.35)`;
+    ctx.shadowBlur=p.wow?28:20;
+    ctx.globalAlpha=0.35;
+    ctx.fillStyle=col;
+    drawShape(ctx,p.shape,p.x,p.y,base*1.8);
+    ctx.globalAlpha=1;
+    ctx.shadowBlur=0;
+
+    // Inner bright core
+    ctx.shadowColor=p.wow?'rgba(239,200,64,0.9)':`rgba(${sR},${sG},${sB},0.8)`;
+    ctx.shadowBlur=p.wow?14:8;
+    ctx.fillStyle=p.wow?'#FADA70':col;
+    drawShape(ctx,p.shape,p.x,p.y,base);
     ctx.shadowBlur=0;
   });
-
-  // Inline labels for sparse maps (≤6 records)
-  if(pts.length<=6){
-    ctx.font=`10px 'Noto Serif SC',serif`;
-    ctx.textAlign='left';
-    pts.forEach(p=>{
-      const label=(p.name||'').slice(0,8);
-      const lx=p.x+7,ly=p.y+3;
-      ctx.fillStyle='rgba(237,227,208,0.18)';
-      ctx.fillText(label,lx>W-70?p.x-ctx.measureText(label).width-5:lx,ly);
-    });
-  }
 
   canvas._stars=pts;
 }
@@ -2431,6 +2438,7 @@ function initStarMapInteraction(){
     stars.forEach(s=>{const d=Math.hypot(s.x-x,s.y-y);if(d<minD){minD=d;closest=s;}});
     const tt=document.getElementById('sm-tooltip');
     if(!tt)return;
+    const axLabels=document.querySelectorAll('.sm-al');
     if(closest){
       document.getElementById('sm-tt-name').textContent=(closest.wow?'✦ ':'')+closest.name;
       const feel=closest.feel||'';
@@ -2442,13 +2450,15 @@ function initStarMapInteraction(){
       const wW=canvas.offsetWidth,wH=canvas.offsetHeight;
       let ttL=x+12,ttT=y-16;
       tt.style.display='block';
-      if(ttL+178>wW-4)ttL=x-178-6;
+      if(ttL+182>wW-4)ttL=x-182-6;
       if(ttT<4)ttT=4;
       if(ttT>wH-90)ttT=wH-90;
       tt.style.left=ttL+'px';tt.style.top=ttT+'px';
+      axLabels.forEach(el=>el.classList.add('active'));
       showWords(closest);
     } else {
       tt.style.display='none';
+      axLabels.forEach(el=>el.classList.remove('active'));
       document.getElementById('sm-words').style.display='none';
     }
   }
@@ -2465,6 +2475,7 @@ function initStarMapInteraction(){
       if(tt)tt.style.display='none';
       const sw=document.getElementById('sm-words');
       if(sw)sw.style.display='none';
+      document.querySelectorAll('.sm-al').forEach(el=>el.classList.remove('active'));
     }
   });
 }
