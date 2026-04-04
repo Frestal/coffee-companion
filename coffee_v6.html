@@ -732,6 +732,20 @@ textarea.fi{resize:none;line-height:1.65}
 .auth-btn{flex:1;padding:9px;border-radius:var(--r);font-size:12px;cursor:pointer;
   font-family:'Noto Serif SC',serif;border:1px solid var(--b2);background:transparent;color:var(--i2);transition:all .15s}
 .auth-btn.primary{background:var(--a);border-color:var(--a);color:#2C1A08}
+/* 今天点什么 AI section */
+.sd-order{background:linear-gradient(135deg,rgba(200,152,104,.06),rgba(200,152,104,.02));
+  border:1px solid rgba(200,152,104,.18);border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.sd-order-loading{font-size:11px;color:var(--i3);display:flex;align-items:center;gap:8px;padding:4px 0}
+.sd-order-loading::before{content:'';width:12px;height:12px;border:1.5px solid var(--a);
+  border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+.sd-order-match{font-size:13px;color:var(--i1);line-height:1.6;margin-bottom:10px}
+.sd-order-drink{display:inline-block;font-size:11px;font-weight:500;color:var(--a);
+  background:rgba(200,152,104,.1);border:1px solid rgba(200,152,104,.25);
+  border-radius:20px;padding:3px 12px;margin-bottom:10px}
+.sd-order-say-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--i3);margin-bottom:5px}
+.sd-order-say-txt{font-size:13px;color:var(--ink);line-height:1.65;
+  font-family:'Cormorant Garamond',serif;font-style:italic}
+
 /* Buy button */
 .buy-btn{width:100%;padding:13px;background:var(--a);color:#2C1A08;border:none;
   border-radius:var(--r);font-size:13px;font-family:'Noto Serif SC',serif;
@@ -3055,8 +3069,14 @@ function openShopDetailAmap(idx){
   </div>`:'';
 
   const loc=typeof s.location==='string'?s.location:(s.location?.getLng?.()+','+s.location?.getLat?.());
+  // 今天点什么：有 API Key 且有用户数据时显示，否则隐藏
+  const showOrder=!!getApiKey();
+  const orderBlock=showOrder
+    ?`<div class="sd-sec"><h3>今天点什么</h3><div class="sd-order" id="sd-order"><div class="sd-order-loading">正在为你分析…</div></div></div>`
+    :'';
   document.getElementById('sd-body').innerHTML=`
     ${kbHtml}
+    ${orderBlock}
     ${realHtml}
     <div class="sd-sec"><h3>基本信息</h3><div class="ig">
       ${openLabel?`<div class="ic"><label>状态</label><p style="color:${openStatus?'var(--gn)':'var(--i3)'}">${openLabel}${hours?' · '+hours:''}</p></div>`:''}
@@ -3078,6 +3098,62 @@ function openShopDetailAmap(idx){
   });
   const ov=document.getElementById('shop-detail-overlay');
   ov.style.display='flex'; setTimeout(()=>ov.classList.add('on'),10);
+
+  // 异步生成"今天点什么"
+  if(showOrder) loadShopOrder(s,profile);
+}
+
+async function loadShopOrder(s,profile){
+  const el=document.getElementById('sd-order');
+  if(!el)return;
+  // 缓存：per shop ID，24h有效
+  const cacheKey='cf6_sdo_'+s.id;
+  const cached=localStorage.getItem(cacheKey);
+  const cachedTs=+(localStorage.getItem(cacheKey+'_ts')||0);
+  if(cached&&Date.now()-cachedTs<24*3600000){
+    renderShopOrder(JSON.parse(cached),el);return;
+  }
+  const user=getUserProfile();
+  const av=user?Math.round(user.avgA*100):null;
+  const bv=user?Math.round(user.avgB*100):null;
+  const userLine=user&&user.count>=3
+    ?`用户口味：酸质${av}%（${av>=65?'偏高酸/果香':av<=40?'偏低酸/醇苦':'中等'}），醇度${bv}%（${bv>=65?'偏醇厚':bv<=40?'偏轻盈':'中等'}），惊艳率${Math.round(user.wowRate*100)}%，最近喝：${recs.slice(0,2).map(r=>r.name).join('、')}`
+    :'（新用户，根据店铺风格给通用建议）';
+  const acidMid=((profile.acidity[0]+profile.acidity[1])/2*100).toFixed(0);
+  const bodyMid=((profile.body[0]+profile.body[1])/2*100).toFixed(0);
+  const shopLine=`这家店：${normBrand(s.name)}，精品度${Math.round(profile.specialty*100)}%，酸质均值${acidMid}%，醇度均值${bodyMid}%${profile.note?'，'+profile.note.slice(0,40):''}`;
+  const sys=`你帮用户在一家咖啡馆做决策：该点什么，进门怎么说。只基于提供的数据，不要补充未提及的信息。只返回JSON，不要其他文字。`;
+  const prompt=`${userLine}
+${shopLine}
+
+给出：
+1. match：一句话（≤18字）说明这家店和用户口味的契合点，感性直接，不要数字
+2. drink：建议点什么（≤10字，如"手冲单品"或"SOE美式"或"拿铁"）
+3. say：进门对咖啡师说的话（≤30字，第一人称，含酸苦偏好和是否要奶）
+
+只返回JSON：{"match":"...","drink":"...","say":"..."}`;
+  try{
+    const txt=await callAI({system:sys,prompt,maxTokens:200});
+    if(!txt)throw new Error('empty');
+    const m=txt.match(/\{[\s\S]*\}/);
+    if(!m)throw new Error('no json');
+    const data=JSON.parse(m[0]);
+    if(!data.match)throw new Error('invalid');
+    localStorage.setItem(cacheKey,JSON.stringify(data));
+    localStorage.setItem(cacheKey+'_ts',String(Date.now()));
+    renderShopOrder(data,el);
+  }catch(e){
+    el.innerHTML='<div style="font-size:11px;color:var(--i3)">暂时无法生成建议</div>';
+  }
+}
+
+function renderShopOrder(data,el){
+  el.innerHTML=`
+    <div class="sd-order-match">${data.match}</div>
+    <div class="sd-order-drink">${data.drink}</div>
+    <div class="sd-order-say-lbl">进门开口说</div>
+    <div class="sd-order-say-txt">「${data.say}」</div>
+  `;
 }
 
 // ── SHOP DATA (静态备用，不再直接渲染) ──
