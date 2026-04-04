@@ -356,22 +356,23 @@ textarea.fi{resize:none;line-height:1.65}
 .sm-sub{font-size:10px;color:var(--i3);font-style:italic}
 .sm-canvas-wrap{position:relative;background:#0C0805;cursor:pointer;line-height:0}
 #star-canvas{display:block;width:100%}
-.sm-axes{display:flex;justify-content:space-between;padding:4px 14px 0;background:#0C0805}
-.sm-ax{font-size:9px;color:rgba(237,227,208,.18);letter-spacing:.04em;font-family:'DM Mono',monospace;padding-bottom:4px}
+.sm-legend{display:flex;gap:10px;padding:5px 13px 6px;background:#0C0805;flex-wrap:wrap}
+.sm-lg-item{display:flex;align-items:center;gap:4px;font-size:9px;color:rgba(237,227,208,.28);
+  font-family:'DM Mono',monospace;letter-spacing:.03em}
+.sm-lg-icon{font-size:10px;color:rgba(200,152,104,.55)}
 .sm-tooltip{position:absolute;background:rgba(8,5,3,.92);border:1px solid rgba(200,152,104,.28);
   border-radius:5px;padding:7px 10px;pointer-events:none;backdrop-filter:blur(12px);
-  z-index:10;min-width:130px;max-width:170px}
+  z-index:10;min-width:130px;max-width:175px}
 .sm-tt-name{font-size:12px;color:var(--ink);margin-bottom:3px;font-weight:500;line-height:1.3}
 .sm-tt-feel{font-size:11px;color:var(--i2);font-style:italic;line-height:1.5;margin-bottom:3px;
   font-family:'Cormorant Garamond',serif}
 .sm-tt-meta{font-size:10px;color:var(--i3)}
-.sm-words{display:flex;flex-wrap:wrap;gap:5px;padding:9px 12px 11px;
+.sm-words{display:none;flex-wrap:wrap;gap:5px;padding:8px 12px 10px;
   background:var(--s1);border-top:1px solid var(--b1)}
-.sm-word{font-size:10px;padding:2px 8px;border:1px solid var(--b1);border-radius:10px;
-  color:var(--i3);font-family:'Cormorant Garamond',serif;font-style:italic;cursor:default}
-.sm-word.f2{color:var(--i2);border-color:var(--b2)}
-.sm-word.f3{color:var(--a2);border-color:rgba(200,152,104,.28);background:rgba(200,152,104,.04)}
-.sm-word.f4{color:var(--a);border-color:rgba(200,152,104,.38);background:rgba(200,152,104,.08)}
+.sm-words-label{width:100%;font-size:10px;color:var(--i3);letter-spacing:.06em;margin-bottom:4px}
+.sm-word{font-size:11px;padding:2px 9px;border:1px solid var(--b2);border-radius:10px;
+  color:var(--i2);font-family:'Cormorant Garamond',serif;font-style:italic;cursor:default;
+  background:rgba(200,152,104,.04)}
 
 /* Shop journey */
 .shop-card{margin:0 14px 12px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:15px}
@@ -792,11 +793,16 @@ textarea.fi{resize:none;line-height:1.65}
         <div class="sm-tt-meta" id="sm-tt-meta"></div>
       </div>
     </div>
-    <div class="sm-axes">
-      <span class="sm-ax">← 醇厚深烘</span>
-      <span class="sm-ax">明亮酸质 →</span>
+    <div class="sm-legend">
+      <div class="sm-lg-item"><span class="sm-lg-icon">◆</span>手冲</div>
+      <div class="sm-lg-item"><span class="sm-lg-icon">▲</span>冷萃</div>
+      <div class="sm-lg-item"><span class="sm-lg-icon">■</span>意式</div>
+      <div class="sm-lg-item"><span class="sm-lg-icon">●</span>其他</div>
+      <div class="sm-lg-item"><span style="color:#EFC840;font-size:10px">✦</span>惊艳时刻</div>
     </div>
-    <div class="sm-words" id="sm-words"></div>
+    <div class="sm-words" id="sm-words">
+      <div class="sm-words-label" id="sm-words-label"></div>
+    </div>
   </div>
 
   <!-- Prescription -->
@@ -1660,16 +1666,6 @@ function renderMy(){
     document.getElementById('fl-lbl').style.display='block';
     document.getElementById('star-map-card').style.display='block';
     requestAnimationFrame(()=>{renderStarMap();initStarMapInteraction();});
-    // Word cloud (supplementary)
-    const feels=recs.filter(r=>r.feel).map(r=>r.feel);
-    const words=feels.flatMap(f=>f.split(/[，,、。！？\s]+/).filter(w=>w.length>=2&&w.length<=8));
-    const freq={};words.forEach(w=>freq[w]=(freq[w]||0)+1);
-    const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,18);
-    const max=sorted[0]?.[1]||1;
-    document.getElementById('sm-words').innerHTML=sorted.map(([w,n])=>{
-      const lv=n/max>=.7?'f4':n/max>=.4?'f3':n/max>=.2?'f2':'';
-      return `<span class="sm-word ${lv}">${w}</span>`;
-    }).join('');
   }
 
   // Shop journey
@@ -2232,16 +2228,13 @@ function refreshPrescription(){
 // ── SENSORY VECTOR (keyword-based, zero API calls) ──
 function extractSensoryVector(feel,scanData){
   const txt=(feel||'').toLowerCase();
-  // Acidity / brightness signals
   const acidKw={'酸':2,'柑橘':3,'莓':2,'蓝莓':2,'草莓':2,'覆盆子':2,'柠檬':2,'橙':1,
     '葡萄柚':2,'苹果':1,'明亮':2,'清爽':2,'果汁':3,'活泼':1,'跳跃':1,
     '花香':1,'花':1,'茉莉':1,'玫瑰':1,'茶感':1,'茶':1,'干净':1,
     '埃塞':1,'肯尼亚':2,'耶加':2,'水洗':1,'轻盈':1};
-  // Body / richness signals
   const bodyKw={'厚':2,'醇厚':3,'浓郁':3,'油脂':2,'丝滑':2,'奶油':2,'黄油':2,
     '圆润':2,'饱满':2,'坚果':2,'巧克力':3,'焦糖':2,'可可':2,'糖浆':1,
     '浓':2,'苦':1,'意式':2,'曼特宁':3,'深烘':3,'重':1,'回甘':1,'沉':1};
-  // Light signals (subtract from body)
   const lightKw={'清淡':2,'清新':1,'薄':1,'通透':1,'水感':1,'飘':1};
   let aS=0,aT=0,bS=0,bT=0;
   for(const[k,w]of Object.entries(acidKw)){aT+=w;if(txt.includes(k))aS+=w;}
@@ -2253,13 +2246,56 @@ function extractSensoryVector(feel,scanData){
   return{acidity,body};
 }
 
+// Detect coffee method for shape selection
+function getCoffeeShape(r){
+  if(r.wow)return'star';
+  const m=(r.scanData?.method||'').toLowerCase();
+  const f=(r.feel||'').toLowerCase();
+  const n=(r.name||'').toLowerCase();
+  const all=m+f+n;
+  if(/冷萃|cold brew|冰滴|nitro/.test(all))return'triangle';
+  if(/手冲|pour|v60|chemex|聪明杯|滤/.test(all))return'diamond';
+  if(/意式|espresso|拿铁|美式|澳白|卡布|flat|馥芮白/.test(all))return'square';
+  return'circle';
+}
+
+// Draw shape on canvas
+function drawShape(ctx,shape,x,y,r){
+  ctx.beginPath();
+  switch(shape){
+    case'star':{
+      for(let i=0;i<8;i++){
+        const a=(i*Math.PI/4)-Math.PI/2;
+        const rad=i%2===0?r:r*0.4;
+        const px=x+Math.cos(a)*rad,py=y+Math.sin(a)*rad;
+        i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+      }
+      ctx.closePath();break;
+    }
+    case'diamond':
+      ctx.moveTo(x,y-r);ctx.lineTo(x+r*0.68,y);
+      ctx.lineTo(x,y+r);ctx.lineTo(x-r*0.68,y);
+      ctx.closePath();break;
+    case'triangle':
+      ctx.moveTo(x,y-r);
+      ctx.lineTo(x+r*0.88,y+r*0.52);
+      ctx.lineTo(x-r*0.88,y+r*0.52);
+      ctx.closePath();break;
+    case'square':{
+      const s=r*0.82;ctx.rect(x-s,y-s,s*2,s*2);break;
+    }
+    default:ctx.arc(x,y,r,0,Math.PI*2);
+  }
+  ctx.fill();
+}
+
 // ── STAR MAP (Canvas) ──
 function renderStarMap(){
   const canvas=document.getElementById('star-canvas');
   if(!canvas)return;
   const wrap=document.getElementById('sm-canvas-wrap');
   const W=wrap.offsetWidth||340;
-  const H=Math.round(W*0.56);
+  const H=Math.round(W*0.6);
   const dpr=window.devicePixelRatio||1;
   canvas.width=W*dpr;canvas.height=H*dpr;
   canvas.style.width=W+'px';canvas.style.height=H+'px';
@@ -2270,100 +2306,153 @@ function renderStarMap(){
   ctx.fillStyle='#0C0805';
   ctx.fillRect(0,0,W,H);
 
-  // Subtle grid lines
-  ctx.strokeStyle='rgba(237,227,208,0.05)';ctx.lineWidth=0.5;
-  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();
-
-  const pad={t:16,b:16,l:20,r:20};
+  // Axis label areas — leave padding for them
+  const pad={t:24,b:22,l:38,r:22};
   const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
 
-  // Compute star positions
+  // Axis guides (very faint cross)
+  ctx.strokeStyle='rgba(237,227,208,0.05)';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(pad.l,H/2);ctx.lineTo(W-pad.r,H/2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pad.l+pw/2,pad.t);ctx.lineTo(pad.l+pw/2,H-pad.b);ctx.stroke();
+
+  // Axis labels drawn in canvas
+  ctx.font=`9px 'DM Mono',monospace`;
+  ctx.fillStyle='rgba(237,227,208,0.22)';
+  ctx.textAlign='center';
+  // Top: light & floral
+  ctx.fillText('轻盈 · 花香',pad.l+pw/2,pad.t-7);
+  // Bottom: heavy & rich
+  ctx.fillText('浓郁 · 厚重',pad.l+pw/2,H-5);
+  // Left: rich dark roast (rotated)
+  ctx.save();
+  ctx.translate(10,H/2);ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';
+  ctx.fillText('← 醇厚深烘',0,0);
+  ctx.restore();
+  // Right: bright acid
+  ctx.save();
+  ctx.translate(W-6,H/2);ctx.rotate(Math.PI/2);
+  ctx.textAlign='center';
+  ctx.fillText('明亮酸质 →',0,0);
+  ctx.restore();
+
+  // Compute positions
   const pts=recs.map(r=>{
     const sv=extractSensoryVector(r.feel,r.scanData);
     const jx=((r.id%97)/97-0.5)*0.09;
     const jy=((r.id%83)/83-0.5)*0.09;
     const x=pad.l+(Math.min(1,Math.max(0,sv.acidity+jx)))*pw;
     const y=H-pad.b-(Math.min(1,Math.max(0,sv.body+jy)))*ph;
-    return{...r,x,y,sv};
+    return{...r,x,y,sv,shape:getCoffeeShape(r)};
   });
 
-  // Nebula at centroid
-  if(pts.length>=3){
+  // Nebula — grows and intensifies with more records
+  if(pts.length>=2){
     const cx=pts.reduce((s,p)=>s+p.x,0)/pts.length;
     const cy=pts.reduce((s,p)=>s+p.y,0)/pts.length;
-    const r=Math.min(pw,ph)*0.42;
-    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
-    g.addColorStop(0,'rgba(200,152,104,0.09)');
-    g.addColorStop(0.5,'rgba(200,152,104,0.04)');
+    const density=Math.min(1,pts.length/20); // 0→1 as records grow to 20
+    const radius=Math.min(pw,ph)*(0.3+density*0.25);
+    const inner=0.04+density*0.1;
+    const mid=0.02+density*0.05;
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,radius);
+    g.addColorStop(0,`rgba(200,152,104,${inner})`);
+    g.addColorStop(0.45,`rgba(200,152,104,${mid})`);
     g.addColorStop(1,'rgba(200,152,104,0)');
     ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
   }
 
-  // Trail lines (chronological, dashed)
+  // Trail lines (chronological)
   if(pts.length>1){
     const sorted=[...pts].sort((a,b)=>a.ts-b.ts);
-    ctx.strokeStyle='rgba(200,152,104,0.16)';ctx.lineWidth=0.8;
+    ctx.strokeStyle='rgba(200,152,104,0.15)';ctx.lineWidth=0.7;
     ctx.setLineDash([2,5]);
     ctx.beginPath();
     sorted.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
     ctx.stroke();ctx.setLineDash([]);
   }
 
-  // Draw stars
+  // Stars (shapes)
   pts.forEach(p=>{
-    const size=1.6+(p.rating||3)*0.5+(p.wow?2:0);
+    const size=1.8+(p.rating||3)*0.48+(p.wow?2.2:0);
     const hA=p.sv.acidity;
-    // Amber spectrum: low acid=deep warm orange, high acid=bright golden
-    const sR=Math.round(172+hA*40),sG=Math.round(108+hA*54),sB=Math.round(48+hA*30);
+    const sR=Math.round(172+hA*42),sG=Math.round(108+hA*52),sB=Math.round(48+hA*28);
     if(p.wow){
-      ctx.shadowColor='#EFC840';ctx.shadowBlur=16;
+      ctx.shadowColor='#EFC840';ctx.shadowBlur=18;
       ctx.fillStyle='#EFC840';
     } else {
-      ctx.shadowColor=`rgba(${sR},${sG},${sB},0.65)`;ctx.shadowBlur=9;
-      ctx.fillStyle=`rgba(${sR},${sG},${sB},0.9)`;
+      ctx.shadowColor=`rgba(${sR},${sG},${sB},0.6)`;ctx.shadowBlur=10;
+      ctx.fillStyle=`rgba(${sR},${sG},${sB},0.92)`;
     }
-    ctx.beginPath();ctx.arc(p.x,p.y,size,0,Math.PI*2);ctx.fill();
+    drawShape(ctx,p.shape,p.x,p.y,size);
     ctx.shadowBlur=0;
   });
+
+  // Inline labels for sparse maps (≤6 records)
+  if(pts.length<=6){
+    ctx.font=`10px 'Noto Serif SC',serif`;
+    ctx.textAlign='left';
+    pts.forEach(p=>{
+      const label=(p.name||'').slice(0,8);
+      const lx=p.x+7,ly=p.y+3;
+      ctx.fillStyle='rgba(237,227,208,0.18)';
+      ctx.fillText(label,lx>W-70?p.x-ctx.measureText(label).width-5:lx,ly);
+    });
+  }
 
   canvas._stars=pts;
 }
 
-// Touch/click star tooltip
+// Touch/click: tooltip + sm-words
 let _starInteractInit=false;
 function initStarMapInteraction(){
   if(_starInteractInit)return;
   _starInteractInit=true;
   const canvas=document.getElementById('star-canvas');
   if(!canvas)return;
+
+  function showWords(rec){
+    const wrap=document.getElementById('sm-words');
+    const lbl=document.getElementById('sm-words-label');
+    const feel=rec?.feel||'';
+    if(!feel){wrap.style.display='none';return;}
+    const words=feel.split(/[，,、。！？\s]+/).filter(w=>w.length>=2&&w.length<=8).slice(0,10);
+    if(!words.length){wrap.style.display='none';return;}
+    lbl.textContent='你当时的感受';
+    const tags=words.map(w=>`<span class="sm-word">${w}</span>`).join('');
+    wrap.innerHTML='<div class="sm-words-label" id="sm-words-label">你当时的感受</div>'+tags;
+    wrap.style.display='flex';
+  }
+
   function hit(cx,cy){
     const rect=canvas.getBoundingClientRect();
     const x=cx-rect.left,y=cy-rect.top;
     const stars=canvas._stars||[];
-    let closest=null,minD=28;
+    let closest=null,minD=30;
     stars.forEach(s=>{const d=Math.hypot(s.x-x,s.y-y);if(d<minD){minD=d;closest=s;}});
     const tt=document.getElementById('sm-tooltip');
     if(!tt)return;
     if(closest){
       document.getElementById('sm-tt-name').textContent=(closest.wow?'✦ ':'')+closest.name;
       const feel=closest.feel||'';
-      document.getElementById('sm-tt-feel').textContent=feel?`「${feel.slice(0,36)}${feel.length>36?'…':''}」`:'';
+      document.getElementById('sm-tt-feel').textContent=feel?`「${feel.slice(0,38)}${feel.length>38?'…':''}」`:'';
       document.getElementById('sm-tt-meta').textContent=[
         closest.scanData?.shop,closest.date,
         closest.rating?'★'.repeat(closest.rating):''
       ].filter(Boolean).join(' · ');
       const wW=canvas.offsetWidth,wH=canvas.offsetHeight;
-      let ttL=x+12,ttT=y-14;
+      let ttL=x+12,ttT=y-16;
       tt.style.display='block';
-      if(ttL+164>wW-4)ttL=x-164-8;
+      if(ttL+178>wW-4)ttL=x-178-6;
       if(ttT<4)ttT=4;
-      if(ttT>wH-88)ttT=wH-88;
+      if(ttT>wH-90)ttT=wH-90;
       tt.style.left=ttL+'px';tt.style.top=ttT+'px';
+      showWords(closest);
     } else {
       tt.style.display='none';
+      document.getElementById('sm-words').style.display='none';
     }
   }
+
   canvas.addEventListener('click',e=>hit(e.clientX,e.clientY));
   canvas.addEventListener('touchend',e=>{
     e.preventDefault();
@@ -2371,9 +2460,11 @@ function initStarMapInteraction(){
     hit(t.clientX,t.clientY);
   },{passive:false});
   document.addEventListener('click',e=>{
-    if(!e.target.closest('#sm-canvas-wrap')){
+    if(!e.target.closest('#sm-canvas-wrap')&&!e.target.closest('#sm-words')){
       const tt=document.getElementById('sm-tooltip');
       if(tt)tt.style.display='none';
+      const sw=document.getElementById('sm-words');
+      if(sw)sw.style.display='none';
     }
   });
 }
