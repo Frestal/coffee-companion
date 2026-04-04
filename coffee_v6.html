@@ -683,6 +683,23 @@ textarea.fi{resize:none;line-height:1.65}
 .hrc-nav{display:inline-block;margin-top:12px;padding:9px 18px;
   background:var(--a);color:#0b0806;border:none;border-radius:20px;
   font-size:12px;font-family:inherit;font-weight:500;cursor:pointer;letter-spacing:.04em}
+/* 出发回访提示 banner */
+.pending-banner{margin:0 14px 10px;padding:14px 16px;
+  background:var(--s1);border:1px solid rgba(200,152,104,.25);
+  border-left:3px solid var(--a);border-radius:var(--r);animation:up .4s ease}
+.pb-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pb-icon{font-size:18px;flex-shrink:0}
+.pb-text{flex:1}
+.pb-title{font-size:13px;color:var(--ink);font-weight:500;line-height:1.4}
+.pb-sub{font-size:11px;color:var(--i3);margin-top:2px}
+.pb-actions{display:flex;gap:8px}
+.pb-record{flex:1;padding:9px;background:var(--a3);border:1px solid rgba(200,152,104,.3);
+  border-radius:20px;font-size:12px;color:var(--a);cursor:pointer;
+  font-family:inherit;letter-spacing:.04em;text-align:center}
+.pb-record:active{background:var(--a);color:#0b0806}
+.pb-dismiss{padding:9px 14px;background:transparent;border:1px solid var(--b1);
+  border-radius:20px;font-size:12px;color:var(--i3);cursor:pointer;font-family:inherit}
+
 /* 首页空状态 — 首次体验 CTA */
 .first-cta{padding:52px 24px 40px;text-align:center}
 .fca-lead{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
@@ -1714,6 +1731,7 @@ function showMorning(txt){
 // ── HOME FEED ──
 function renderHome(){
   renderHomeRoute();
+  checkPendingVisit();
   const el=document.getElementById('home-feed');
   if(!recs.length){
     el.innerHTML=`<div class="first-cta">
@@ -1732,6 +1750,44 @@ function renderHome(){
     ?`<div style="margin-top:6px">${history.map(r=>renderHistRow(r)).join('')}</div>`
     :'';
   el.innerHTML=`<div class="feed-wrap">${renderFeedCard(latest)}${histHtml}</div>`;
+}
+
+function checkPendingVisit(){
+  const old=document.getElementById('pending-banner');if(old)old.remove();
+  const raw=localStorage.getItem('cf6_pending_visit');if(!raw)return;
+  const pv=JSON.parse(raw);
+  const elapsed=Date.now()-pv.departedAt;
+  if(elapsed<20*60*1000)return; // 出发后20分钟内不打扰
+  if(elapsed>10*3600*1000){localStorage.removeItem('cf6_pending_visit');return;} // 超10小时清除
+  const feed=document.getElementById('home-feed');if(!feed)return;
+  const banner=document.createElement('div');
+  banner.id='pending-banner';
+  banner.className='pending-banner';
+  banner.innerHTML=`<div class="pb-top">
+    <div class="pb-icon">☕</div>
+    <div class="pb-text">
+      <div class="pb-title">刚从 ${pv.shop||'咖啡馆'} 回来？</div>
+      <div class="pb-sub">记录这杯${pv.drink?'「'+pv.drink+'」':''}，让口味档案更准确</div>
+    </div>
+  </div>
+  <div class="pb-actions">
+    <button class="pb-record" onclick="startPendingRecord('${(pv.shop||'').replace(/'/g,"\\'")}')">记录这杯 →</button>
+    <button class="pb-dismiss" onclick="dismissPendingVisit()">已记录过了</button>
+  </div>`;
+  feed.insertAdjacentElement('beforebegin',banner);
+}
+function startPendingRecord(shopName){
+  localStorage.removeItem('cf6_pending_visit');
+  document.getElementById('pending-banner')?.remove();
+  go('rec');
+  setTimeout(()=>{
+    const rs=document.getElementById('r-shop');
+    if(rs&&shopName) rs.value=shopName;
+  },100);
+}
+function dismissPendingVisit(){
+  localStorage.removeItem('cf6_pending_visit');
+  document.getElementById('pending-banner')?.remove();
 }
 
 function renderFeedCard(r){
@@ -2143,6 +2199,8 @@ ${shopInstruction}
     const m=text.match(/\{[\s\S]*\}/);
     if(!m)throw new Error('no JSON: '+text.slice(0,80));
     const json=JSON.parse(m[0]);
+    // tip 由本地函数生成，保证真实可用
+    json.tip=buildBaristaSay(json.drink,getUserProfile());
     return{...json,pois:routePois,hasShops};
   }catch(e){console.error('[route] failed:',e);return null;}
 }
@@ -2194,7 +2252,14 @@ function dismissRoute(){
 }
 function onDepart(navUrl){
   window.open(navUrl,'_blank');
-  // 跳到首页，路条卡片保留在 localStorage，首页会渲染它
+  // 存储出发记录，用于返回 App 时提示记录这杯
+  const routeRaw=localStorage.getItem('cf6_route');
+  if(routeRaw){
+    const route=JSON.parse(routeRaw);
+    localStorage.setItem('cf6_pending_visit',JSON.stringify({
+      shop:route.shop||'',drink:route.drink||'',departedAt:Date.now()
+    }));
+  }
   setTimeout(()=>go('home'),400);
 }
 function renderHomeRoute(){
@@ -2712,9 +2777,21 @@ function findRealShop(poiName){
 
 function getUserProfile(){
   if(!recs.length)return null;
-  const vecs=recs.map(r=>extractSensoryVector(r.feel,r.scanData,r.id));
-  const avgA=vecs.reduce((s,v)=>s+v.acidity,0)/vecs.length;
-  const avgB=vecs.reduce((s,v)=>s+v.body,0)/vecs.length;
+  const now=Date.now();
+  const halfLife=45*24*3600*1000; // 45天半衰期
+  const ratingW=[0,0.5,0.7,1.0,1.2,1.5]; // 1星~5星权重
+  let wA=0,wB=0,totalW=0;
+  recs.forEach(r=>{
+    const sv=extractSensoryVector(r.feel,r.scanData,r.id);
+    const age=now-(r.ts||now);
+    const timeW=Math.exp(-Math.log(2)*age/halfLife);              // 时间衰减
+    const ratW=r.rating?ratingW[r.rating]:1.0;                   // 评分权重
+    const rpW=r.repurchase==='yes'?1.2:r.repurchase==='no'?0.3:1.0; // 复购信号
+    const w=timeW*ratW*rpW;
+    wA+=sv.acidity*w; wB+=sv.body*w; totalW+=w;
+  });
+  const avgA=totalW>0?wA/totalW:0.5;
+  const avgB=totalW>0?wB/totalW:0.5;
   const wowRate=recs.filter(r=>r.wow).length/recs.length;
   const uniq=new Set(recs.map(r=>r.name)).size;
   const visitedShops=new Set(recs.map(r=>r.scanData?.shop).filter(Boolean));
@@ -3122,23 +3199,24 @@ async function loadShopOrder(s,profile){
   const acidMid=((profile.acidity[0]+profile.acidity[1])/2*100).toFixed(0);
   const bodyMid=((profile.body[0]+profile.body[1])/2*100).toFixed(0);
   const shopLine=`这家店：${normBrand(s.name)}，精品度${Math.round(profile.specialty*100)}%，酸质均值${acidMid}%，醇度均值${bodyMid}%${profile.note?'，'+profile.note.slice(0,40):''}`;
-  const sys=`你帮用户在一家咖啡馆做决策：该点什么，进门怎么说。只基于提供的数据，不要补充未提及的信息。只返回JSON，不要其他文字。`;
+  const sys=`你帮用户在一家咖啡馆做决策。只基于提供的数据推理，不要补充未提及的信息。只返回JSON，不要其他文字。`;
   const prompt=`${userLine}
 ${shopLine}
 
 给出：
 1. match：一句话（≤18字）说明这家店和用户口味的契合点，感性直接，不要数字
-2. drink：建议点什么（≤10字，如"手冲单品"或"SOE美式"或"拿铁"）
-3. say：进门对咖啡师说的话（≤30字，第一人称，含酸苦偏好和是否要奶）
+2. drink：这家店最适合该用户的饮品品类（≤8字，只说品类如"手冲单品""澳白""拿铁""冷萃"，不要编造菜单名）
 
-只返回JSON：{"match":"...","drink":"...","say":"..."}`;
+只返回JSON：{"match":"...","drink":"..."}`;
   try{
-    const txt=await callAI({system:sys,prompt,maxTokens:200});
+    const txt=await callAI({system:sys,prompt,maxTokens:120});
     if(!txt)throw new Error('empty');
     const m=txt.match(/\{[\s\S]*\}/);
     if(!m)throw new Error('no json');
     const data=JSON.parse(m[0]);
     if(!data.match)throw new Error('invalid');
+    // say 由本地函数生成，保证真实可用
+    data.say=buildBaristaSay(data.drink,user);
     localStorage.setItem(cacheKey,JSON.stringify(data));
     localStorage.setItem(cacheKey+'_ts',String(Date.now()));
     renderShopOrder(data,el);
@@ -3319,6 +3397,8 @@ ${summary}`;
     let rx={};
     try{rx=JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0]||'{}');}catch(_){}
     if(rx.title){
+      // barista 由本地函数生成，保证符合实际点单场景
+      rx.barista=buildBaristaSay(rx.brew,getUserProfile());
       localStorage.setItem('cf6_rx',JSON.stringify(rx));
       localStorage.setItem('cf6_rx_ts',String(Date.now()));
       localStorage.setItem('cf6_rx_count',String(recs.length));
@@ -3380,7 +3460,34 @@ function refreshPrescription(){
   loadPrescription(true);
 }
 
-// ── SENSORY VECTOR (keyword-based, zero API calls) ──
+// ── BARISTA SAY — 按饮品类型生成点单语（本地，无幻觉）──
+function buildBaristaSay(drink,user){
+  const d=(drink||'').toLowerCase();
+  const likeAcid=user&&user.avgA>0.58;
+  const likeBody=user&&user.avgB>0.58;
+  if(/手冲|pour|单品|drip|v60|chemex/.test(d))
+    return likeAcid?'今天有明亮果酸感的单品吗，手冲，不加糖不加奶'
+                   :'今天有醇厚顺口的单品推荐吗，手冲，不加糖不加奶';
+  if(/soe|单一产地/.test(d))
+    return '你们SOE今天是什么产区的豆，有果香的吗，直饮';
+  if(/澳白|flat white/.test(d))
+    return '来一杯澳白，全脂牛奶';
+  if(/拿铁|latte/.test(d))
+    return likeBody?'来一杯拿铁，全脂牛奶，浓缩稍多一点':'来一杯拿铁，全脂牛奶就好';
+  if(/卡布|cappuccino/.test(d))
+    return '来一杯卡布奇诺，干一点的';
+  if(/冷萃|cold brew|冰滴|nitro/.test(d))
+    return '来一杯冷萃，不加糖不加奶，直饮';
+  if(/美式|americano/.test(d))
+    return likeAcid?'来一杯美式，水放多一点，让豆子香气出来':'来一杯美式，正常比例';
+  if(/特调|创意/.test(d))
+    return '今天有什么特调推荐吗，不太甜就好';
+  return likeAcid?'有果酸感明显的推荐吗，不加糖不加奶'
+        :likeBody?'有醇厚顺口的推荐吗，不太苦就好'
+        :'今天有什么好推荐的，不加糖';
+}
+
+// ── SENSORY VECTOR (keyword + origin/process awareness) ──
 function extractSensoryVector(feel,scanData,id){
   if(id&&_svCache.has(id))return _svCache.get(id);
   const txt=(feel||'').toLowerCase();
@@ -3397,8 +3504,22 @@ function extractSensoryVector(feel,scanData,id){
   for(const[k,w]of Object.entries(bodyKw)){bT+=w;if(txt.includes(k))bS+=w;}
   for(const[k,w]of Object.entries(lightKw)){if(txt.includes(k))bS-=w;}
   const norm=(s,t)=>Math.min(1,Math.max(0,s/(t*0.28)));
-  const acidity=aT?(aS>0?norm(aS,aT):0.38):0.45;
-  const body=bT?(bS>0?norm(bS,bT):Math.max(0,norm(bS,bT))):0.45;
+  let acidity=aT?(aS>0?norm(aS,aT):0.38):0.45;
+  let body=bT?(bS>0?norm(bS,bT):Math.max(0,norm(bS,bT))):0.45;
+
+  // 产区/处理法对感官向量的修正（有依据的偏移，最大±0.15）
+  const origin=(scanData?.origin||'').toLowerCase();
+  const process=(scanData?.process||'').toLowerCase();
+  if(/埃塞|ethiopia|肯尼亚|kenya|耶加|yirgacheffe|西达摩|sidamo/.test(origin)) acidity=Math.min(1,acidity+0.12);
+  if(/哥伦比亚|colombia|巴拿马|panama|危地马拉|guatemala/.test(origin))          acidity=Math.min(1,acidity+0.06);
+  if(/巴西|brazil|印尼|印度尼西亚|indonesia|曼特宁|mandheling/.test(origin)){    acidity=Math.max(0,acidity-0.10);body=Math.min(1,body+0.08);}
+  if(/水洗|washed/.test(process))    acidity=Math.min(1,acidity+0.05);
+  if(/日晒|natural/.test(process))   body=Math.min(1,body+0.06);
+  if(/蜜处理|honey/.test(process))   body=Math.min(1,body+0.04);
+  if(/厌氧|anaerobic/.test(process)) {acidity=Math.min(1,acidity+0.04);body=Math.min(1,body+0.04);}
+  if(/浅烘|light roast/.test(txt))   acidity=Math.min(1,acidity+0.07);
+  if(/深烘|dark roast/.test(txt))    acidity=Math.max(0,acidity-0.09);
+
   const result={acidity,body};
   if(id)_svCache.set(id,result);
   return result;
