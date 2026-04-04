@@ -202,6 +202,20 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
 select.fi{cursor:pointer}
 textarea.fi{resize:none;line-height:1.65}
 
+/* Shop + Price row */
+.rec-row2{display:flex;gap:10px;align-items:flex-start}
+/* 风味快选 */
+.flavor-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.fc-group-lbl{font-size:9px;color:var(--i3);letter-spacing:.1em;text-transform:uppercase;
+  align-self:center;margin-right:2px;flex-shrink:0}
+.fc{padding:5px 11px;border:1px solid var(--b2);border-radius:20px;
+  background:transparent;font-size:12px;color:var(--i2);cursor:pointer;
+  font-family:inherit;transition:all .12s;white-space:nowrap}
+.fc:active,.fc.on{background:var(--a3);border-color:var(--a);color:var(--a)}
+.fc-mouth{border-color:rgba(78,138,104,.3);color:rgba(78,138,104,.8)}
+.fc-mouth:active,.fc-mouth.on{background:rgba(78,138,104,.1);border-color:var(--gn);color:var(--gn)}
+.fc-finish{border-color:rgba(200,152,104,.2);color:var(--i3)}
+.fc-finish:active,.fc-finish.on{background:var(--a3);border-color:var(--a);color:var(--a)}
 /* THE main input — free feel */
 .feel-block{margin:0 14px 11px}
 .feel-label{font-size:11px;color:var(--a);letter-spacing:.06em;
@@ -740,12 +754,44 @@ textarea.fi{resize:none;line-height:1.65}
 
   <!-- Manual name (shown if scan not done) -->
   <div class="fb" id="manual-name-block">
-    <label>或手动输入品名</label>
+    <label>咖啡品名</label>
     <input class="fi" id="r-name" type="text" placeholder="耶加雪菲 G1 / 拿铁 / 今日特调…" autocomplete="off">
+  </div>
+
+  <!-- Shop + Price — always visible -->
+  <div class="fb rec-row2">
+    <div style="flex:1;min-width:0">
+      <label>店铺名称</label>
+      <input class="fi" id="r-shop" type="text" placeholder="咖啡馆名称" autocomplete="off">
+    </div>
+    <div style="width:90px;flex-shrink:0">
+      <label>价格</label>
+      <input class="fi" id="r-price" type="number" placeholder="¥" min="0" max="999">
+    </div>
   </div>
 
   <!-- Step 2: THE main input -->
   <div class="feel-block">
+    <!-- 风味快选 -->
+    <div class="flavor-chips" id="flavor-chips">
+      <span class="fc-group-lbl">快选</span>
+      <button class="fc" onclick="addChip('柑橘')">柑橘</button>
+      <button class="fc" onclick="addChip('梅子')">梅子</button>
+      <button class="fc" onclick="addChip('浆果')">浆果</button>
+      <button class="fc" onclick="addChip('苹果')">苹果</button>
+      <button class="fc" onclick="addChip('花香')">花香</button>
+      <button class="fc" onclick="addChip('巧克力')">巧克力</button>
+      <button class="fc" onclick="addChip('焦糖')">焦糖</button>
+      <button class="fc" onclick="addChip('坚果')">坚果</button>
+      <button class="fc" onclick="addChip('奶油')">奶油</button>
+      <button class="fc fc-mouth" onclick="addChip('轻盈')">轻盈</button>
+      <button class="fc fc-mouth" onclick="addChip('醇厚')">醇厚</button>
+      <button class="fc fc-mouth" onclick="addChip('顺滑')">顺滑</button>
+      <button class="fc fc-mouth" onclick="addChip('涩口')">涩口</button>
+      <button class="fc fc-finish" onclick="addChip('余韵干净')">余韵干净</button>
+      <button class="fc fc-finish" onclick="addChip('回甜')">回甜</button>
+      <button class="fc fc-finish" onclick="addChip('苦底')">苦底</button>
+    </div>
     <label class="feel-label">用你自己的话说说这杯</label>
     <textarea class="feel-ta" id="r-feel" rows="3"
       placeholder="像梅子汽水、有点焦糖甜、余韵很干净……怎么想的就怎么说，没有标准答案"></textarea>
@@ -1635,10 +1681,33 @@ function renderHome(){
 }
 
 // ── RECORD FORM ──
+function addChip(label){
+  const ta=document.getElementById('r-feel');
+  const cur=ta.value.trim();
+  // Toggle: if chip already in text, remove it
+  const btn=[...document.querySelectorAll('#flavor-chips .fc')].find(b=>b.textContent===label);
+  if(btn&&btn.classList.contains('on')){
+    // remove from textarea
+    ta.value=cur.replace(new RegExp('(，|,\\s*)?'+label+'(，|,\\s*)?','g'),s=>{
+      // simplistic removal: replace whole token
+      return '';
+    }).replace(/^[，,\s]+|[，,\s]+$/g,'').replace(/[，,]{2,}/g,'，');
+    if(btn) btn.classList.remove('on');
+    return;
+  }
+  ta.value=cur?(cur+'，'+label):label;
+  if(btn) btn.classList.add('on');
+  ta.focus();
+}
+
 function resetForm(){
   document.getElementById('r-feel').value='';
   document.getElementById('r-notes').value='';
   if(document.getElementById('r-name')) document.getElementById('r-name').value='';
+  const rShop=document.getElementById('r-shop');if(rShop)rShop.value='';
+  const rPrice=document.getElementById('r-price');if(rPrice)rPrice.value='';
+  // clear chip active states
+  document.querySelectorAll('#flavor-chips .fc').forEach(b=>b.classList.remove('on'));
   rating=0;wowOn=false;scanData=null;repurchase='';
   ['rp-y','rp-m','rp-n'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='';});
   highlightStars(0);
@@ -1762,6 +1831,8 @@ async function handleCameraInput(input){
         document.getElementById('scan-res').style.display='block';
         document.getElementById('manual-name-block').style.display='none';
         if(name) document.getElementById('r-name').value=name;
+        if(ex.shop){const rs=document.getElementById('r-shop');if(rs)rs.value=ex.shop;}
+        if(ex.price){const rp=document.getElementById('r-price');if(rp)rp.value=ex.price;}
       } else {
         preview.querySelector('.cam-preview-lbl').textContent='未能识别，请手动填写';
         document.getElementById('manual-name-block').style.display='block';
@@ -1793,10 +1864,17 @@ async function saveRec(){
   const name=scanData?.name||document.getElementById('r-name')?.value.trim()||'';
   if(!name){if(document.getElementById('r-name'))document.getElementById('r-name').focus();return;}
   const feel=document.getElementById('r-feel').value.trim();
+  // 手动字段优先，scan 数据兜底
+  const manualShop=document.getElementById('r-shop')?.value.trim();
+  const manualPrice=document.getElementById('r-price')?.value.trim();
+  const mergedScan=scanData?{...scanData,
+    shop:manualShop||scanData.shop||'',
+    price:manualPrice||scanData.price||''
+  }:manualShop||manualPrice?{name,shop:manualShop||'',price:manualPrice||'',method:'',origin:'',process:'',variety:''}:null;
   const rec={
     id:Date.now(),name,feel,repurchase,
     notes:document.getElementById('r-notes').value.trim(),
-    rating,wow:wowOn,scanData:scanData?{...scanData}:null,
+    rating,wow:wowOn,scanData:mergedScan,
     date:new Date().toLocaleDateString('zh-CN'),ts:Date.now(),aiReply:null
   };
   const isFirst=recs.length===0; // 保存前判断
