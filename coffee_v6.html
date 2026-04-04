@@ -1726,8 +1726,8 @@ async function saveRec(){
     rec.aiReply=reply;save();
     typewrite(document.getElementById('ai-txt'),reply);
     getSummary(rec).then(s=>{if(s){rec.summary=s;save();}});
-    if(isFirst){
-      // 首杯：额外触发路条卡片
+    if(isFirst||recs.length===1){
+      // 首杯：额外触发路条卡片（isFirst 或 recs 里只有这一条）
       getRouteCard(rec).then(result=>{
         if(result)setTimeout(()=>showRouteCard(result),1800);
       });
@@ -1741,7 +1741,7 @@ function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
 
 // ── 路条卡片 ──
 async function getRouteCard(rec){
-  const apiKey=getKey(); if(!apiKey)return null;
+  const apiKey=getApiKey(); if(!apiKey)return null;
   let shopContext='附近暂无门店数据', routePois=[];
   try{
     const pos=await getLocation();
