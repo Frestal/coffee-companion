@@ -1023,9 +1023,10 @@ textarea.fi{resize:none;line-height:1.65}
       placeholder="sk-ant-api03-..."
       style="margin-bottom:12px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.04em">
     <div id="apikey-err" style="font-size:11px;color:var(--rd);margin-bottom:8px;display:none">Key 格式不对，应以 sk-ant- 开头</div>
+    <div id="apikey-test-msg" style="font-size:11px;margin-bottom:8px;display:none"></div>
     <div class="share-btns">
       <button class="share-btn" onclick="closeApiKeySetup()">跳过（AI功能不可用）</button>
-      <button class="share-btn primary" onclick="saveApiKey()">保存</button>
+      <button class="share-btn primary" id="apikey-save-btn" onclick="saveApiKey()">验证并保存</button>
     </div>
   </div>
 </div>
@@ -1463,14 +1464,36 @@ if(!recs.length && !localStorage.getItem('cf6_demo_injected')){
 
 // ── INIT ──
 function getApiKey(){return localStorage.getItem('cf6_apikey')||'';}
-function saveApiKey(){
+async function saveApiKey(){
   const v=document.getElementById('apikey-input').value.trim();
   const err=document.getElementById('apikey-err');
-  if(!v.startsWith('sk-ant-')){err.style.display='block';return;}
+  const msg=document.getElementById('apikey-test-msg');
+  const btn=document.getElementById('apikey-save-btn');
+  if(!v.startsWith('sk-ant-')){err.style.display='block';msg.style.display='none';return;}
   err.style.display='none';
-  localStorage.setItem('cf6_apikey',v);
-  closeApiKeySetup();
-  if(recs.length>=3) loadMorning();
+  btn.disabled=true;btn.textContent='验证中…';
+  msg.style.color='var(--i3)';msg.textContent='正在测试连接…';msg.style.display='block';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':v,
+        'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:5,
+        messages:[{role:'user',content:'hi'}]})});
+    const d=await r.json();
+    if(d.error){
+      msg.style.color='var(--rd)';
+      msg.textContent='✗ '+( d.error.message||d.error.type||'API错误，请检查Key是否有效');
+      btn.disabled=false;btn.textContent='重新验证';
+      return;
+    }
+    // 成功
+    msg.style.color='var(--gn)';msg.textContent='✓ 连接成功';
+    localStorage.setItem('cf6_apikey',v);
+    setTimeout(()=>{closeApiKeySetup();if(recs.length>=3)loadMorning();},600);
+  }catch(e){
+    msg.style.color='var(--rd)';msg.textContent='✗ 网络错误：'+e.message;
+    btn.disabled=false;btn.textContent='重新验证';
+  }
 }
 function closeApiKeySetup(){document.getElementById('apikey-overlay').classList.remove('on');}
 function openApiKeySetup(){document.getElementById('apikey-overlay').classList.add('on');}
@@ -1834,13 +1857,15 @@ ${shopInstruction}
       method:'POST',
       headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01',
         'content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,
         messages:[{role:'user',content:prompt}]})
     });
     const data=await resp.json();
+    console.log('[route] api resp',data);
+    if(data.error)throw new Error(data.error.message||data.error.type);
     const text=data.content?.[0]?.text||'';
-    const m=text.match(/\{[\s\S]*?\}/);
-    if(!m)throw new Error('no JSON in response: '+text.slice(0,80));
+    const m=text.match(/\{[\s\S]*\}/);
+    if(!m)throw new Error('no JSON: '+text.slice(0,80));
     const json=JSON.parse(m[0]);
     return{...json,pois:routePois,hasShops};
   }catch(e){console.error('[route] failed:',e);return null;}
@@ -1932,11 +1957,19 @@ async function getReply(rec,all){
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:sys,
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,system:sys,
         messages:[{role:'user',content:ctx}]})});
     const d=await r.json();
+    console.log('[reply] status',r.status,d);
+    if(d.error){
+      const em=d.error.message||d.error.type||'unknown';
+      console.error('[reply] API error:',em);
+      if(d.error.type==='authentication_error')return'⚠️ API Key 无效，请在「我的」页面重新设置';
+      if(d.error.type==='insufficient_quota_error'||d.error.type==='rate_limit_error')return'⚠️ API 余额不足或频率限制，稍后再试';
+      return`⚠️ AI 调用失败（${em.slice(0,40)}）`;
+    }
     return d.content?.map(c=>c.text||'').join('').trim()||'记下来了，每一杯都在积累。';
-  }catch(e){return'记下来了。慢慢都会有感觉的。';}
+  }catch(e){console.error('[reply]',e);return'记下来了。（网络异常，AI 暂时不可用）';}
 }
 
 // ── AI SUMMARY (星图点击时，一句话帮用户说出体会) ──
