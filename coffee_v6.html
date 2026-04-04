@@ -1962,9 +1962,9 @@ async function saveRec(){
       document.getElementById('s'+i).textContent='完成';
     },dones[i]);
   });
-  // 保存当前 rec 供路条按需调用
   _lastSavedRec=rec;
   setTimeout(async()=>{
+    // Step 1: AI 回复
     const reply=await getReply(rec,recs);
     rec.aiReply=reply;save();
     typewrite(document.getElementById('ai-txt'),reply);
@@ -1973,11 +1973,16 @@ async function saveRec(){
       localStorage.removeItem('cf6_m');
       setTimeout(loadMorning,2500);
     }
-    // 路条：AI 回复打完后显示"找下一杯"按钮，用户主动触发
+    // Step 2: 自动寻找下一杯，无需用户手动触发
     if(getApiKey()){
       const ri=document.getElementById('route-inline');
-      ri.innerHTML=`<button class="rc-cta-btn" onclick="triggerRouteCard()">找下一杯 →</button>`;
+      ri.innerHTML='<div class="rc-loading">正在为你寻找下一杯…</div>';
       ri.style.display='block';
+      try{
+        const result=await getRouteCard(rec);
+        if(result) showRouteCard(result);
+        else ri.innerHTML='<div style="font-size:12px;color:var(--i3);padding:10px 0">附近暂时没找到合适的推荐</div>';
+      }catch(e){ri.style.display='none';}
     }
   },2300);
 }
@@ -2105,7 +2110,10 @@ function showRouteCard(result){
     </div>`:
     `<div class="rc-drink" style="color:rgba(245,237,227,.6)">${drink}</div>
      <div class="rc-tip" style="margin-top:6px">告诉咖啡师：${tip}</div>`}
-    ${navBtn}
+    <div style="display:flex;gap:8px;margin-top:18px">
+      ${navBtn||''}
+      <button onclick="go('home')" style="flex:1;padding:12px;background:transparent;border:1px solid rgba(245,237,227,.15);border-radius:var(--r);font-size:12px;color:rgba(245,237,227,.5);cursor:pointer;font-family:inherit;letter-spacing:.04em">稍后再说</button>
+    </div>
   </div>`;
   el.style.display='block';
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -2120,23 +2128,8 @@ function dismissRoute(){
 }
 function onDepart(navUrl){
   window.open(navUrl,'_blank');
-  // 给"出发"按钮立即反馈
-  const ri=document.getElementById('route-inline');
-  if(ri){
-    ri.innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:12px 0">
-      <span style="font-size:16px">🚶</span>
-      <div>
-        <div style="font-size:13px;color:var(--i1);font-weight:500">出发啦</div>
-        <div style="font-size:11px;color:var(--i3);margin-top:2px">希望这杯让你惊艳</div>
-      </div>
-      <button onclick="go('home')" style="margin-left:auto;padding:7px 14px;background:transparent;border:1px solid var(--b2);border-radius:20px;font-size:11px;color:var(--i2);cursor:pointer;font-family:inherit">回到今天</button>
-    </div>`;
-  }
-  // 首页路条卡片消除
-  setTimeout(()=>{
-    localStorage.removeItem('cf6_route');
-    const el=document.getElementById('home-route-card');if(el)el.remove();
-  },800);
+  // 跳到首页，路条卡片保留在 localStorage，首页会渲染它
+  setTimeout(()=>go('home'),400);
 }
 function renderHomeRoute(){
   const raw=localStorage.getItem('cf6_route');
