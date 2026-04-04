@@ -2259,7 +2259,7 @@ function openShopDetailAmap(idx){
     <div class="sd-sec"><h3>地址</h3><div class="dd">${s.address||s.adname||'暂无地址'}</div></div>
     ${photos}
     ${bridgeHtml}
-    <button class="buy-btn" style="margin-top:${hasBridge?'14':'0'}px" onclick="window.open('https://uri.amap.com/navigation?to=${s.location?.getLng?.()??s.location},${s.location?.getLat?.()??''},${encodeURIComponent(s.name)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>
+    <button class="buy-btn" style="margin-top:${hasBridge?'14':'0'}px" onclick="window.open('https://uri.amap.com/navigation?to=${typeof s.location==='string'?s.location:(s.location?.getLng?.()+','+s.location?.getLat?.())},${encodeURIComponent(s.name)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>
   `;
   // 特征码复制
   document.getElementById('sd-bridge-code-el')?.addEventListener('click',function(){
