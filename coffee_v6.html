@@ -124,22 +124,31 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
 .rc-del{background:none;border:none;color:var(--i3);font-size:15px;cursor:pointer;
   padding:0;margin-top:5px;line-height:1;opacity:.5;transition:opacity .15s;display:block;margin-left:auto}
 .rc-del:active{opacity:1;color:var(--rd)}
-/* Compact history rows */
-.rc-compact{display:flex;align-items:center;gap:10px;padding:9px 12px;
-  border-radius:10px;margin-bottom:5px;cursor:pointer;transition:background .15s}
-.rc-compact:active{background:var(--s2)}
-.rc-compact-date{font-size:10px;color:var(--i3);flex-shrink:0;width:32px;text-align:center;line-height:1.3}
-.rc-compact-name{font-size:13px;color:var(--i1);font-weight:500;flex-shrink:0;max-width:110px;
-  overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.rc-compact-kws{display:flex;gap:4px;flex-wrap:nowrap;overflow:hidden;flex:1}
-.rc-compact-kw{font-size:10px;color:var(--i3);background:var(--s1);
-  border:1px solid var(--b1);border-radius:10px;padding:1px 7px;white-space:nowrap;flex-shrink:0}
-.rc-compact-wow{font-size:9px;color:var(--sp);flex-shrink:0}
-.feed-more-btn{display:block;width:100%;margin:8px 0 14px;padding:10px;
-  background:transparent;border:1px solid var(--b1);border-radius:var(--r);
-  font-size:11px;color:var(--i3);cursor:pointer;font-family:inherit;letter-spacing:.06em;
-  text-align:center;transition:border-color .15s}
-.feed-more-btn:active{border-color:var(--b2);color:var(--i2)}
+/* ── History compact rows ── */
+.rc-hist{border-radius:10px;margin-bottom:4px;overflow:hidden;
+  background:var(--s1);border:1px solid var(--b1);transition:border-color .15s}
+.rc-hist-row{display:flex;align-items:center;gap:10px;padding:10px 13px;cursor:pointer}
+.rc-hist-row:active{background:var(--s2)}
+.rc-hist-date{font-size:10px;color:var(--i3);flex-shrink:0;width:28px;text-align:center;line-height:1.35}
+.rc-hist-body{flex:1;min-width:0}
+.rc-hist-name{font-size:13px;color:var(--i1);font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.rc-hist-sub{display:flex;gap:5px;align-items:center;margin-top:3px;flex-wrap:nowrap;overflow:hidden}
+.rc-hist-shop{font-size:10px;color:var(--i3);white-space:nowrap;flex-shrink:0}
+.rc-hist-kw{font-size:10px;color:var(--i3);background:transparent;
+  border:1px solid var(--b1);border-radius:8px;padding:1px 6px;white-space:nowrap;flex-shrink:0}
+.rc-hist-arr{font-size:14px;color:var(--i3);flex-shrink:0;transition:transform .2s;line-height:1}
+.rc-hist-arr.open{transform:rotate(90deg)}
+.rc-hist-detail{padding:0 13px 13px;border-top:1px solid var(--b1);display:none}
+.rc-hist-feel{font-size:13px;color:var(--i2);font-family:'Cormorant Garamond',serif;
+  font-style:italic;line-height:1.7;margin:10px 0 8px}
+.rc-hist-aireply{font-size:11px;color:var(--i2);line-height:1.65;
+  padding:8px 10px;background:var(--s2);border-radius:6px;margin-bottom:10px}
+.rc-hist-aireply-lbl{font-size:9px;color:var(--a);letter-spacing:.08em;margin-bottom:3px}
+.rc-hist-nav{display:inline-block;padding:8px 16px;background:var(--a3);
+  border:1px solid rgba(200,152,104,.3);border-radius:20px;font-size:11px;
+  color:var(--a);cursor:pointer;font-family:inherit;letter-spacing:.04em;transition:all .15s}
+.rc-hist-nav:active{background:var(--a);color:#0b0806}
 
 /* Share card overlay */
 .share-overlay{position:fixed;inset:0;background:rgba(6,4,2,.88);backdrop-filter:blur(16px);
@@ -1702,14 +1711,13 @@ function renderHome(){
     </div>`;
     return;
   }
-  const FULL_LIMIT=5;
-  const recent=recs.slice(0,20);
-  const full=recent.slice(0,FULL_LIMIT);
-  const archived=recent.slice(FULL_LIMIT);
-  const fullCards=full.map(r=>renderFeedCard(r)).join('');
-  const compactRows=archived.map(r=>renderCompactRow(r)).join('');
-  const moreBtn=archived.length?`<button class="feed-more-btn" id="feed-more-btn" onclick="toggleOldRecs(this)">查看更多 ${archived.length} 杯 ↓</button>`:'';
-  el.innerHTML=`<div class="feed-wrap">${fullCards}${archived.length?`<div id="feed-archived" style="display:none">${compactRows}</div>${moreBtn}`:''}</div>`;
+  // 最新1杯：完整卡片；其余：紧凑历史行（可展开）
+  const latest=recs[0];
+  const history=recs.slice(1,30);
+  const histHtml=history.length
+    ?`<div style="margin-top:6px">${history.map(r=>renderHistRow(r)).join('')}</div>`
+    :'';
+  el.innerHTML=`<div class="feed-wrap">${renderFeedCard(latest)}${histHtml}</div>`;
 }
 
 function renderFeedCard(r){
@@ -1735,31 +1743,49 @@ function feelKeywords(feel){
   if(!feel) return [];
   return feel.split(/[，,、。！？\s]+/).map(s=>s.trim()).filter(s=>s.length>=2).slice(0,3).map(s=>s.slice(0,7));
 }
-function renderCompactRow(r){
+function renderHistRow(r){
   const kws=feelKeywords(r.feel);
-  // 取日期最后几位：月/日
   const dateShort=(r.date||'').replace(/\d{4}[年\/\-]/,'').replace(/日?$/,'').replace('月','/');
-  return`<div class="rc-compact" onclick="expandCompactRec(${r.id},this)">
-    <div class="rc-compact-date">${dateShort}</div>
-    <div class="rc-compact-name">${r.name}</div>
-    <div class="rc-compact-kws">${kws.map(k=>`<span class="rc-compact-kw">${k}</span>`).join('')}</div>
-    ${r.wow?'<span class="rc-compact-wow">✦</span>':''}
+  const shop=r.scanData?.shop||r.shop||'';
+  const navBtn=shop
+    ?`<button class="rc-hist-nav" onclick="goFindShop('${shop.replace(/'/g,"\\'")}')">再次品尝 · 找这家店 →</button>`
+    :'';
+  const starsHtml=r.rating?`<div style="font-size:11px;color:var(--a);margin-bottom:6px">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>`:'';
+  const aiHtml=r.aiReply?`<div class="rc-hist-aireply"><div class="rc-hist-aireply-lbl">伴侣说</div>${r.aiReply}</div>`:'';
+  return`<div class="rc-hist" id="hist-${r.id}">
+    <div class="rc-hist-row" onclick="toggleHistRec(${r.id})">
+      <div class="rc-hist-date">${dateShort}</div>
+      <div class="rc-hist-body">
+        <div class="rc-hist-name">${r.name}${r.wow?'<span class="rc-wow-badge" style="margin-left:5px">✦</span>':''}</div>
+        <div class="rc-hist-sub">
+          ${shop?`<span class="rc-hist-shop">${shop}</span><span class="rc-hist-shop" style="opacity:.4">·</span>`:''}
+          ${kws.map(k=>`<span class="rc-hist-kw">${k}</span>`).join('')}
+        </div>
+      </div>
+      <div class="rc-hist-arr" id="hist-arr-${r.id}">›</div>
+    </div>
+    <div class="rc-hist-detail" id="hist-det-${r.id}">
+      ${r.feel?`<div class="rc-hist-feel">「${r.feel}」</div>`:''}
+      ${starsHtml}${aiHtml}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        ${navBtn}
+        ${r.repurchase?`<span style="font-size:11px;color:var(--i3)">${r.repurchase==='yes'?'✓ 会再来':r.repurchase==='maybe'?'看心情':'不再回购'}</span>`:''}
+      </div>
+    </div>
   </div>`;
 }
-function toggleOldRecs(btn){
-  const el=document.getElementById('feed-archived');
-  if(!el)return;
-  const open=el.style.display!=='none';
-  el.style.display=open?'none':'block';
-  btn.textContent=open?`查看更多 ${el.children.length} 杯 ↓`:'收起 ↑';
+function toggleHistRec(id){
+  const det=document.getElementById('hist-det-'+id);
+  const arr=document.getElementById('hist-arr-'+id);
+  if(!det)return;
+  const open=det.style.display!=='none';
+  det.style.display=open?'none':'block';
+  if(arr)arr.classList.toggle('open',!open);
 }
-function expandCompactRec(id,rowEl){
-  // 展开单条：替换紧凑行为完整卡片
-  const r=recs.find(x=>x.id===id);
-  if(!r)return;
-  const card=document.createElement('div');
-  card.innerHTML=renderFeedCard(r);
-  rowEl.replaceWith(card.firstElementChild);
+function goFindShop(name){
+  const inp=document.getElementById('shop-search-input');
+  if(inp) inp.value=name;
+  go('shop'); // renderShopScreen 检测到搜索词会自动触发搜索
 }
 
 // ── RECORD FORM ──
