@@ -2070,21 +2070,67 @@ function groupPois(pois){
     .sort((a,b)=>(+a[0].distance||9e9)-(+b[0].distance||9e9));
 }
 
-// ── BRAND KNOWLEDGE BASE (v1 · 2026-04) ──
+// ── BRAND KNOWLEDGE BASE (v2 · 2026-04，基于 deep research 报告更新) ──
+// acidity/body 为 [min,max] 风味区间；specialty 为精品程度 0-1；weight 为推荐权重
 const BRAND_KB=[
-  {aliases:['%arabica','arabica'],acidity:[.70,.88],body:[.18,.42],specialty:.92,weight:1,note:'日系极简，浅烘明亮，单一产区'},
-  {aliases:['blue bottle','bluebottle','蓝瓶'],acidity:[.60,.82],body:[.25,.52],specialty:.90,weight:1,note:'美系精品，48h新鲜，干净明亮'},
-  {aliases:['seesaw'],acidity:[.65,.85],body:[.22,.48],specialty:.80,weight:.65,note:'国内精品先驱，2025年收缩降权'},
-  {aliases:['metal hands','铁手'],acidity:[.40,.62],body:[.28,.48],specialty:.85,weight:1,note:'北京精品，自烘焙，亚洲Top50'},
-  {aliases:['greybox','灰盒子'],acidity:[.62,.82],body:[.38,.58],specialty:.85,weight:1,note:'SCA 80+，极严萃取'},
-  {aliases:["peet's",'peets','皮爷'],acidity:[.25,.52],body:[.58,.80],specialty:.58,weight:1,note:'美系传统，坚果焦糖，21-28天新鲜'},
-  {aliases:['manner'],acidity:[.22,.68],body:[.58,.82],specialty:.65,weight:1,note:'平价精品，产品线宽，提供产区信息'},
-  {aliases:['m stand','mstand'],acidity:[.18,.42],body:[.55,.72],specialty:.52,weight:1,note:'空间溢价，创意特调为主'},
-  {aliases:['starbucks','星巴克'],acidity:[.18,.45],body:[.55,.75],specialty:.28,weight:1,note:'深烘标准化，大众连锁'},
-  {aliases:['luckin','瑞幸'],acidity:[.28,.52],body:[.42,.65],specialty:.18,weight:1,note:'大众连锁，价格战主力'},
-  {aliases:['nowwa','挪瓦'],acidity:[.22,.48],body:[.42,.62],specialty:.20,weight:1,note:'大众连锁，性价比'},
-  {aliases:['costa'],acidity:[.22,.48],body:[.55,.75],specialty:.30,weight:.85,note:'英系，中国市场收缩中'},
-  {aliases:['tim hortons','tims','天好'],acidity:[.22,.45],body:[.55,.72],specialty:.30,weight:1,note:'加拿大连锁，大众定位'},
+  // ── 顶级精品 (specialty ≥ 0.85) ──
+  {aliases:['%arabica','arabica'],
+    acidity:[.70,.88],body:[.18,.42],specialty:.92,weight:1,
+    note:'2013年香港创立，2025年中国116家（内地+港澳），全球最大市场。浅烘极简，柑橘花香，单一产区'},
+  {aliases:['blue bottle','bluebottle','蓝瓶'],
+    acidity:[.60,.82],body:[.25,.52],specialty:.90,weight:1,
+    note:'2002年加州创立，Nestle 2017年入股。48小时新鲜烘焙，2022年上海首店，2025年中国15家。果酸花香明亮'},
+  {aliases:['greybox','灰盒子'],
+    acidity:[.62,.82],body:[.38,.58],specialty:.85,weight:1,
+    note:'世界冠军 Dale Harris 团队，全单 SCA 84+ 豆，Coffee Review 评分95分。平衡果甜，干净余味'},
+  {aliases:['soe coffee','soe'],
+    acidity:[.60,.82],body:[.20,.45],specialty:.88,weight:1,
+    note:'2017年北京创立，世界咖啡师大赛冠军团队运营。主打单一产地浓缩（SOE），约7家精品门店'},
+  {aliases:["eagle's coffee",'eagles coffee','eagle\'s','鹰集'],
+    acidity:[.62,.85],body:[.18,.40],specialty:.82,weight:1,
+    note:'2016年上海新天地创立，自有烘焙工厂，自控生豆贸易。浅烘轻盈果香，强调本土文化空间'},
+  {aliases:['metal hands','铁手'],
+    acidity:[.38,.62],body:[.35,.55],specialty:.85,weight:1,
+    note:'2016年北京创立，自烘焙，亚洲Top50。以"脏脏咖啡"和氮气冷萃著称，中/中深烘意式风格'},
+  // ── 精品连锁 (specialty 0.70–0.84) ──
+  {aliases:['mellower','麦隆'],
+    acidity:[.55,.78],body:[.30,.55],specialty:.78,weight:1,
+    note:'2011年云南昆明创立，20+门店，已拓展新加坡/韩国。自建烘焙厂+咖啡学院，创意咖啡兼精品豆零售'},
+  {aliases:['algebraist','代数学家'],
+    acidity:[.55,.80],body:[.25,.50],specialty:.80,weight:.8,
+    note:'上海精品独立品牌，数学/理性理念，主打精品手冲与意式，主要集中于上海新天地一带'},
+  {aliases:['seesaw'],
+    acidity:[.65,.85],body:[.22,.48],specialty:.80,weight:.40,
+    note:'2012年上海创立，曾是国内精品先驱。2023年资金链危机，门店从百家骤降至不足50家，持续收缩'},
+  // ── 品质连锁 (specialty 0.50–0.69) ──
+  {aliases:['fisheye','鱼眼'],
+    acidity:[.45,.70],body:[.28,.52],specialty:.62,weight:.9,
+    note:'2010年成立，国内较早精品化品牌。主打0糖低脂健康，北京/上海约16家，亲民精品路线'},
+  {aliases:['manner'],
+    acidity:[.22,.68],body:[.58,.82],specialty:.65,weight:1,
+    note:'2015年上海创立，全国2000+直营店，人均10-20元平价精品标杆。鲜牛奶拿铁为核心，不突出产区'},
+  {aliases:['m stand','mstand'],
+    acidity:[.18,.42],body:[.55,.72],specialty:.52,weight:1,
+    note:'2017年上海成立，每店不同主题装修，以空间美学和创意特调著称，咖啡环境溢价明显'},
+  {aliases:["peet's",'peets','皮爷'],
+    acidity:[.25,.52],body:[.58,.80],specialty:.58,weight:1,
+    note:'1966年美国伯克利创立，培育了星巴克创始人。经典深烘，坚果焦糖调，中国300+门店目标400家'},
+  // ── 大众连锁 (specialty < 0.35) ──
+  {aliases:['starbucks','星巴克'],
+    acidity:[.18,.45],body:[.55,.75],specialty:.28,weight:1,
+    note:'中国约8000家直营店，目标扩至2万家。中深烘标准化，杏仁榛果焦糖口味系列多'},
+  {aliases:['luckin','瑞幸'],
+    acidity:[.28,.52],body:[.42,.65],specialty:.18,weight:1,
+    note:'2017年北京创立，2025年全国31000+门店。曾发起9.9元价格战，饮料化咖啡，月活过亿'},
+  {aliases:['nowwa','挪瓦'],
+    acidity:[.22,.48],body:[.42,.62],specialty:.20,weight:1,
+    note:'2019年上海创立，主打0糖低脂健康。全国10000+门店，奶茶化咖啡体验，强调外卖渠道'},
+  {aliases:['costa'],
+    acidity:[.22,.48],body:[.55,.75],specialty:.30,weight:.85,
+    note:'英系传统连锁，2018年被可口可乐收购。中国约380家，策略趋于保守，不再盲目扩张'},
+  {aliases:['tim hortons','tims','天好'],
+    acidity:[.22,.45],body:[.55,.72],specialty:.30,weight:1,
+    note:'1964年加拿大创立，2022年入华。上海22+门店，目标10年1500家，加拿大甜甜圈+咖啡风格'},
 ];
 
 function inferShopProfile(poi){
@@ -2465,7 +2511,7 @@ function openShopDetailAmap(idx){
 
 // ── SHOP DATA (静态备用，不再直接渲染) ──
 const REAL_SHOPS = [
-{id:'sz-seesaw',city:'深圳',name:'Seesaw Coffee',addr:'深圳多区均有门店',tags:['连锁精品','手冲','意式'],style:'国内领先精品咖啡连锁，出品广受好评',features:['手冲单品','SOE浓缩','拿铁'],priceRange:'35-65'},
+{id:'sz-seesaw',city:'深圳',name:'Seesaw Coffee',addr:'深圳多区均有门店',tags:['连锁精品','手冲','意式'],style:'2012年上海起家的精品先驱，2023年资金链危机后持续收缩，仍在营业的门店出品保持精品水准',features:['手冲单品','SOE浓缩','拿铁'],priceRange:'30-40'},
 {id:'sz-gee',city:'深圳',name:'Gee Coffee',addr:'罗湖区梅园路75号万象华府',tags:['自烘焙','产业链完整','品鉴课'],style:'完整产业链（种植-采收-烘焙-出品），可喝到巴拿马翡翠庄园瑰夏',features:['手冲单品','瑰夏','品鉴沙龙'],priceRange:'38-188'},
 {id:'sz-kuddo',city:'深圳',name:'KUDDO COFFEE',addr:'深圳多区，宠物友好',tags:['创意咖啡','宠物友好','豆乳系列'],style:'深圳本土品牌，首创豆乳杯和豆花拿铁，工业风空间',features:['豆乳拿铁','意式','创意特调'],priceRange:'28-48'},
 {id:'sz-shadow',city:'深圳',name:'Shadow Coffee',addr:'罗湖区行知路文华花园13栋',tags:['美式复古','冷萃招牌','SOE'],style:'"咖啡本该日常"，复古美式风，冷萃招牌',features:['冷萃','SOE美式','手冲'],priceRange:'30-55'},
@@ -2473,7 +2519,7 @@ const REAL_SHOPS = [
 {id:'sz-grid',city:'深圳',name:'Grid Coffee 深圳店',addr:'深圳华南首店',tags:['单一产地','全系SOE','精品连锁'],style:'猿辅导旗下，全系单一产地咖啡，SCA杯测84分以上',features:['手冲单品','SOE美式','奶咖'],priceRange:'24-48'},
 {id:'sz-store-jpg',city:'深圳',name:'store by .jpg',addr:'罗湖区万象城三期',tags:['极简意式','定格日常','茉莉冷萃'],style:'新兴独立品牌，用咖啡定格日常，主营美式/拿铁/澳白',features:['澳白','美式','茉莉冷萃'],priceRange:'28-48'},
 {id:'sz-suz',city:'深圳',name:'素咫 Suji',addr:'福永街道西环路38号',tags:['城中村改造','品鉴活动','独立精品'],style:'城中村改造精品咖啡馆，定期品鉴和文创分享',features:['手冲','意式','品鉴课'],priceRange:'32-58'},
-{id:'sh-seesaw',city:'上海',name:'Seesaw Coffee',addr:'上海多区均有门店',tags:['连锁精品','手冲','咖啡学院'],style:'起源上海的精品咖啡标杆品牌，有自己的咖啡学院',features:['手冲单品','SOE','拿铁'],priceRange:'35-68'},
+{id:'sh-seesaw',city:'上海',name:'Seesaw Coffee',addr:'上海部分门店仍在营业',tags:['连锁精品','手冲','收缩中'],style:'起源上海的精品咖啡标杆，曾有自己的咖啡学院。2023年后大幅收缩，仍营业的门店出品保持精品水准',features:['手冲单品','SOE','拿铁'],priceRange:'30-40'},
 {id:'sh-manner',city:'上海',name:'Manner Coffee',addr:'上海全市1500+门店',tags:['平价精品','外带','自带杯减5元'],style:'上海本土精品咖啡代表，平价外带，自带杯减5元',features:['拿铁','美式','手冲'],priceRange:'15-35'},
 {id:'sh-delvocano',city:'上海',name:"Café del Volcán",addr:'永康路80号',tags:['亚洲Top50','自有庄园','永康路经典'],style:'亚洲Top50咖啡店，从种植到出品完整产业链，永康路精品咖啡先驱',features:['手冲单品','庄园直采','Flat White'],priceRange:'42-88'},
 {id:'sh-blacksheep',city:'上海',name:'Blacksheep Espresso',addr:'上海多区',tags:['SOE奶咖','精品启蒙','稳定出品'],style:'通过SOE奶咖让大众了解产区风味，启蒙了大批上海单品咖啡爱好者',features:['SOE拿铁','澳白','手冲'],priceRange:'32-58'},
