@@ -3160,10 +3160,60 @@ async function loadPrescription(force){
   if(!getApiKey()){rxContent.innerHTML='<div style="font-size:12px;color:var(--i3);padding:12px 0">请先设置 API Key</div>';return;}
   const summary=recs.slice(0,20).map(r=>`${r.name}${r.feel?`（${r.feel.slice(0,25)}）`:''}${r.wow?'✦':''} ${r.repurchase==='yes'?'↻':''}`).join('\n');
   const wowNames=recs.filter(r=>r.wow).map(r=>r.name).join('、')||'暂无';
-  const sys=`你是一面镜子，帮助用户看清并说出自己真实的咖啡口味偏好。根据用户的咖啡记录，生成一张「自我表达卡」，让用户拿着它就能清楚地告诉咖啡师自己想要什么。只返回JSON，不要其他文字：
-{"title":"卡片标题（诗意简洁，≤8字，体现用户个性而非产品名）","voice":"我通常追求___（第一人称，口语化，≤30字，真实描述用户的感受偏好，不是推荐词汇）","origin":"产区1-2个（帮咖啡师理解你的偏好方向）","process":"处理法","roast":"烘焙度","brew":"冲煮建议（≤18字）","barista":"你可以这样告诉咖啡师：___（≤35字，第一人称口语，让用户开口说话而非出示参数）"}`;
+
+  // ── 结构化数据提取（降低幻觉风险）──
+  const user=getUserProfile();
+  const av=user?Math.round(user.avgA*100):50;
+  const bv=user?Math.round(user.avgB*100):50;
+  const svLine=user&&user.count>=3
+    ?`感官档案（${user.count}杯均值）：酸质${av}%（${av>=65?'偏高酸/果香型':av<=40?'偏低酸/醇苦型':'中等'}），醇度${bv}%（${bv>=65?'偏醇厚/浓郁':bv<=40?'偏轻盈/茶感':'中等'}），惊艳率${Math.round(user.wowRate*100)}%`
+    :'（记录较少，根据感受推断）';
+
+  // WIKI 匹配：从用户记录提取有依据的风味知识
+  const seenWiki=new Set();
+  const wikiLines=recs.slice(0,15).map(r=>{
+    const w=WIKI.find(w=>r.name.toLowerCase().includes(w.name.split(' ')[0].toLowerCase())||w.tags?.some(t=>r.name.toLowerCase().includes(t)));
+    if(!w||seenWiki.has(w.id))return null;
+    seenWiki.add(w.id);
+    const top=Object.entries(w.flavors||{}).filter(([,v])=>v>=4).map(([k])=>k);
+    return `${r.name}→${top.join('/')}${r.wow?'（惊艳）':''}${r.repurchase==='yes'?'（会复购）':''}`;
+  }).filter(Boolean);
+
+  // scanData 里真实记录过的产区/处理法（最可靠，优先用）
+  const realOrigins=[...new Set(recs.map(r=>r.scanData?.origin).filter(Boolean))].slice(0,5);
+  const realProcess=[...new Set(recs.map(r=>r.scanData?.process).filter(Boolean))].slice(0,5);
+
+  // 根据感官向量给出受限选项（AI 只能从这里选，不能凭空捏造）
+  const originOpts=av>=65?'埃塞俄比亚/肯尼亚/哥伦比亚/巴拿马/云南':av<=40?'印度尼西亚/巴西/危地马拉/哥斯达黎加':'哥伦比亚/云南/危地马拉/埃塞俄比亚/巴西';
+  const roastOpts=av>=65?'浅烘/中浅烘':av<=40?'中烘/中深烘':'中浅烘/中烘';
+  const processOpts=av>=65?'水洗/日晒':bv>=65?'日晒/蜜处理/厌氧发酵':'水洗/蜜处理';
+  const brewOpts=bv>=65?'意式浓缩/法压/摩卡壶':bv<=40?'手冲/爱乐压/冷萃':'手冲/美式/澳白';
+
+  const sys=`你是用户口味的记录员，帮助他用最直接的语言告诉咖啡师想要什么。
+规则（必须遵守）：
+①origin/process/roast/brew只能从提供的"建议范围"中选，不能使用范围外的词
+②如果扫码记录中有真实产区/处理法，优先参考这些真实数据
+③barista必须包含：酸度偏好（酸/不酸）+ 甜苦偏好 + 是否加奶 + 一个具体感受词，≤40字
+④voice是第一人称口语，≤30字，不用专业术语，说感受不说参数
+只返回JSON：
+{"title":"≤8字标题","voice":"我通常追求…","origin":"产区","process":"处理法","roast":"烘焙度","brew":"冲煮方式","barista":"告诉咖啡师：…"}`;
+
+  const prompt=`记录${recs.length}杯，惊艳：${wowNames}
+${svLine}
+${wikiLines.length?'风味图谱（图鉴匹配）：\n'+wikiLines.join('\n'):''}
+${realOrigins.length?'实际喝过的产区：'+realOrigins.join('、'):''}
+${realProcess.length?'实际喝过的处理法：'+realProcess.join('、'):''}
+
+产区建议范围：${originOpts}
+处理法建议范围：${processOpts}
+烘焙度建议范围：${roastOpts}
+冲煮建议范围：${brewOpts}
+
+最近记录：
+${summary}`;
+
   try{
-    const raw=await callAI({system:sys,prompt:`记录${recs.length}杯，惊艳时刻：${wowNames}\n\n最近记录：\n${summary}`,maxTokens:400})||'{}';
+    const raw=await callAI({system:sys,prompt,maxTokens:400})||'{}';
     let rx={};
     try{rx=JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0]||'{}');}catch(_){}
     if(rx.title){
@@ -3197,8 +3247,9 @@ function showPrescription(rx){
         <div class="rx-row"><span class="rx-k">冲煮</span><span class="rx-v">${rx.brew||'—'}</span></div>
       </div>
       <div class="rx-barista">
-        <div class="rx-barista-lbl">开口说</div>
-        ${rx.barista||''}
+        <div class="rx-barista-lbl">进店开口说这句话</div>
+        <div style="font-size:14px;color:var(--ink);line-height:1.7;margin-top:4px">${rx.barista||''}</div>
+        <div style="font-size:10px;color:var(--i3);margin-top:6px;letter-spacing:.04em">咖啡师听到这句话就能为你调配</div>
       </div>
       <div class="rx-copy" id="rx-copy-hint">点击复制 · 出示给咖啡师</div>
     </div>
