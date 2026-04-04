@@ -522,7 +522,9 @@ textarea.fi{resize:none;line-height:1.65}
 .sco-sq{flex-shrink:0;width:148px;background:var(--s1);border:1px solid var(--b1);
   border-radius:var(--r);overflow:hidden;cursor:pointer;transition:box-shadow .18s}
 .sco-sq:active{box-shadow:0 0 0 2px var(--a)}
-.sco-sq-art{height:72px}
+.sco-sq-art{height:72px;position:relative;display:flex;align-items:center;justify-content:center}
+.sco-sq-mark{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;
+  color:rgba(255,255,255,.22);letter-spacing:-.02em;user-select:none;pointer-events:none}
 .sco-sq-body{padding:11px 12px 12px}
 .sco-sq-name{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--ink);
   line-height:1.2;margin-bottom:4px}
@@ -1581,6 +1583,8 @@ function resetForm(){
   document.getElementById('scan-zone').style.display='block';
   document.getElementById('manual-name-block').style.display='block';
   document.getElementById('scan-prog').style.width='0';
+  const cp=document.getElementById('cam-preview');if(cp){cp.style.display='none';}
+  const ci=document.getElementById('cam-img');if(ci){ci.src='';}
 }
 
 function initStars(){
@@ -1721,6 +1725,7 @@ async function saveRec(){
   btn.disabled=true;btn.textContent='已记录 ✓';
   const wrap=document.getElementById('ai-wrap');
   wrap.style.display='block';
+  const ri2=document.getElementById('route-inline');if(ri2){ri2.style.display='none';ri2.innerHTML='';}
   document.getElementById('ai-txt').innerHTML='<span class="cursor"></span>';
   wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
   // Animate agents
@@ -1816,7 +1821,7 @@ ${shopInstruction}
       method:'POST',
       headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01',
         'content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:180,
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,
         messages:[{role:'user',content:prompt}]})
     });
     const data=await resp.json();
@@ -1840,6 +1845,8 @@ function showRouteCard(result){
   }
   // 持久化到 localStorage（首页持续显示直到用户行动）
   localStorage.setItem('cf6_route',JSON.stringify({hook,shop,drink,tip,loc:poi?(typeof poi.location==='string'?poi.location:(poi.location?.getLng?.()+','+poi.location?.getLat?.())):null,dist}));
+  // 如果用户已切到首页，立即刷新首页路条卡
+  if(document.getElementById('s-home').classList.contains('on')) renderHomeRoute();
   const el=document.getElementById('route-inline');
   el.innerHTML=`<div class="rc-card">
     <div class="rc-eyebrow">你的下一杯</div>
@@ -2271,61 +2278,61 @@ function groupPois(pois){
 // acidity/body 为 [min,max] 风味区间；specialty 为精品程度 0-1；weight 为推荐权重
 const BRAND_KB=[
   // ── 顶级精品 (specialty ≥ 0.85) ──
-  {aliases:['%arabica','arabica'],
+  {aliases:['%arabica','arabica'],mark:'%',color:'#1a1410',
     acidity:[.70,.88],body:[.18,.42],specialty:.92,weight:1,
     note:'2013年香港创立，2025年中国116家（内地+港澳），全球最大市场。浅烘极简，柑橘花香，单一产区'},
-  {aliases:['blue bottle','bluebottle','蓝瓶'],
+  {aliases:['blue bottle','bluebottle','蓝瓶'],mark:'BB',color:'#0e1f2e',
     acidity:[.60,.82],body:[.25,.52],specialty:.90,weight:1,
     note:'2002年加州创立，Nestle 2017年入股。48小时新鲜烘焙，2022年上海首店，2025年中国15家。果酸花香明亮'},
-  {aliases:['greybox','灰盒子'],
+  {aliases:['greybox','灰盒子'],mark:'GB',color:'#2a2a2a',
     acidity:[.62,.82],body:[.38,.58],specialty:.85,weight:1,
     note:'世界冠军 Dale Harris 团队，全单 SCA 84+ 豆，Coffee Review 评分95分。平衡果甜，干净余味'},
-  {aliases:['soe coffee','soe'],
+  {aliases:['soe coffee','soe'],mark:'SOE',color:'#181210',
     acidity:[.60,.82],body:[.20,.45],specialty:.88,weight:1,
     note:'2017年北京创立，世界咖啡师大赛冠军团队运营。主打单一产地浓缩（SOE），约7家精品门店'},
-  {aliases:["eagle's coffee",'eagles coffee','eagle\'s','鹰集'],
+  {aliases:["eagle's coffee",'eagles coffee','eagle\'s','鹰集'],mark:'鹰集',color:'#1c1408',
     acidity:[.62,.85],body:[.18,.40],specialty:.82,weight:1,
     note:'2016年上海新天地创立，自有烘焙工厂，自控生豆贸易。浅烘轻盈果香，强调本土文化空间'},
-  {aliases:['metal hands','铁手'],
+  {aliases:['metal hands','铁手'],mark:'MH',color:'#141414',
     acidity:[.38,.62],body:[.35,.55],specialty:.85,weight:1,
     note:'2016年北京创立，自烘焙，亚洲Top50。以"脏脏咖啡"和氮气冷萃著称，中/中深烘意式风格'},
   // ── 精品连锁 (specialty 0.70–0.84) ──
-  {aliases:['mellower','麦隆'],
+  {aliases:['mellower','麦隆'],mark:'ML',color:'#1a1006',
     acidity:[.55,.78],body:[.30,.55],specialty:.78,weight:1,
     note:'2011年云南昆明创立，20+门店，已拓展新加坡/韩国。自建烘焙厂+咖啡学院，创意咖啡兼精品豆零售'},
-  {aliases:['algebraist','代数学家'],
+  {aliases:['algebraist','代数学家'],mark:'代数',color:'#0e0e18',
     acidity:[.55,.80],body:[.25,.50],specialty:.80,weight:.8,
     note:'上海精品独立品牌，数学/理性理念，主打精品手冲与意式，主要集中于上海新天地一带'},
-  {aliases:['seesaw'],
+  {aliases:['seesaw'],mark:'SS',color:'#1e1812',
     acidity:[.65,.85],body:[.22,.48],specialty:.80,weight:.40,
     note:'2012年上海创立，曾是国内精品先驱。2023年资金链危机，门店从百家骤降至不足50家，持续收缩'},
   // ── 品质连锁 (specialty 0.50–0.69) ──
-  {aliases:['fisheye','鱼眼'],
+  {aliases:['fisheye','鱼眼'],mark:'FE',color:'#162218',
     acidity:[.45,.70],body:[.28,.52],specialty:.62,weight:.9,
     note:'2010年成立，国内较早精品化品牌。主打0糖低脂健康，北京/上海约16家，亲民精品路线'},
-  {aliases:['manner'],
+  {aliases:['manner'],mark:'MN',color:'#1a1a1a',
     acidity:[.22,.68],body:[.58,.82],specialty:.65,weight:1,
     note:'2015年上海创立，全国2000+直营店，人均10-20元平价精品标杆。鲜牛奶拿铁为核心，不突出产区'},
-  {aliases:['m stand','mstand'],
+  {aliases:['m stand','mstand'],mark:'M/',color:'#1e1010',
     acidity:[.18,.42],body:[.55,.72],specialty:.52,weight:1,
     note:'2017年上海成立，每店不同主题装修，以空间美学和创意特调著称，咖啡环境溢价明显'},
-  {aliases:["peet's",'peets','皮爷'],
+  {aliases:["peet's",'peets','皮爷'],mark:"P's",color:'#1c1206',
     acidity:[.25,.52],body:[.58,.80],specialty:.58,weight:1,
     note:'1966年美国伯克利创立，培育了星巴克创始人。经典深烘，坚果焦糖调，中国300+门店目标400家'},
   // ── 大众连锁 (specialty < 0.35) ──
-  {aliases:['starbucks','星巴克'],
+  {aliases:['starbucks','星巴克'],mark:'★',color:'#00382a',
     acidity:[.18,.45],body:[.55,.75],specialty:.28,weight:1,
     note:'中国约8000家直营店，目标扩至2万家。中深烘标准化，杏仁榛果焦糖口味系列多'},
-  {aliases:['luckin','瑞幸'],
+  {aliases:['luckin','瑞幸'],mark:'LK',color:'#00214a',
     acidity:[.28,.52],body:[.42,.65],specialty:.18,weight:1,
     note:'2017年北京创立，2025年全国31000+门店。曾发起9.9元价格战，饮料化咖啡，月活过亿'},
-  {aliases:['nowwa','挪瓦'],
+  {aliases:['nowwa','挪瓦'],mark:'NW',color:'#002b28',
     acidity:[.22,.48],body:[.42,.62],specialty:.20,weight:1,
     note:'2019年上海创立，主打0糖低脂健康。全国10000+门店，奶茶化咖啡体验，强调外卖渠道'},
-  {aliases:['costa'],
+  {aliases:['costa'],mark:'Co.',color:'#4a1410',
     acidity:[.22,.48],body:[.55,.75],specialty:.30,weight:.85,
     note:'英系传统连锁，2018年被可口可乐收购。中国约380家，策略趋于保守，不再盲目扩张'},
-  {aliases:['tim hortons','tims','天好'],
+  {aliases:['tim hortons','tims','天好'],mark:'TH',color:'#6e1a00',
     acidity:[.22,.45],body:[.55,.72],specialty:.30,weight:1,
     note:'1964年加拿大创立，2022年入华。上海22+门店，目标10年1500家，加拿大甜甜圈+咖啡风格'},
 ];
@@ -2351,6 +2358,7 @@ function inferShopProfile(poi){
 }
 
 function shopGradient(profile){
+  if(profile.color) return profile.color;
   const a=(profile.acidity[0]+profile.acidity[1])/2;
   const b=(profile.body[0]+profile.body[1])/2;
   const r1=Math.round(130+a*90),g1=Math.round(70+a*65),b1=Math.round(15+(1-b)*55);
@@ -2502,8 +2510,11 @@ function renderSquareCard({group,s,profile,openStatus,score},user){
   const timeStr=getOpenTimeStr(s);
   const trait=shopTrait(profile)+(group.length>1?` · ${group.length}家`:'');
   const dimCls=openStatus===false?' sco-dimmed':'';
+  const mark=profile.mark||name.slice(0,2);
   return`<div class="sco-sq${dimCls}" onclick="openShopDetailAmap(${s._idx})">
-    <div class="sco-sq-art" style="background:${shopGradient(profile)}"></div>
+    <div class="sco-sq-art" style="background:${shopGradient(profile)}">
+      <span class="sco-sq-mark">${mark}</span>
+    </div>
     <div class="sco-sq-body">
       <div class="sco-sq-name">${name}</div>
       <div class="sco-sq-trait">${trait}</div>
@@ -2546,15 +2557,17 @@ function renderPoiGroups(groups,user){
     if(aOk!==bOk)return aOk?-1:1;
     return b.score.total-a.score.total;
   });
+  const hasProfile=user&&user.count>=3;
   let fyCount=0;
   scored.forEach(item=>{
-    item.isForYou=item.score.forYou&&fyCount<2&&item.openStatus!==false;
+    item.isForYou=hasProfile&&item.score.forYou&&fyCount<2&&item.openStatus!==false;
     if(item.isForYou)fyCount++;
-    item.isFeatured=!item.isForYou&&item.score.total>.50&&item.openStatus!==false;
+    // 有画像用户：0.55以上进横向；无画像用户：前8全部进横向
+    item.isFeatured=!item.isForYou&&(hasProfile?item.score.total>.55:true)&&item.openStatus!==false;
   });
   const forYou=scored.filter(i=>i.isForYou);
-  const featured=scored.filter(i=>i.isFeatured).slice(0,8);
-  const standard=scored.filter(i=>!i.isForYou&&!i.isFeatured);
+  const featured=scored.filter(i=>i.isFeatured).slice(0,hasProfile?8:12);
+  const standard=hasProfile?scored.filter(i=>!i.isForYou&&!i.isFeatured):[];
   const openStd=standard.filter(i=>i.openStatus!==false).slice(0,10);
   const closedStd=standard.filter(i=>i.openStatus===false).slice(0,3);
   let html='';
