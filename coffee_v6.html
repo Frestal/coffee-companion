@@ -397,6 +397,10 @@ textarea.fi{resize:none;line-height:1.65}
 .sm-d-summary.loading{color:var(--i3)}
 .sm-d-feel-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .sm-d-feel{font-size:11px;color:var(--i3);flex:1;line-height:1.5;font-style:italic}
+.sm-d-explore-btn{display:block;width:100%;margin-top:10px;padding:9px;
+  background:var(--a3);border:1px solid var(--b2);border-radius:var(--r);
+  font-size:12px;font-family:inherit;color:var(--a);cursor:pointer;text-align:center;
+  letter-spacing:.04em}
 .sm-d-edit-btn{font-size:10px;color:var(--a);background:none;border:none;padding:2px 0;
   cursor:pointer;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}
 .sm-d-edit-area{display:none;margin-top:9px}
@@ -583,6 +587,11 @@ textarea.fi{resize:none;line-height:1.65}
 .sd-shop-feature{font-size:10px;padding:3px 9px;border:1px solid var(--b2);border-radius:10px;color:var(--i2)}
 /* ── 路条卡片（内嵌于记录页 AI 回复下方） ── */
 #route-inline{margin-top:2px;animation:up .5s cubic-bezier(.16,1,.3,1)}
+.rc-cta-btn{display:block;width:100%;margin-top:10px;padding:13px;
+  background:transparent;border:1px solid var(--b2);border-radius:var(--r);
+  font-size:13px;font-family:inherit;color:var(--a);cursor:pointer;
+  letter-spacing:.06em;transition:background .15s}
+.rc-cta-btn:active{background:var(--a3)}
 .rc-card{background:#0f0a07;border:1px solid rgba(200,152,104,.25);
   border-top:2px solid var(--a);border-radius:0 0 var(--r) var(--r);padding:22px 18px 20px}
 .rc-eyebrow{font-size:9px;letter-spacing:.2em;text-transform:uppercase;
@@ -911,6 +920,7 @@ textarea.fi{resize:none;line-height:1.65}
         <span class="sm-d-feel" id="sm-d-feel"></span>
         <button class="sm-d-edit-btn" onclick="smStartEdit()">编辑感受</button>
       </div>
+      <button class="sm-d-explore-btn" id="sm-d-explore-btn" onclick="smGoExplore()"></button>
       <div class="sm-d-edit-area" id="sm-d-edit-area">
         <textarea class="sm-d-textarea" id="sm-d-textarea" rows="3" placeholder="重新描述你当时的感受…"></textarea>
         <button class="sm-d-regen" onclick="smRegenSummary()">AI 重新感受 →</button>
@@ -1813,8 +1823,8 @@ async function saveRec(){
       document.getElementById('s'+i).textContent='完成';
     },dones[i]);
   });
-  // getReply 和 getRouteCard 并行，谁先完成谁先处理
-  const routePromise=getApiKey()?getRouteCard(rec):Promise.resolve(null);
+  // 保存当前 rec 供路条按需调用
+  _lastSavedRec=rec;
   setTimeout(async()=>{
     const reply=await getReply(rec,recs);
     rec.aiReply=reply;save();
@@ -1824,20 +1834,27 @@ async function saveRec(){
       localStorage.removeItem('cf6_m');
       setTimeout(loadMorning,2500);
     }
-    // 路条：AI回复打完后立即显示加载占位
+    // 路条：AI 回复打完后显示"找下一杯"按钮，用户主动触发
     if(getApiKey()){
       const ri=document.getElementById('route-inline');
-      ri.innerHTML='<div class="rc-loading">正在寻找你的下一杯…</div>';
+      ri.innerHTML=`<button class="rc-cta-btn" onclick="triggerRouteCard()">找下一杯 →</button>`;
       ri.style.display='block';
     }
-    // 等路条结果
-    routePromise.then(result=>{
-      if(result) setTimeout(()=>showRouteCard(result),400);
-      else{const ri=document.getElementById('route-inline');if(ri)ri.style.display='none';}
-    }).catch(e=>{console.error('[route]',e);const ri=document.getElementById('route-inline');if(ri)ri.style.display='none';});
   },2300);
 }
 function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
+let _lastSavedRec=null;
+async function triggerRouteCard(){
+  const rec=_lastSavedRec;if(!rec)return;
+  const ri=document.getElementById('route-inline');
+  ri.innerHTML='<div class="rc-loading">正在寻找你的下一杯…</div>';
+  ri.style.display='block';
+  try{
+    const result=await getRouteCard(rec);
+    if(result)showRouteCard(result);
+    else{ri.innerHTML='<div style="font-size:12px;color:var(--i3);padding:10px 0">附近暂时没找到合适的推荐</div>';}
+  }catch(e){ri.style.display='none';}
+}
 
 // ── 路条卡片 ──
 async function getRouteCard(rec){
@@ -2934,7 +2951,12 @@ function showPrescription(rx){
         ${rx.barista||''}
       </div>
       <div class="rx-copy" id="rx-copy-hint">点击复制 · 出示给咖啡师</div>
-    </div>`;
+    </div>
+    <button onclick="go('shop')" style="display:block;width:100%;margin-top:10px;padding:11px;
+      background:transparent;border:1px solid var(--b2);border-radius:var(--r);
+      font-size:12px;font-family:inherit;color:var(--a);cursor:pointer;letter-spacing:.05em">
+      附近找这个风格的店 →
+    </button>`;
   document.getElementById('rx-refresh').style.display='block';
 }
 
@@ -3173,6 +3195,10 @@ function initStarMapInteraction(){
   });
 }
 
+function smGoExplore(){
+  smCloseDetail();
+  go('shop');
+}
 function smCloseDetail(){
   _smActiveRec=null;
   document.getElementById('sm-detail').classList.remove('on');
@@ -3192,6 +3218,8 @@ async function smOpenDetail(rec){
   document.getElementById('sm-d-edit-area').style.display='none';
   document.getElementById('sm-d-feel-row').style.display='flex';
   detail.classList.add('on');
+  const exploreBtn=document.getElementById('sm-d-explore-btn');
+  if(exploreBtn) exploreBtn.textContent=rec.wow?'复现这次惊艳，附近找 →':'找这种感觉的店 →';
 
   // Show summary: use cached or fetch
   const summaryEl=document.getElementById('sm-d-summary');
