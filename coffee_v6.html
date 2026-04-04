@@ -1720,7 +1720,12 @@ function resetForm(){
   document.getElementById('scan-zone').style.display='block';
   document.getElementById('manual-name-block').style.display='block';
   document.getElementById('scan-prog').style.width='0';
-  const cp=document.getElementById('cam-preview');if(cp){cp.style.display='none';}
+  const cp=document.getElementById('cam-preview');
+  if(cp){
+    cp.style.display='none';
+    const lbl=cp.querySelector('.cam-preview-lbl');
+    if(lbl) lbl.textContent='AI 识别中…';
+  }
   const ci=document.getElementById('cam-img');if(ci){ci.src='';}
 }
 
@@ -1971,13 +1976,23 @@ async function getRouteCard(rec){
   }catch(e){console.log('[route] shops skipped:',e.message);}
 
   const shopInstruction=hasShops
-    ?`2. shop：从上面列表中选最适合他的一家（完整原样输出店名）。优先选精品度≥60%的门店；只有在距离差异悬殊（近1km以上）且用户感受偏向大众时才考虑低精品度连锁。`
+    ?`2. shop：从上面列表中选最适合他的一家（完整原样输出店名，不要修改）。\n   决策依据：①精品度≥60%为首选；②这杯酸质${Math.round(sv.acidity*100)}%/醇度${Math.round(sv.body*100)}%，选与之互补或相近风味的品牌；③惊艳时选风格差异大的做对比探索，没惊艳时选相近风格加深印象；④距离差异<500m时质量优先，>1km时可考虑就近。`
     :`2. shop：输出空字符串""`;
 
   const user=getUserProfile();
-  const userCtx=user&&user.count>=3?`用户口味画像：酸质偏好${user.avgA>.6?'偏亮酸':user.avgA<.4?'偏低酸':'中等'}，醇度偏好${user.avgB>.6?'偏醇厚':user.avgB<.4?'偏轻盈':'中等'}，惊艳率${Math.round(user.wowRate*100)}%。`:'（新用户，暂无口味画像）';
+  // 当前这杯的感官向量
+  const sv=extractSensoryVector(rec.feel,rec.scanData,null);
+  const svCtx=`酸质${Math.round(sv.acidity*100)}%·醇度${Math.round(sv.body*100)}%`;
+  // WIKI 标准风味参考
+  const wiki=WIKI.find(w=>rec.name.toLowerCase().includes(w.name.split(' ')[0].toLowerCase())||w.tags?.some(t=>rec.name.toLowerCase().includes(t.toLowerCase())));
+  const stdF=wiki?Object.entries(wiki.flavors||{}).filter(([,v])=>v>=3).map(([k])=>k):[];
+  const wikiCtx=stdF.length?`（标准风味参考：${stdF.join('、')}）`:'';
+  const userCtx=user&&user.count>=3
+    ?`用户口味画像（${user.count}杯）：酸质均值${Math.round(user.avgA*100)}%（${user.avgA>.6?'偏亮酸':user.avgA<.4?'偏低酸':'中等'}），醇度均值${Math.round(user.avgB*100)}%（${user.avgB>.6?'偏醇厚':user.avgB<.4?'偏轻盈':'中等'}），惊艳率${Math.round(user.wowRate*100)}%。`
+    :'（新用户，暂无口味画像，根据这杯感受推断）';
   const prompt=`用户刚记录了一杯咖啡：
-名称：${rec.name}
+名称：${rec.name}${wikiCtx}
+感官：${svCtx}
 感受：${rec.feel||'暂无描述'}
 ${rec.wow?'这杯让他惊艳了。':'这杯没有特别惊艳他。'}
 ${userCtx}
@@ -2013,7 +2028,7 @@ function showRouteCard(result){
   let navBtn='';
   if(poi){
     const loc=typeof poi.location==='string'?poi.location:(poi.location?.getLng?.()+','+poi.location?.getLat?.());
-    navBtn=`<button class="rc-nav" onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion','_blank');setTimeout(dismissRoute,800)">出发 →</button>`;
+    navBtn=`<button class="rc-nav" onclick="onDepart('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion')">出发 →</button>`;
   }
   // 持久化到 localStorage（首页持续显示直到用户行动）
   localStorage.setItem('cf6_route',JSON.stringify({hook,shop,drink,tip,loc:poi?(typeof poi.location==='string'?poi.location:(poi.location?.getLng?.()+','+poi.location?.getLat?.())):null,dist}));
@@ -2040,13 +2055,39 @@ function showRouteCard(result){
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function deleteRec(id){recs=recs.filter(r=>r.id!==id);save();renderHome();}
-function dismissRoute(){localStorage.removeItem('cf6_route');const el=document.getElementById('home-route-card');if(el)el.remove();}
+function dismissRoute(){
+  localStorage.removeItem('cf6_route');
+  const el=document.getElementById('home-route-card');if(el)el.remove();
+  // 同时清记录页的路条区域
+  const ri=document.getElementById('route-inline');
+  if(ri){ri.style.display='none';ri.innerHTML='';}
+}
+function onDepart(navUrl){
+  window.open(navUrl,'_blank');
+  // 给"出发"按钮立即反馈
+  const ri=document.getElementById('route-inline');
+  if(ri){
+    ri.innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:12px 0">
+      <span style="font-size:16px">🚶</span>
+      <div>
+        <div style="font-size:13px;color:var(--i1);font-weight:500">出发啦</div>
+        <div style="font-size:11px;color:var(--i3);margin-top:2px">希望这杯让你惊艳</div>
+      </div>
+      <button onclick="go('home')" style="margin-left:auto;padding:7px 14px;background:transparent;border:1px solid var(--b2);border-radius:20px;font-size:11px;color:var(--i2);cursor:pointer;font-family:inherit">回到今天</button>
+    </div>`;
+  }
+  // 首页路条卡片消除
+  setTimeout(()=>{
+    localStorage.removeItem('cf6_route');
+    const el=document.getElementById('home-route-card');if(el)el.remove();
+  },800);
+}
 function renderHomeRoute(){
   const raw=localStorage.getItem('cf6_route');
   const el=document.getElementById('home-route-card');
   if(!raw){if(el)el.remove();return;}
   const{hook,shop,drink,tip,loc,dist}=JSON.parse(raw);
-  const navBtn=loc&&shop?`<button class="hrc-nav" onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion','_blank');setTimeout(dismissRoute,800)">出发 →</button>`:'';
+  const navBtn=loc&&shop?`<button class="hrc-nav" onclick="onDepart('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion')">出发 →</button>`:'';
   const html=`<div id="home-route-card">
     <div class="hrc-card">
       <button class="hrc-dismiss" onclick="dismissRoute()">×</button>
