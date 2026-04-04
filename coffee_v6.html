@@ -613,6 +613,7 @@ textarea.fi{resize:none;line-height:1.65}
 .fca-btn{padding:14px 32px;background:var(--a);color:#0b0806;border:none;
   border-radius:var(--r);font-size:13px;font-family:inherit;font-weight:500;
   cursor:pointer;letter-spacing:.04em}
+.fca-alt{margin-top:14px;font-size:12px;color:var(--i3);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 /* Shop detail sheet */
 .shop-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);
   z-index:200;display:none;align-items:flex-end}
@@ -1522,7 +1523,8 @@ function renderHome(){
       <div class="fca-lead">开始你的第一杯</div>
       <div class="fca-title">拍下手里的咖啡<br>找到更好的下一杯</div>
       <div class="fca-sub">一张照片，一句描述<br>我来告诉你附近哪里有更适合你的那一杯</div>
-      <button class="fca-btn" onclick="showTab('rec')">拍照记录 →</button>
+      <button class="fca-btn" onclick="showTab('rec');setTimeout(triggerCamera,300)">拍照记录 →</button>
+      <div class="fca-alt" onclick="showTab('rec')">没有照片？用文字描述也行</div>
     </div>`;
     return;
   }
