@@ -596,6 +596,26 @@ textarea.fi{resize:none;line-height:1.65}
 .rc-nav{display:block;width:100%;margin-top:18px;padding:14px;
   background:var(--a);color:#0b0806;border:none;border-radius:var(--r);
   font-size:13px;font-family:inherit;font-weight:500;cursor:pointer;letter-spacing:.04em}
+.rc-loading{padding:16px 0;display:flex;align-items:center;gap:10px;color:var(--i3);font-size:12px}
+.rc-loading::before{content:'';width:14px;height:14px;border:1.5px solid var(--a);border-top-color:transparent;
+  border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* 首页路条持久卡片 */
+#home-route-card{padding:0 14px;margin-bottom:12px;animation:up .4s cubic-bezier(.16,1,.3,1)}
+.hrc-card{background:var(--s2);border:1px solid rgba(200,152,104,.25);
+  border-left:3px solid var(--a);border-radius:var(--r);padding:16px 16px 14px;position:relative}
+.hrc-dismiss{position:absolute;top:10px;right:12px;font-size:16px;color:var(--i3);
+  background:none;border:none;cursor:pointer;padding:2px 4px;line-height:1}
+.hrc-eyebrow{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--a);opacity:.7;margin-bottom:8px}
+.hrc-hook{font-size:15px;font-weight:400;color:var(--ink);line-height:1.4;margin-bottom:10px}
+.hrc-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.hrc-shop{font-size:13px;font-weight:500;color:var(--ink)}
+.hrc-dist{font-size:11px;color:var(--i3)}
+.hrc-drink{font-size:12px;color:var(--i2);margin-bottom:4px}
+.hrc-tip{font-size:11px;color:var(--a);font-style:italic}
+.hrc-nav{display:inline-block;margin-top:12px;padding:9px 18px;
+  background:var(--a);color:#0b0806;border:none;border-radius:20px;
+  font-size:12px;font-family:inherit;font-weight:500;cursor:pointer;letter-spacing:.04em}
 /* 首页空状态 — 首次体验 CTA */
 .first-cta{padding:52px 24px 40px;text-align:center}
 .fca-lead{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
@@ -1512,6 +1532,7 @@ function showMorning(txt){
 
 // ── HOME FEED ──
 function renderHome(){
+  renderHomeRoute();
   const el=document.getElementById('home-feed');
   if(!recs.length){
     el.innerHTML=`<div class="first-cta">
@@ -1728,10 +1749,17 @@ async function saveRec(){
       localStorage.removeItem('cf6_m');
       setTimeout(loadMorning,2500);
     }
-    // 等路条结果（通常与 reply 同步完成），最多再等 8 秒
+    // 路条：AI回复打完后立即显示加载占位
+    if(getApiKey()){
+      const ri=document.getElementById('route-inline');
+      ri.innerHTML='<div class="rc-loading">正在寻找你的下一杯…</div>';
+      ri.style.display='block';
+    }
+    // 等路条结果
     routePromise.then(result=>{
-      if(result) setTimeout(()=>showRouteCard(result),600);
-    }).catch(e=>console.error('[route]',e));
+      if(result) setTimeout(()=>showRouteCard(result),400);
+      else{const ri=document.getElementById('route-inline');if(ri)ri.style.display='none';}
+    }).catch(e=>{console.error('[route]',e);const ri=document.getElementById('route-inline');if(ri)ri.style.display='none';});
   },2300);
 }
 function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
@@ -1810,6 +1838,8 @@ function showRouteCard(result){
     const loc=typeof poi.location==='string'?poi.location:(poi.location?.getLng?.()+','+poi.location?.getLat?.());
     navBtn=`<button class="rc-nav" onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>`;
   }
+  // 持久化到 localStorage（首页持续显示直到用户行动）
+  localStorage.setItem('cf6_route',JSON.stringify({hook,shop,drink,tip,loc:poi?(typeof poi.location==='string'?poi.location:(poi.location?.getLng?.()+','+poi.location?.getLat?.())):null,dist}));
   const el=document.getElementById('route-inline');
   el.innerHTML=`<div class="rc-card">
     <div class="rc-eyebrow">你的下一杯</div>
@@ -1831,6 +1861,29 @@ function showRouteCard(result){
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function deleteRec(id){recs=recs.filter(r=>r.id!==id);save();renderHome();}
+function dismissRoute(){localStorage.removeItem('cf6_route');const el=document.getElementById('home-route-card');if(el)el.remove();}
+function renderHomeRoute(){
+  const raw=localStorage.getItem('cf6_route');
+  const el=document.getElementById('home-route-card');
+  if(!raw){if(el)el.remove();return;}
+  const{hook,shop,drink,tip,loc,dist}=JSON.parse(raw);
+  const navBtn=loc&&shop?`<button class="hrc-nav" onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>`:'';
+  const html=`<div id="home-route-card">
+    <div class="hrc-card">
+      <button class="hrc-dismiss" onclick="dismissRoute()">×</button>
+      <div class="hrc-eyebrow">你的下一杯</div>
+      <div class="hrc-hook">${hook}</div>
+      ${shop?`<div class="hrc-meta"><span class="hrc-shop">${shop}</span><span class="hrc-dist">${dist||''}</span></div>`:''}
+      <div class="hrc-drink">${drink}</div>
+      <div class="hrc-tip">告诉咖啡师：${tip}</div>
+      ${navBtn}
+    </div>
+  </div>`;
+  if(el){el.outerHTML=html;}else{
+    const feed=document.getElementById('home-feed');
+    feed.insertAdjacentHTML('beforebegin',html);
+  }
+}
 
 function typewrite(el,text){
   el.textContent='';let i=0;
