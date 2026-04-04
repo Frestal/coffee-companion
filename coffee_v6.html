@@ -917,12 +917,10 @@ textarea.fi{resize:none;line-height:1.65}
   <!-- Multi-agent AI response -->
   <div class="ai-wrap" id="ai-wrap">
     <div class="agents-panel">
-      <div class="agents-hd">伴侣正在从多个视角理解这一杯</div>
-      <div class="ag"><div class="ag-d" id="d0"></div><div class="ag-name" id="n0">标准库对照</div><div class="ag-st" id="s0">—</div></div>
-      <div class="ag"><div class="ag-d" id="d1"></div><div class="ag-name" id="n1">趋势库感知</div><div class="ag-st" id="s1">—</div></div>
-      <div class="ag"><div class="ag-d" id="d2"></div><div class="ag-name" id="n2">你的历史</div><div class="ag-st" id="s2">—</div></div>
-      <div class="ag"><div class="ag-d" id="d3"></div><div class="ag-name" id="n3">萃取信号</div><div class="ag-st" id="s3">—</div></div>
-      <div class="ag"><div class="ag-d" id="d4"></div><div class="ag-name" id="n4">下一步</div><div class="ag-st" id="s4">—</div></div>
+      <div class="agents-hd">伴侣正在理解这一杯</div>
+      <div class="ag"><div class="ag-d" id="d0"></div><div class="ag-name" id="n0">读取风味记录</div><div class="ag-st" id="s0">—</div></div>
+      <div class="ag"><div class="ag-d" id="d1"></div><div class="ag-name" id="n1">生成伴侣回复</div><div class="ag-st" id="s1">—</div></div>
+      <div class="ag"><div class="ag-d" id="d2"></div><div class="ag-name" id="n2">寻找下一杯</div><div class="ag-st" id="s2">—</div></div>
     </div>
     <div class="ai-result">
       <div class="ai-res-hd"><div class="ai-pulse"></div><div class="ai-lbl">伴侣说</div></div>
@@ -2069,44 +2067,48 @@ async function saveRec(){
   const ri2=document.getElementById('route-inline');if(ri2){ri2.style.display='none';ri2.innerHTML='';}
   document.getElementById('ai-txt').innerHTML='<span class="cursor"></span>';
   wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
-  // Animate agents
-  const delays=[0,500,900,1300,1700];
-  const dones=[400,800,1200,1600,2100];
-  delays.forEach((_,i)=>{
-    setTimeout(()=>{
-      document.getElementById('d'+i).className='ag-d go';
-      document.getElementById('s'+i).textContent='分析中';
-    },delays[i]);
-    setTimeout(()=>{
-      document.getElementById('d'+i).className='ag-d ok';
-      document.getElementById('n'+i).className='ag-name ok';
-      document.getElementById('s'+i).className='ag-st ok';
-      document.getElementById('s'+i).textContent='完成';
-    },dones[i]);
-  });
+  // 实时步骤动画：3个步骤绑定真实异步操作
+  function agStep(i,status){
+    const d=document.getElementById('d'+i);
+    const n=document.getElementById('n'+i);
+    const s=document.getElementById('s'+i);
+    if(!d)return;
+    if(status==='go'){d.className='ag-d go';s.className='ag-st';s.textContent='处理中';}
+    else if(status==='ok'){d.className='ag-d ok';n.className='ag-name ok';s.className='ag-st ok';s.textContent='完成';}
+    else if(status==='err'){d.className='ag-d';s.className='ag-st';s.textContent='跳过';}
+  }
   _lastSavedRec=rec;
-  setTimeout(async()=>{
+  (async()=>{
+    // Step 0: 读取风味记录（本地，立即完成）
+    agStep(0,'go');
+    await new Promise(r=>setTimeout(r,300));
+    agStep(0,'ok');
     // Step 1: AI 回复
+    agStep(1,'go');
     const reply=await getReply(rec,recs);
     rec.aiReply=reply;save();
+    agStep(1,'ok');
     typewrite(document.getElementById('ai-txt'),reply);
     getSummary(rec).then(s=>{if(s){rec.summary=s;save();}});
     if(recs.length===3||recs.length===8||recs.length%12===0){
       localStorage.removeItem('cf6_m');
       setTimeout(loadMorning,2500);
     }
-    // Step 2: 自动寻找下一杯，无需用户手动触发
+    // Step 2: 寻找下一杯
     if(getApiKey()){
+      agStep(2,'go');
       const ri=document.getElementById('route-inline');
-      ri.innerHTML='<div class="rc-loading">正在为你寻找下一杯…</div>';
-      ri.style.display='block';
+      ri.style.display='none';ri.innerHTML='';
       try{
         const result=await getRouteCard(rec);
+        agStep(2,'ok');
         if(result) showRouteCard(result);
-        else ri.innerHTML='<div style="font-size:12px;color:var(--i3);padding:10px 0">附近暂时没找到合适的推荐</div>';
-      }catch(e){ri.style.display='none';}
+        else agStep(2,'err');
+      }catch(e){agStep(2,'err');}
+    } else {
+      agStep(2,'err');
     }
-  },2300);
+  })();
 }
 function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
 let _lastSavedRec=null;
@@ -2188,10 +2190,9 @@ ${shopLines}
 要求：
 1. hook：一句话（不超过20字），直击他此刻的感受或欲望，画面感强，让他立刻想行动。禁止描述咖啡参数。
 ${shopInstruction}
-3. drink：具体推荐什么饮品（10字以内）
-4. tip：告诉咖啡师怎么点（8字以内，像朋友叮嘱）
+3. drink：具体推荐什么饮品（10字以内，只写品类名，如"手冲耶加"，不要加任何说明）
 
-只返回JSON：{"hook":"...","shop":"...","drink":"...","tip":"..."}`;
+只返回JSON：{"hook":"...","shop":"...","drink":"..."}`;
 
   try{
     const text=await callAI({prompt,maxTokens:200});
@@ -2278,7 +2279,7 @@ function renderHomeRoute(){
       <div class="hrc-tip">告诉咖啡师：${tip}</div>
       <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
         ${navBtn}
-        <button onclick="dismissRoute()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--b2);border-radius:20px;font-size:12px;color:var(--i3);cursor:pointer;font-family:inherit">下次再说</button>
+        <button onclick="dismissRoute()" style="flex:1;padding:9px;background:transparent;border:1px solid var(--b2);border-radius:20px;font-size:12px;color:var(--i3);cursor:pointer;font-family:inherit">不去了</button>
       </div>
     </div>
   </div>`;
@@ -3001,9 +3002,9 @@ async function renderShopScreen(){
   const q=(document.getElementById('shop-search-input')?.value||'').trim();
   if(q){doShopSearch();return;}
 
-  document.getElementById('shop-page-sub').textContent=recs.length>=3?'为你找到附近相配的咖啡馆':'积累3杯记录后将获得个性化推荐';
-
-  const user=getUserProfile();
+  // 星图跳转时用那颗星的感官向量匹配，否则用用户整体画像
+  const user=_starUserOverride||getUserProfile();
+  _starUserOverride=null; // 消费后清除
   const wrap=document.getElementById('shop-list-wrap');
   wrap.innerHTML=`<div style="padding:48px 20px;text-align:center;color:var(--i3);font-size:13px">
     <div style="font-size:28px;margin-bottom:10px;opacity:.5">📍</div>获取位置中…</div>`;
@@ -3014,6 +3015,8 @@ async function renderShopScreen(){
     const pois=await amapSearch(lng,lat);
     _amapPois=pois;
     const groups=groupPois(pois);
+    const subLabel=user?._fromStar?'根据这颗星的风味，为你找到附近相配的咖啡馆':recs.length>=3?'为你找到附近相配的咖啡馆':'积累3杯记录后将获得个性化推荐';
+    document.getElementById('shop-page-sub').textContent=subLabel;
     wrap.innerHTML=(isIp?`<div style="padding:6px 14px;font-size:11px;color:var(--i3);text-align:center">已使用 IP 定位，结果精度有限</div>`:'')+renderPoiGroups(groups,user);
   }catch(e){
     wrap.innerHTML=`<div style="padding:48px 20px;text-align:center">
@@ -3050,7 +3053,9 @@ async function doShopSearch(){
   try{
     // 优先用已缓存的用户位置，没有则先定位
     if(!_userPos) _userPos=await getLocation().catch(()=>null);
-    const pois=await amapTextSearch(q,_userPos?.lng,_userPos?.lat);
+    const rawPois=await amapTextSearch(q,_userPos?.lng,_userPos?.lat);
+    // 搜索结果按距离升序排列（有位置时更有意义）
+    const pois=rawPois.slice().sort((a,b)=>(parseFloat(a.distance)||9999)-(parseFloat(b.distance)||9999));
     _amapPois=pois;
     const user=getUserProfile();
     const groups=groupPois(pois);
@@ -3234,35 +3239,9 @@ function renderShopOrder(data,el){
   `;
 }
 
-// ── SHOP DATA (静态备用，不再直接渲染) ──
+// ── SHOP DATA (已由 AMap 实时数据替代，保留空数组避免引用错误) ──
 const REAL_SHOPS = [
-{id:'sz-seesaw',city:'深圳',name:'Seesaw Coffee',addr:'深圳多区均有门店',tags:['连锁精品','手冲','意式'],style:'2012年上海起家的精品先驱，2023年资金链危机后持续收缩，仍在营业的门店出品保持精品水准',features:['手冲单品','SOE浓缩','拿铁'],priceRange:'30-40'},
-{id:'sz-gee',city:'深圳',name:'Gee Coffee',addr:'罗湖区梅园路75号万象华府',tags:['自烘焙','产业链完整','品鉴课'],style:'完整产业链（种植-采收-烘焙-出品），可喝到巴拿马翡翠庄园瑰夏',features:['手冲单品','瑰夏','品鉴沙龙'],priceRange:'38-188'},
-{id:'sz-kuddo',city:'深圳',name:'KUDDO COFFEE',addr:'深圳多区，宠物友好',tags:['创意咖啡','宠物友好','豆乳系列'],style:'深圳本土品牌，首创豆乳杯和豆花拿铁，工业风空间',features:['豆乳拿铁','意式','创意特调'],priceRange:'28-48'},
-{id:'sz-shadow',city:'深圳',name:'Shadow Coffee',addr:'罗湖区行知路文华花园13栋',tags:['美式复古','冷萃招牌','SOE'],style:'"咖啡本该日常"，复古美式风，冷萃招牌',features:['冷萃','SOE美式','手冲'],priceRange:'30-55'},
-{id:'sz-johandy',city:'深圳',name:'JOHANDY COFFEE VOYAGE',addr:'深圳福田区',tags:['手冲专注','自烘焙','吧台满座'],style:'深圳手冲爱好者必访地，含咖啡店和烘焙区，吧台常常座无虚席',features:['手冲单品','自烘豆','意式'],priceRange:'38-75'},
-{id:'sz-grid',city:'深圳',name:'Grid Coffee 深圳店',addr:'深圳华南首店',tags:['单一产地','全系SOE','精品连锁'],style:'猿辅导旗下，全系单一产地咖啡，SCA杯测84分以上',features:['手冲单品','SOE美式','奶咖'],priceRange:'24-48'},
-{id:'sz-store-jpg',city:'深圳',name:'store by .jpg',addr:'罗湖区万象城三期',tags:['极简意式','定格日常','茉莉冷萃'],style:'新兴独立品牌，用咖啡定格日常，主营美式/拿铁/澳白',features:['澳白','美式','茉莉冷萃'],priceRange:'28-48'},
-{id:'sz-suz',city:'深圳',name:'素咫 Suji',addr:'福永街道西环路38号',tags:['城中村改造','品鉴活动','独立精品'],style:'城中村改造精品咖啡馆，定期品鉴和文创分享',features:['手冲','意式','品鉴课'],priceRange:'32-58'},
-{id:'sh-seesaw',city:'上海',name:'Seesaw Coffee',addr:'上海部分门店仍在营业',tags:['连锁精品','手冲','收缩中'],style:'起源上海的精品咖啡标杆，曾有自己的咖啡学院。2023年后大幅收缩，仍营业的门店出品保持精品水准',features:['手冲单品','SOE','拿铁'],priceRange:'30-40'},
-{id:'sh-manner',city:'上海',name:'Manner Coffee',addr:'上海全市1500+门店',tags:['平价精品','外带','自带杯减5元'],style:'上海本土精品咖啡代表，平价外带，自带杯减5元',features:['拿铁','美式','手冲'],priceRange:'15-35'},
-{id:'sh-delvocano',city:'上海',name:"Café del Volcán",addr:'永康路80号',tags:['亚洲Top50','自有庄园','永康路经典'],style:'亚洲Top50咖啡店，从种植到出品完整产业链，永康路精品咖啡先驱',features:['手冲单品','庄园直采','Flat White'],priceRange:'42-88'},
-{id:'sh-blacksheep',city:'上海',name:'Blacksheep Espresso',addr:'上海多区',tags:['SOE奶咖','精品启蒙','稳定出品'],style:'通过SOE奶咖让大众了解产区风味，启蒙了大批上海单品咖啡爱好者',features:['SOE拿铁','澳白','手冲'],priceRange:'32-58'},
-{id:'sh-mstand',city:'上海',name:'M Stand',addr:'上海全市',tags:['设计感','创意特调','精品连锁'],style:'以强设计感和创意特调著称的上海本土精品连锁',features:['创意拿铁','手冲','特调'],priceRange:'30-58'},
-{id:'sh-yuqiu',city:'上海',name:'月球咖啡',addr:'静安区茂名北路',tags:['湃客三星','自烘焙','品牌个性'],style:'湃客精品咖啡指南三星推荐，自有烘焙品牌，风格鲜明',features:['手冲','SOE','意式'],priceRange:'38-68'},
-{id:'bj-metal-hands',city:'北京',name:'Metal Hands',addr:'五道营胡同及多区分店',tags:['亚洲Top50','胡同咖啡','Dirty发源'],style:'中国大陆亚洲Top50两家之一，北京Dirty饮品流行发源地',features:['Dirty','手冲','意式'],priceRange:'35-65'},
-{id:'bj-berry-beans',city:'北京',name:'Berry Beans',addr:'朱家胡同（前门）',tags:['胡同屋顶露台','环游世界手冲','老北京情怀'],style:'胡同屋顶露台俯瞰灰瓦，"环游世界手冲"一次对比亚非美三产区',features:['手冲套餐','产区对比','意式'],priceRange:'38-75'},
-{id:'bj-grid',city:'北京',name:'Grid Coffee',addr:'北京多区，三源里菜市场概念店',tags:['单一产地','手冲放题','建筑师设计'],style:'北京起家，三源里菜市场概念店由建筑师青山周平设计，手冲放题',features:['手冲放题','SOE','单一产地'],priceRange:'24-48'},
-{id:'bj-soloist',city:'北京',name:'Soloist Coffee',addr:'杨梅竹斜街',tags:['手冲知名','胡同文化','专业出品'],style:'北京精品手冲名店，创始人Pill常驻亲自冲煮，乐于分享咖啡知识',features:['手冲单品','意式','精品豆'],priceRange:'38-68'},
-{id:'bj-xiongzhu',city:'北京',name:'熊煮咖啡',addr:'白塔寺夹道（妙应寺旁）',tags:['自烘焙','冲煮冠军','白塔下'],style:'白塔下自烘焙精品咖啡，创始人2020WBrc全国第四，全员专注出好咖啡',features:['手冲','冰滴','意式','特饮'],priceRange:'32-65'},
-{id:'gz-store-jpg',city:'广州',name:'store by .jpg',addr:'广州天河区天河东路75号汇坊',tags:['极简意式','广东本土'],style:'广东本土精品品牌，极简出品，美式/拿铁/澳白为核心产品',features:['澳白','美式','手冲'],priceRange:'28-45'},
-{id:'gz-qianjie',city:'广州',name:'前街咖啡',addr:'广州线下门店（精品豆零售）',tags:['咖啡豆零售','产区直采','5天内新鲜'],style:'老牌咖啡豆烘焙品牌，数十种单品豆，5天内新鲜烘焙',features:['咖啡豆零售','手冲','意式'],priceRange:'25-55'},
-{id:'gz-square',city:'广州',name:'Square Coffee',addr:'广州珠江新城金穗路62号',tags:['CBD精品','珠江新城','商务咖啡'],style:'珠江新城核心地带精品咖啡，单品豆稳定，商务人士日常首选',features:['手冲','SOE','意式'],priceRange:'32-58'},
-{id:'hz-35mm',city:'杭州',name:'35mm Café',addr:'杭州通普路（靠近互联网园区）',tags:['摄影主题','阿里人聚集','徕卡哈苏'],style:'摄影主题咖啡馆，靠近阿里/支付宝园区，徕卡哈苏相机展示与咖啡结合',features:['手冲','拿铁','摄影展览'],priceRange:'30-55'},
-{id:'hz-coffee-ideal',city:'杭州',name:'咖啡与理想',addr:'杭州（多区）',tags:['瑰夏最全','巴拿马庄园','手冲'],style:'杭州瑰夏品种最丰富，大部分从巴拿马各庄园进口，店内有流浪猫',features:['瑰夏手冲','巴拿马庄园豆','单品'],priceRange:'45-188'},
-{id:'hz-grid',city:'杭州',name:'Grid Coffee 杭州首店',addr:'杭州大厦B座（武林广场地铁500米）',tags:['西湖主题','单一产地','精品连锁'],style:'以西湖雨季和青山湖为设计意象，全系单一产地，无糖浆无添加',features:['手冲','SOE','奶咖'],priceRange:'24-48'},
-{id:'hz-zhuzicafe',city:'杭州',name:'竹子咖啡',addr:'杭州河坊街周边（西湖景区旁）',tags:['中式美学','小桥流水','手冲稳定'],style:'西湖边，中式元素，小桥流水，手冲和意式出品都稳定',features:['手冲','澳白','意式'],priceRange:'28-48'},
-{id:'hz-nanche',city:'杭州',name:'南风咖啡',addr:'杭州古墩路办公楼',tags:['日式家庭感','自烘焙夫妇','SCA品鉴师'],style:'夫妇经营的隐藏咖啡馆，老板是阿拉比卡SCA品鉴师，老板娘高级西点师',features:['精品手冲','自烘豆','日式甜品'],priceRange:'32-65'},
+{id:'_placeholder',city:'',name:'',addr:'',tags:[],style:'',features:[],priceRange:''},
 ];
 
 let currentShop = null;
@@ -3719,7 +3698,12 @@ function initStarMapInteraction(){
   });
 }
 
+let _starUserOverride=null; // 星图导航到探店时，临时用这颗星的感官向量匹配
 function smGoExplore(){
+  if(_smActiveRec){
+    const sv=extractSensoryVector(_smActiveRec.feel,_smActiveRec.scanData,_smActiveRec.id);
+    _starUserOverride={avgA:sv.acidity,avgB:sv.body,wowRate:0,exploreRate:0,visitedShops:new Set(),count:1,_fromStar:true};
+  }
   smCloseDetail();
   go('shop');
 }
@@ -3792,6 +3776,7 @@ async function smRegenSummary(){
   if(idx>-1){
     recs[idx].feel=newFeel;
     recs[idx].summary=undefined;
+    _svCache.delete(_smActiveRec.id); // feel 变了，缓存向量作废
     save();
     _smActiveRec=recs[idx];
   }
