@@ -349,17 +349,29 @@ textarea.fi{resize:none;line-height:1.65}
 .fc-code{font-family:'DM Mono',monospace;font-size:13px;color:var(--a);letter-spacing:.06em}
 .fc-hint{font-size:10px;color:var(--i3)}
 
-/* Flavor bubbles */
-.bubble-card{margin:0 14px 12px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:15px}
-.bc-hd{font-size:12px;color:var(--i2);margin-bottom:5px}
-.bc-sub{font-size:11px;color:var(--i3);margin-bottom:10px;font-style:italic}
-.bubbles{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.bub{padding:4px 11px;border-radius:20px;border:1px solid var(--b2);color:var(--i2)}
-.bub.f1{font-size:11px;opacity:.5}
-.bub.f2{font-size:12px;opacity:.7}
-.bub.f3{font-size:13px;border-color:rgba(200,152,104,.32);color:var(--a2);background:rgba(200,152,104,.06)}
-.bub.f4{font-size:15px;font-weight:500;border-color:rgba(200,152,104,.45);color:var(--a);background:rgba(200,152,104,.1)}
-.bub.free{font-style:italic;border-color:rgba(239,200,64,.22);color:rgba(239,200,64,.65);background:rgba(239,200,64,.05);font-family:'Cormorant Garamond',serif}
+/* Star Map */
+.star-map-card{margin:0 14px 12px;border-radius:var(--r);overflow:hidden;border:1px solid var(--b1)}
+.sm-header{padding:11px 14px 7px;background:var(--s1);display:flex;align-items:baseline;justify-content:space-between}
+.sm-title{font-size:12px;color:var(--i2)}
+.sm-sub{font-size:10px;color:var(--i3);font-style:italic}
+.sm-canvas-wrap{position:relative;background:#0C0805;cursor:pointer;line-height:0}
+#star-canvas{display:block;width:100%}
+.sm-axes{display:flex;justify-content:space-between;padding:4px 14px 0;background:#0C0805}
+.sm-ax{font-size:9px;color:rgba(237,227,208,.18);letter-spacing:.04em;font-family:'DM Mono',monospace;padding-bottom:4px}
+.sm-tooltip{position:absolute;background:rgba(8,5,3,.92);border:1px solid rgba(200,152,104,.28);
+  border-radius:5px;padding:7px 10px;pointer-events:none;backdrop-filter:blur(12px);
+  z-index:10;min-width:130px;max-width:170px}
+.sm-tt-name{font-size:12px;color:var(--ink);margin-bottom:3px;font-weight:500;line-height:1.3}
+.sm-tt-feel{font-size:11px;color:var(--i2);font-style:italic;line-height:1.5;margin-bottom:3px;
+  font-family:'Cormorant Garamond',serif}
+.sm-tt-meta{font-size:10px;color:var(--i3)}
+.sm-words{display:flex;flex-wrap:wrap;gap:5px;padding:9px 12px 11px;
+  background:var(--s1);border-top:1px solid var(--b1)}
+.sm-word{font-size:10px;padding:2px 8px;border:1px solid var(--b1);border-radius:10px;
+  color:var(--i3);font-family:'Cormorant Garamond',serif;font-style:italic;cursor:default}
+.sm-word.f2{color:var(--i2);border-color:var(--b2)}
+.sm-word.f3{color:var(--a2);border-color:rgba(200,152,104,.28);background:rgba(200,152,104,.04)}
+.sm-word.f4{color:var(--a);border-color:rgba(200,152,104,.38);background:rgba(200,152,104,.08)}
 
 /* Shop journey */
 .shop-card{margin:0 14px 12px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:15px}
@@ -765,12 +777,26 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
   </div>
 
-  <!-- Flavor bubbles -->
-  <div class="sec" id="fl-lbl" style="display:none">风味图谱</div>
-  <div class="bubble-card" id="bubble-card" style="display:none">
-    <div class="bc-hd">你感受到的风味</div>
-    <div class="bc-sub">越大越亮 = 越频繁 · <em style="color:rgba(239,200,64,.6)">金色斜体</em> = 你独有的语言</div>
-    <div class="bubbles" id="bubbles"></div>
+  <!-- Star Map -->
+  <div class="sec" id="fl-lbl" style="display:none">风味星图</div>
+  <div class="star-map-card" id="star-map-card" style="display:none">
+    <div class="sm-header">
+      <div class="sm-title">你的味觉宇宙</div>
+      <div class="sm-sub">每一杯是一颗星 · 轻触查看</div>
+    </div>
+    <div class="sm-canvas-wrap" id="sm-canvas-wrap">
+      <canvas id="star-canvas"></canvas>
+      <div class="sm-tooltip" id="sm-tooltip" style="display:none">
+        <div class="sm-tt-name" id="sm-tt-name"></div>
+        <div class="sm-tt-feel" id="sm-tt-feel"></div>
+        <div class="sm-tt-meta" id="sm-tt-meta"></div>
+      </div>
+    </div>
+    <div class="sm-axes">
+      <span class="sm-ax">← 醇厚深烘</span>
+      <span class="sm-ax">明亮酸质 →</span>
+    </div>
+    <div class="sm-words" id="sm-words"></div>
   </div>
 
   <!-- Prescription -->
@@ -1629,22 +1655,21 @@ function renderMy(){
     document.getElementById('prof-card').style.display='block';
   }
 
-  // Flavor bubbles — feels only (no standard chips)
-  const feels=recs.filter(r=>r.feel).map(r=>r.feel);
-  if(feels.length){
-    // Extract word fragments
+  // Star Map
+  if(recs.length){
+    document.getElementById('fl-lbl').style.display='block';
+    document.getElementById('star-map-card').style.display='block';
+    requestAnimationFrame(()=>{renderStarMap();initStarMapInteraction();});
+    // Word cloud (supplementary)
+    const feels=recs.filter(r=>r.feel).map(r=>r.feel);
     const words=feels.flatMap(f=>f.split(/[，,、。！？\s]+/).filter(w=>w.length>=2&&w.length<=8));
     const freq={};words.forEach(w=>freq[w]=(freq[w]||0)+1);
-    const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,20);
+    const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,18);
     const max=sorted[0]?.[1]||1;
-    if(sorted.length){
-      document.getElementById('bubbles').innerHTML=sorted.map(([w,n])=>{
-        const lv=n/max>=.7?'f4':n/max>=.45?'f3':n/max>=.2?'f2':'f1';
-        return `<span class="bub free ${lv}">${w}</span>`;
-      }).join('');
-      document.getElementById('fl-lbl').style.display='block';
-      document.getElementById('bubble-card').style.display='block';
-    }
+    document.getElementById('sm-words').innerHTML=sorted.map(([w,n])=>{
+      const lv=n/max>=.7?'f4':n/max>=.4?'f3':n/max>=.2?'f2':'';
+      return `<span class="sm-word ${lv}">${w}</span>`;
+    }).join('');
   }
 
   // Shop journey
@@ -2202,6 +2227,155 @@ function copyPrescription(){
 function refreshPrescription(){
   localStorage.removeItem('cf6_rx');
   loadPrescription(true);
+}
+
+// ── SENSORY VECTOR (keyword-based, zero API calls) ──
+function extractSensoryVector(feel,scanData){
+  const txt=(feel||'').toLowerCase();
+  // Acidity / brightness signals
+  const acidKw={'酸':2,'柑橘':3,'莓':2,'蓝莓':2,'草莓':2,'覆盆子':2,'柠檬':2,'橙':1,
+    '葡萄柚':2,'苹果':1,'明亮':2,'清爽':2,'果汁':3,'活泼':1,'跳跃':1,
+    '花香':1,'花':1,'茉莉':1,'玫瑰':1,'茶感':1,'茶':1,'干净':1,
+    '埃塞':1,'肯尼亚':2,'耶加':2,'水洗':1,'轻盈':1};
+  // Body / richness signals
+  const bodyKw={'厚':2,'醇厚':3,'浓郁':3,'油脂':2,'丝滑':2,'奶油':2,'黄油':2,
+    '圆润':2,'饱满':2,'坚果':2,'巧克力':3,'焦糖':2,'可可':2,'糖浆':1,
+    '浓':2,'苦':1,'意式':2,'曼特宁':3,'深烘':3,'重':1,'回甘':1,'沉':1};
+  // Light signals (subtract from body)
+  const lightKw={'清淡':2,'清新':1,'薄':1,'通透':1,'水感':1,'飘':1};
+  let aS=0,aT=0,bS=0,bT=0;
+  for(const[k,w]of Object.entries(acidKw)){aT+=w;if(txt.includes(k))aS+=w;}
+  for(const[k,w]of Object.entries(bodyKw)){bT+=w;if(txt.includes(k))bS+=w;}
+  for(const[k,w]of Object.entries(lightKw)){if(txt.includes(k))bS-=w;}
+  const norm=(s,t)=>Math.min(1,Math.max(0,s/(t*0.28)));
+  const acidity=aT?(aS>0?norm(aS,aT):0.38):0.45;
+  const body=bT?(bS>0?norm(bS,bT):Math.max(0,norm(bS,bT))):0.45;
+  return{acidity,body};
+}
+
+// ── STAR MAP (Canvas) ──
+function renderStarMap(){
+  const canvas=document.getElementById('star-canvas');
+  if(!canvas)return;
+  const wrap=document.getElementById('sm-canvas-wrap');
+  const W=wrap.offsetWidth||340;
+  const H=Math.round(W*0.56);
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  // Background
+  ctx.fillStyle='#0C0805';
+  ctx.fillRect(0,0,W,H);
+
+  // Subtle grid lines
+  ctx.strokeStyle='rgba(237,227,208,0.05)';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();
+
+  const pad={t:16,b:16,l:20,r:20};
+  const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+
+  // Compute star positions
+  const pts=recs.map(r=>{
+    const sv=extractSensoryVector(r.feel,r.scanData);
+    const jx=((r.id%97)/97-0.5)*0.09;
+    const jy=((r.id%83)/83-0.5)*0.09;
+    const x=pad.l+(Math.min(1,Math.max(0,sv.acidity+jx)))*pw;
+    const y=H-pad.b-(Math.min(1,Math.max(0,sv.body+jy)))*ph;
+    return{...r,x,y,sv};
+  });
+
+  // Nebula at centroid
+  if(pts.length>=3){
+    const cx=pts.reduce((s,p)=>s+p.x,0)/pts.length;
+    const cy=pts.reduce((s,p)=>s+p.y,0)/pts.length;
+    const r=Math.min(pw,ph)*0.42;
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,'rgba(200,152,104,0.09)');
+    g.addColorStop(0.5,'rgba(200,152,104,0.04)');
+    g.addColorStop(1,'rgba(200,152,104,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  }
+
+  // Trail lines (chronological, dashed)
+  if(pts.length>1){
+    const sorted=[...pts].sort((a,b)=>a.ts-b.ts);
+    ctx.strokeStyle='rgba(200,152,104,0.16)';ctx.lineWidth=0.8;
+    ctx.setLineDash([2,5]);
+    ctx.beginPath();
+    sorted.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+    ctx.stroke();ctx.setLineDash([]);
+  }
+
+  // Draw stars
+  pts.forEach(p=>{
+    const size=1.6+(p.rating||3)*0.5+(p.wow?2:0);
+    const hA=p.sv.acidity;
+    // Amber spectrum: low acid=deep warm orange, high acid=bright golden
+    const sR=Math.round(172+hA*40),sG=Math.round(108+hA*54),sB=Math.round(48+hA*30);
+    if(p.wow){
+      ctx.shadowColor='#EFC840';ctx.shadowBlur=16;
+      ctx.fillStyle='#EFC840';
+    } else {
+      ctx.shadowColor=`rgba(${sR},${sG},${sB},0.65)`;ctx.shadowBlur=9;
+      ctx.fillStyle=`rgba(${sR},${sG},${sB},0.9)`;
+    }
+    ctx.beginPath();ctx.arc(p.x,p.y,size,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+  });
+
+  canvas._stars=pts;
+}
+
+// Touch/click star tooltip
+let _starInteractInit=false;
+function initStarMapInteraction(){
+  if(_starInteractInit)return;
+  _starInteractInit=true;
+  const canvas=document.getElementById('star-canvas');
+  if(!canvas)return;
+  function hit(cx,cy){
+    const rect=canvas.getBoundingClientRect();
+    const x=cx-rect.left,y=cy-rect.top;
+    const stars=canvas._stars||[];
+    let closest=null,minD=28;
+    stars.forEach(s=>{const d=Math.hypot(s.x-x,s.y-y);if(d<minD){minD=d;closest=s;}});
+    const tt=document.getElementById('sm-tooltip');
+    if(!tt)return;
+    if(closest){
+      document.getElementById('sm-tt-name').textContent=(closest.wow?'✦ ':'')+closest.name;
+      const feel=closest.feel||'';
+      document.getElementById('sm-tt-feel').textContent=feel?`「${feel.slice(0,36)}${feel.length>36?'…':''}」`:'';
+      document.getElementById('sm-tt-meta').textContent=[
+        closest.scanData?.shop,closest.date,
+        closest.rating?'★'.repeat(closest.rating):''
+      ].filter(Boolean).join(' · ');
+      const wW=canvas.offsetWidth,wH=canvas.offsetHeight;
+      let ttL=x+12,ttT=y-14;
+      tt.style.display='block';
+      if(ttL+164>wW-4)ttL=x-164-8;
+      if(ttT<4)ttT=4;
+      if(ttT>wH-88)ttT=wH-88;
+      tt.style.left=ttL+'px';tt.style.top=ttT+'px';
+    } else {
+      tt.style.display='none';
+    }
+  }
+  canvas.addEventListener('click',e=>hit(e.clientX,e.clientY));
+  canvas.addEventListener('touchend',e=>{
+    e.preventDefault();
+    const t=e.changedTouches[0];
+    hit(t.clientX,t.clientY);
+  },{passive:false});
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#sm-canvas-wrap')){
+      const tt=document.getElementById('sm-tooltip');
+      if(tt)tt.style.display='none';
+    }
+  });
 }
 </script>
 </body>
