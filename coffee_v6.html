@@ -1975,13 +1975,13 @@ async function getRouteCard(rec){
     }
   }catch(e){console.log('[route] shops skipped:',e.message);}
 
+  const user=getUserProfile();
+  // 当前这杯的感官向量（必须在 shopInstruction 之前声明）
+  const sv=extractSensoryVector(rec.feel,rec.scanData,null);
+
   const shopInstruction=hasShops
     ?`2. shop：从上面列表中选最适合他的一家（完整原样输出店名，不要修改）。\n   决策依据：①精品度≥60%为首选；②这杯酸质${Math.round(sv.acidity*100)}%/醇度${Math.round(sv.body*100)}%，选与之互补或相近风味的品牌；③惊艳时选风格差异大的做对比探索，没惊艳时选相近风格加深印象；④距离差异<500m时质量优先，>1km时可考虑就近。`
     :`2. shop：输出空字符串""`;
-
-  const user=getUserProfile();
-  // 当前这杯的感官向量
-  const sv=extractSensoryVector(rec.feel,rec.scanData,null);
   const svCtx=`酸质${Math.round(sv.acidity*100)}%·醇度${Math.round(sv.body*100)}%`;
   // WIKI 标准风味参考
   const wiki=WIKI.find(w=>rec.name.toLowerCase().includes(w.name.split(' ')[0].toLowerCase())||w.tags?.some(t=>rec.name.toLowerCase().includes(t.toLowerCase())));
