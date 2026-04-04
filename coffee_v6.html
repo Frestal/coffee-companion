@@ -263,9 +263,12 @@ textarea.fi{resize:none;line-height:1.65}
 .rx-row{background:var(--s3);border-radius:4px;padding:7px 9px}
 .rx-k{font-size:9px;color:var(--i3);display:block;margin-bottom:2px;letter-spacing:.06em;text-transform:uppercase}
 .rx-v{font-size:12px;color:var(--ink)}
-.rx-target{font-size:13px;color:var(--ink);margin-bottom:6px;font-style:italic;
-  border-left:2px solid var(--a);padding-left:9px;line-height:1.5}
-.rx-note{font-size:11px;color:var(--i2);margin-bottom:10px;line-height:1.5}
+.rx-voice{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;
+  color:var(--ink);line-height:1.7;margin-bottom:12px;
+  border-left:2px solid var(--a);padding-left:11px}
+.rx-barista{font-size:12px;color:var(--i2);line-height:1.6;margin-bottom:10px;
+  background:var(--s3);border-radius:4px;padding:8px 11px}
+.rx-barista-lbl{font-size:10px;color:var(--a);letter-spacing:.06em;margin-bottom:3px}
 .rx-copy{font-size:10px;color:var(--a);letter-spacing:.06em;text-align:center;
   padding-top:8px;border-top:1px solid var(--b1)}
 .rx-refresh{font-size:10px;color:var(--i3);text-align:right;
@@ -411,6 +414,7 @@ textarea.fi{resize:none;line-height:1.65}
 .shop-foryou{font-size:10px;padding:1px 6px;background:var(--a3);
   border:1px solid var(--b2);color:var(--a);border-radius:2px;
   margin-left:5px;letter-spacing:.04em}
+.shop-zone{font-size:10px;color:var(--i3);margin-top:3px;font-style:italic;letter-spacing:.02em}
 
 /* ── EXPLORE ── */
 .search-wrap{position:relative;margin:0 14px 12px}
@@ -780,28 +784,7 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="tl-grid" id="tl-grid"></div>
   </div>
 
-  <!-- WOW module -->
-  <div class="sec" id="wow-sec-lbl" style="display:none">✦ 惊艳时刻</div>
-  <div class="wow-module" id="wow-module" style="display:none">
-    <div class="wm-hd"><div class="wm-ico">✦</div><div class="wm-title">值得被记住的瞬间</div></div>
-    <div id="wow-list"></div>
-  </div>
-
-  <!-- Profile + feature code -->
-  <div class="sec" id="prof-lbl" style="display:none">我是谁</div>
-  <div class="profile-card" id="prof-card" style="display:none">
-    <div class="pc-style" id="pc-style">——</div>
-    <div class="pc-desc" id="pc-desc"></div>
-    <div class="fc-box" id="fc-box" onclick="copyCode()">
-      <div>
-        <div class="fc-code" id="fc-code">——</div>
-        <div class="fc-hint">咖啡特征码 · 出示给咖啡馆，点击复制</div>
-      </div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,152,104,.6)" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    </div>
-  </div>
-
-  <!-- Star Map -->
+  <!-- Star Map (between 饮用统计 and 惊艳时刻) -->
   <div class="sec" id="fl-lbl" style="display:none">风味星图</div>
   <div class="star-map-card" id="star-map-card" style="display:none">
     <div class="sm-header">
@@ -832,6 +815,27 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
     <div class="sm-words" id="sm-words">
       <div class="sm-words-label" id="sm-words-label"></div>
+    </div>
+  </div>
+
+  <!-- WOW module -->
+  <div class="sec" id="wow-sec-lbl" style="display:none">✦ 惊艳时刻</div>
+  <div class="wow-module" id="wow-module" style="display:none">
+    <div class="wm-hd"><div class="wm-ico">✦</div><div class="wm-title">值得被记住的瞬间</div></div>
+    <div id="wow-list"></div>
+  </div>
+
+  <!-- Profile + feature code -->
+  <div class="sec" id="prof-lbl" style="display:none">我是谁</div>
+  <div class="profile-card" id="prof-card" style="display:none">
+    <div class="pc-style" id="pc-style">——</div>
+    <div class="pc-desc" id="pc-desc"></div>
+    <div class="fc-box" id="fc-box" onclick="copyCode()">
+      <div>
+        <div class="fc-code" id="fc-code">——</div>
+        <div class="fc-hint">咖啡特征码 · 出示给咖啡馆，点击复制</div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,152,104,.6)" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     </div>
   </div>
 
@@ -1699,21 +1703,26 @@ function renderMy(){
     requestAnimationFrame(()=>{renderStarMap();initStarMapInteraction();});
   }
 
-  // Shop journey
+  // Shop journey — with star map position fusion
   const shopMap={};
   recs.forEach(r=>{
     const shop=r.scanData?.shop;
     if(!shop) return;
-    if(!shopMap[shop]) shopMap[shop]={name:shop,count:0,last:r.date,wow:0};
+    if(!shopMap[shop]) shopMap[shop]={name:shop,count:0,last:r.date,wow:0,aSum:0,bSum:0};
+    const sv=extractSensoryVector(r.feel,r.scanData,r.id);
     shopMap[shop].count++;
+    shopMap[shop].aSum+=sv.acidity;
+    shopMap[shop].bSum+=sv.body;
     if(r.wow) shopMap[shop].wow++;
   });
   const shops=Object.values(shopMap).sort((a,b)=>b.count-a.count);
   if(shops.length){
     document.getElementById('shop-lbl').style.display='block';
     document.getElementById('shop-card').style.display='block';
-    document.getElementById('shop-list').innerHTML=shops.slice(0,6).map((s,i)=>`
-      <div class="shop-item">
+    document.getElementById('shop-list').innerHTML=shops.slice(0,6).map((s,i)=>{
+      const a=s.aSum/s.count, b=s.bSum/s.count;
+      const zone=a>.55&&b<.45?'明亮轻盈':a>.55&&b>.55?'酸质浓郁':a<.42&&b>.55?'醇厚深烘':a<.42&&b<.45?'清淡柔和':a>.55?'偏明亮':a<.42?'偏醇厚':b>.55?'偏浓郁':'风味均衡';
+      return`<div class="shop-item">
         <div class="shop-dot${i>1?' dim':''}"></div>
         <div>
           <div class="shop-name">${s.name}
@@ -1721,8 +1730,10 @@ function renderMy(){
             ${s.wow>0?'<span class="shop-foryou">✦ '+s.wow+'次惊艳</span>':''}
           </div>
           <div class="shop-meta">共记录 ${s.count} 杯 · 最近 ${s.last}</div>
+          <div class="shop-zone">在你的星图 · ${zone}</div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 }
 
@@ -2193,8 +2204,8 @@ async function loadPrescription(force){
   if(!getApiKey()){rxContent.innerHTML='<div style="font-size:12px;color:var(--i3);padding:12px 0">请先设置 API Key</div>';return;}
   const summary=recs.slice(0,20).map(r=>`${r.name}${r.feel?`（${r.feel.slice(0,25)}）`:''}${r.wow?'✦':''} ${r.repurchase==='yes'?'↻':''}`).join('\n');
   const wowNames=recs.filter(r=>r.wow).map(r=>r.name).join('、')||'暂无';
-  const sys=`你是一位精通精品咖啡的烘焙师，根据用户的咖啡记录为他生成个性化调配处方。只返回JSON，不要其他文字：
-{"title":"处方名（诗意，结合风味偏好，≤8字）","origin":"推荐产区1-2个","process":"推荐处理法","roast":"烘焙度","brew":"冲煮方式和关键参数（≤20字）","target":"目标风味（≤25字，口语化）","note":"给咖啡师的一句话（≤30字）"}`;
+  const sys=`你是一面镜子，帮助用户看清并说出自己真实的咖啡口味偏好。根据用户的咖啡记录，生成一张「自我表达卡」，让用户拿着它就能清楚地告诉咖啡师自己想要什么。只返回JSON，不要其他文字：
+{"title":"卡片标题（诗意简洁，≤8字，体现用户个性而非产品名）","voice":"我通常追求___（第一人称，口语化，≤30字，真实描述用户的感受偏好，不是推荐词汇）","origin":"产区1-2个（帮咖啡师理解你的偏好方向）","process":"处理法","roast":"烘焙度","brew":"冲煮建议（≤18字）","barista":"你可以这样告诉咖啡师：___（≤35字，第一人称口语，让用户开口说话而非出示参数）"}`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
@@ -2225,18 +2236,21 @@ function showPrescription(rx){
   document.getElementById('rx-content').innerHTML=`
     <div class="rx-card" onclick="copyPrescription()">
       <div class="rx-header">
-        <div class="rx-title">${rx.title}</div>
+        <div class="rx-title">${rx.title||''}</div>
         <div class="rx-hcode">${code}</div>
       </div>
+      <div class="rx-voice">${rx.voice||''}</div>
       <div class="rx-grid">
         <div class="rx-row"><span class="rx-k">产区</span><span class="rx-v">${rx.origin||'—'}</span></div>
         <div class="rx-row"><span class="rx-k">处理法</span><span class="rx-v">${rx.process||'—'}</span></div>
         <div class="rx-row"><span class="rx-k">烘焙度</span><span class="rx-v">${rx.roast||'—'}</span></div>
         <div class="rx-row"><span class="rx-k">冲煮</span><span class="rx-v">${rx.brew||'—'}</span></div>
       </div>
-      <div class="rx-target">${rx.target||''}</div>
-      <div class="rx-note">给咖啡师：${rx.note||''}</div>
-      <div class="rx-copy" id="rx-copy-hint">点击复制 · 出示给门店</div>
+      <div class="rx-barista">
+        <div class="rx-barista-lbl">开口说</div>
+        ${rx.barista||''}
+      </div>
+      <div class="rx-copy" id="rx-copy-hint">点击复制 · 出示给咖啡师</div>
     </div>`;
   document.getElementById('rx-refresh').style.display='block';
 }
@@ -2244,7 +2258,7 @@ function showPrescription(rx){
 function copyPrescription(){
   const rx=JSON.parse(localStorage.getItem('cf6_rx')||'{}');
   const code=document.getElementById('fc-code')?.textContent||'';
-  const text=`☕ 咖啡伴侣 · 调配处方\n${rx.title||''}\n特征码：${code}\n\n产区：${rx.origin||''}\n处理法：${rx.process||''}\n烘焙度：${rx.roast||''}\n冲煮：${rx.brew||''}\n\n目标风味：${rx.target||''}\n\n给咖啡师：${rx.note||''}`;
+  const text=`☕ 咖啡伴侣 · 我的口味\n${rx.title||''}\n\n${rx.voice||''}\n\n产区：${rx.origin||''}\n处理法：${rx.process||''}\n烘焙度：${rx.roast||''}\n冲煮：${rx.brew||''}\n\n${rx.barista||''}\n\n特征码：${code}`;
   navigator.clipboard?.writeText(text).then(()=>{
     const hint=document.getElementById('rx-copy-hint');
     if(hint){hint.textContent='已复制 ✓';setTimeout(()=>{hint.textContent='点击复制 · 出示给门店';},2000);}
@@ -2253,6 +2267,8 @@ function copyPrescription(){
 
 function refreshPrescription(){
   localStorage.removeItem('cf6_rx');
+  localStorage.removeItem('cf6_rx_ts');
+  localStorage.removeItem('cf6_rx_count');
   loadPrescription(true);
 }
 
