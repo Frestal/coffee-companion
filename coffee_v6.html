@@ -1017,10 +1017,12 @@ textarea.fi{resize:none;line-height:1.65}
       <div class="share-icon">🔑</div>
       <div class="share-app">咖啡伴侣 · 初次设置</div>
     </div>
-    <div class="share-name" style="font-size:16px;margin-bottom:6px">填入你的 Anthropic API Key</div>
-    <div class="share-meta" style="margin-bottom:14px">Key 仅存在你的设备本地，不会上传任何地方。<br>获取地址：console.anthropic.com</div>
+    <div class="share-name" style="font-size:16px;margin-bottom:6px">填入 API Key</div>
+    <div class="share-meta" style="margin-bottom:14px">Key 仅存在你的设备本地，不会上传任何地方。<br>
+      支持 <b>Anthropic</b>（console.anthropic.com）<br>
+      或 <b>DeepSeek</b>（platform.deepseek.com · 有免费额度）</div>
     <input id="apikey-input" type="password" class="fi"
-      placeholder="sk-ant-api03-..."
+      placeholder="sk-ant-... 或 DeepSeek Key"
       style="margin-bottom:12px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.04em">
     <div id="apikey-err" style="font-size:11px;color:var(--rd);margin-bottom:8px;display:none">Key 格式不对，应以 sk-ant- 开头</div>
     <div id="apikey-test-msg" style="font-size:11px;margin-bottom:8px;display:none"></div>
@@ -1464,32 +1466,70 @@ if(!recs.length && !localStorage.getItem('cf6_demo_injected')){
 
 // ── INIT ──
 function getApiKey(){return localStorage.getItem('cf6_apikey')||'';}
+function getProvider(){return getApiKey().startsWith('sk-ant-')?'anthropic':'deepseek';}
+
+// ── 中央 AI 调用（自动识别 Anthropic / DeepSeek）──
+async function callAI({system='',prompt,maxTokens=200,images=null}){
+  const key=getApiKey();if(!key)return null;
+  const isAnthropic=key.startsWith('sk-ant-');
+  if(isAnthropic){
+    const content=images
+      ?[...images.map(img=>({type:'image',source:{type:'base64',media_type:img.mime,data:img.base64}})),{type:'text',text:prompt}]
+      :prompt;
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,
+        'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,
+        ...(system?{system}:{}),messages:[{role:'user',content}]})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message||d.error.type);
+    return d.content?.map(c=>c.text||'').join('').trim()||null;
+  }else{
+    if(images)return null; // DeepSeek 暂不支持图片识别
+    const r=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:'deepseek-chat',max_tokens:maxTokens,
+        messages:[...(system?[{role:'system',content:system}]:[]),{role:'user',content:prompt}]})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message||d.error.code||'unknown');
+    return d.choices?.[0]?.message?.content?.trim()||null;
+  }
+}
 async function saveApiKey(){
   const v=document.getElementById('apikey-input').value.trim();
   const err=document.getElementById('apikey-err');
   const msg=document.getElementById('apikey-test-msg');
   const btn=document.getElementById('apikey-save-btn');
-  if(!v.startsWith('sk-ant-')){err.style.display='block';msg.style.display='none';return;}
+  if(!v){err.style.display='block';err.textContent='请输入 Key';msg.style.display='none';return;}
   err.style.display='none';
   btn.disabled=true;btn.textContent='验证中…';
-  msg.style.color='var(--i3)';msg.textContent='正在测试连接…';msg.style.display='block';
+  msg.style.color='var(--i3)';msg.style.display='block';
+  const isAnthropic=v.startsWith('sk-ant-');
+  msg.textContent=`正在测试 ${isAnthropic?'Anthropic':'DeepSeek'} 连接…`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':v,
-        'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:5,
-        messages:[{role:'user',content:'hi'}]})});
-    const d=await r.json();
-    if(d.error){
-      msg.style.color='var(--rd)';
-      msg.textContent='✗ '+( d.error.message||d.error.type||'API错误，请检查Key是否有效');
-      btn.disabled=false;btn.textContent='重新验证';
-      return;
+    let ok=false,errMsg='';
+    if(isAnthropic){
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':v,
+          'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:5,messages:[{role:'user',content:'hi'}]})});
+      const d=await r.json();
+      if(d.error)errMsg=d.error.message||d.error.type;else ok=true;
+    }else{
+      const r=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+v},
+        body:JSON.stringify({model:'deepseek-chat',max_tokens:5,messages:[{role:'user',content:'hi'}]})});
+      const d=await r.json();
+      if(d.error)errMsg=d.error.message||d.error.code;else if(d.choices)ok=true;else errMsg='响应异常';
     }
-    // 成功
-    msg.style.color='var(--gn)';msg.textContent='✓ 连接成功';
-    localStorage.setItem('cf6_apikey',v);
-    setTimeout(()=>{closeApiKeySetup();if(recs.length>=3)loadMorning();},600);
+    if(ok){
+      msg.style.color='var(--gn)';msg.textContent=`✓ ${isAnthropic?'Anthropic':'DeepSeek'} 连接成功`;
+      localStorage.setItem('cf6_apikey',v);
+      setTimeout(()=>{closeApiKeySetup();renderMy();if(recs.length>=3)loadMorning();},600);
+    }else{
+      msg.style.color='var(--rd)';msg.textContent='✗ '+(errMsg||'Key 无效，请检查');
+      btn.disabled=false;btn.textContent='重新验证';
+    }
   }catch(e){
     msg.style.color='var(--rd)';msg.textContent='✗ 网络错误：'+e.message;
     btn.disabled=false;btn.textContent='重新验证';
@@ -1539,12 +1579,7 @@ async function loadMorning(){
   const ctx=`${recs.length}杯记录。惊艳${wowN}次。行为：${mode==='explorer'?'探索型':'深耕型'}。最近：${recs.slice(0,4).map(r=>r.name).join('、')}。自述：${allF.slice(0,4).join('；')||'暂无'}`;
   const sys=`你是用户的咖啡伴侣。夜间整理了他所有的记录后，清晨用一句有洞察的话告诉他你发现了什么。不超过50字。像老朋友说话，不是助手报告。说最有感触的一件事，不列数字统计。`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:120,system:sys,
-        messages:[{role:'user',content:ctx}]})});
-    const d=await r.json();
-    const txt=d.content?.map(c=>c.text||'').join('').trim()||'你的感受越来越有自己的语言了。';
+    const txt=(await callAI({system:sys,prompt:ctx,maxTokens:120}))||'你的感受越来越有自己的语言了。';
     localStorage.setItem('cf6_m',txt);localStorage.setItem('cf6_mt',String(Date.now()));
     showMorning(txt);
   }catch(e){showMorning('每一杯都在悄悄成形。');}
@@ -1671,6 +1706,14 @@ async function handleCameraInput(input){
       return;
     }
 
+    // DeepSeek 不支持图片识别，直接进手动输入
+    if(getProvider()==='deepseek'){
+      prog.style.width='0';
+      preview.querySelector('.cam-preview-lbl').textContent='DeepSeek 不支持识图，请手动填写';
+      document.getElementById('manual-name-block').style.display='block';
+      document.getElementById('r-feel').focus();
+      return;
+    }
     try{
       // 压缩图片：统一转 JPEG，最长边缩至 1024px，避免大图/HEIC 失败
       const {base64,mime}=await new Promise(res=>{
@@ -1686,17 +1729,8 @@ async function handleCameraInput(input){
         };
         img2.src=e.target.result;
       });
-      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
-          'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,
-          messages:[{role:'user',content:[
-            {type:'image',source:{type:'base64',media_type:mime,data:base64}},
-            {type:'text',text:`这是一张咖啡相关照片（可能是咖啡杯、豆袋包装、菜单黑板或收据）。请识别并只返回JSON，不确定的字段留空字符串：
-{"name":"咖啡品名或豆子名称","shop":"店铺名","price":"价格数字","method":"冲煮方式","origin":"产区","process":"处理法","variety":"品种"}`}
-          ]}]})});
-      const d=await r.json();
-      const txt=d.content?.[0]?.text||'{}';
+      const scanPrompt=`这是一张咖啡相关照片（可能是咖啡杯、豆袋包装、菜单黑板或收据）。请识别并只返回JSON，不确定的字段留空字符串：\n{"name":"咖啡品名或豆子名称","shop":"店铺名","price":"价格数字","method":"冲煮方式","origin":"产区","process":"处理法","variety":"品种"}`;
+      const txt=await callAI({prompt:scanPrompt,maxTokens:300,images:[{base64,mime}]})||'{}';
       let ex={};
       try{ex=JSON.parse(txt.match(/\{[\s\S]*?\}/)?.[0]||'{}');}catch(_){}
 
@@ -1853,17 +1887,8 @@ ${shopInstruction}
 只返回JSON：{"hook":"...","shop":"...","drink":"...","tip":"..."}`;
 
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01',
-        'content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,
-        messages:[{role:'user',content:prompt}]})
-    });
-    const data=await resp.json();
-    console.log('[route] api resp',data);
-    if(data.error)throw new Error(data.error.message||data.error.type);
-    const text=data.content?.[0]?.text||'';
+    const text=await callAI({prompt,maxTokens:200});
+    if(!text)throw new Error('empty response');
     const m=text.match(/\{[\s\S]*\}/);
     if(!m)throw new Error('no JSON: '+text.slice(0,80));
     const json=JSON.parse(m[0]);
@@ -1955,20 +1980,7 @@ async function getReply(rec,all){
   ].filter(Boolean).join('\n');
   const sys=`你是用户身边有见识的咖啡朋友。不是老师，不是评审。说话自然有温度，最多75字，不用列表。做三件事：①用一两句话回应他的感受（感官千人千面，不评判对错）②如有值得注意的信号顺口一提 ③给一个具体可马上行动的下一步建议。如果标记了惊艳时刻，先表达一下兴奋，说说为什么这杯值得记住。`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:sys,
-        messages:[{role:'user',content:ctx}]})});
-    const d=await r.json();
-    console.log('[reply] status',r.status,d);
-    if(d.error){
-      const em=d.error.message||d.error.type||'unknown';
-      console.error('[reply] API error:',em);
-      if(d.error.type==='authentication_error')return'⚠️ API Key 无效，请在「我的」页面重新设置';
-      if(d.error.type==='insufficient_quota_error'||d.error.type==='rate_limit_error')return'⚠️ API 余额不足或频率限制，稍后再试';
-      return`⚠️ AI 调用失败（${em.slice(0,40)}）`;
-    }
-    return d.content?.map(c=>c.text||'').join('').trim()||'记下来了，每一杯都在积累。';
+    return(await callAI({system:sys,prompt:ctx,maxTokens:200}))||'记下来了，每一杯都在积累。';
   }catch(e){console.error('[reply]',e);return'记下来了。（网络异常，AI 暂时不可用）';}
 }
 
@@ -1982,14 +1994,7 @@ async function getSummary(rec){
     rec.wow?'用户认为这是一次惊艳体验':''
   ].filter(Boolean).join('\n');
   const sys=`你帮用户用一句自然、感性的中文，说出他当时喝这杯咖啡的真实体会。不要照搬他的原话，要提炼出感受的核心，像一个老朋友帮他说出口。15-30字，不要引号，不要"这杯"开头。`;
-  try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:60,system:sys,
-        messages:[{role:'user',content:parts}]})});
-    const d=await r.json();
-    return d.content?.map(c=>c.text||'').join('').trim()||null;
-  }catch(e){return null;}
+  try{return await callAI({system:sys,prompt:parts,maxTokens:60});}catch(e){return null;}
 }
 
 
@@ -1997,7 +2002,7 @@ async function getSummary(rec){
 // ── MY SCREEN ──
 function renderMy(){
   const keyEl=document.getElementById('apikey-status');
-  if(keyEl) keyEl.textContent=getApiKey()?'已设置 · 点击修改':'未设置 · 点击填入';
+  if(keyEl){const k=getApiKey();keyEl.textContent=k?(k.startsWith('sk-ant-')?'Anthropic · 已连接':'DeepSeek · 已连接'):'未设置 · 点击填入';}
   if(!recs.length) return;
   document.getElementById('my-sub').textContent=`${recs.length}杯记录 · ${recs.filter(r=>r.wow).length}次惊艳`;
 
@@ -2874,15 +2879,9 @@ async function loadPrescription(force){
   const sys=`你是一面镜子，帮助用户看清并说出自己真实的咖啡口味偏好。根据用户的咖啡记录，生成一张「自我表达卡」，让用户拿着它就能清楚地告诉咖啡师自己想要什么。只返回JSON，不要其他文字：
 {"title":"卡片标题（诗意简洁，≤8字，体现用户个性而非产品名）","voice":"我通常追求___（第一人称，口语化，≤30字，真实描述用户的感受偏好，不是推荐词汇）","origin":"产区1-2个（帮咖啡师理解你的偏好方向）","process":"处理法","roast":"烘焙度","brew":"冲煮建议（≤18字）","barista":"你可以这样告诉咖啡师：___（≤35字，第一人称口语，让用户开口说话而非出示参数）"}`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
-        'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,
-        messages:[{role:'user',content:`记录${recs.length}杯，惊艳时刻：${wowNames}\n\n最近记录：\n${summary}`}]})});
-    const d=await r.json();
-    const txt=d.content?.[0]?.text||'{}';
+    const raw=await callAI({system:sys,prompt:`记录${recs.length}杯，惊艳时刻：${wowNames}\n\n最近记录：\n${summary}`,maxTokens:400})||'{}';
     let rx={};
-    try{rx=JSON.parse(txt.match(/\{[\s\S]*?\}/)?.[0]||'{}');}catch(_){}
+    try{rx=JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0]||'{}');}catch(_){}
     if(rx.title){
       localStorage.setItem('cf6_rx',JSON.stringify(rx));
       localStorage.setItem('cf6_rx_ts',String(Date.now()));
