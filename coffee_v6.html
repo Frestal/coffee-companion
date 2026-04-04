@@ -2055,7 +2055,8 @@ function inferShopProfile(poi){
   const brand=BRAND_KB.find(b=>b.aliases.some(a=>n.includes(a)));
   if(brand)return{...brand,source:'brand'};
   // 关键词推断兜底
-  const all=n+' '+(poi.tag||'').toLowerCase();
+  const tagStr=Array.isArray(poi.tag)?poi.tag.join(' '):(poi.tag||'');
+  const all=n+' '+tagStr.toLowerCase();
   const cost=parseFloat(poi.price)||0;
   const isSpec=/精品|单品|specialty|手冲|soe/i.test(all);
   const isPour=/手冲|pour|v60|chemex/i.test(all);
