@@ -799,7 +799,7 @@ textarea.fi{resize:none;line-height:1.65}
       <div class="sm-lg-item"><span class="sm-lg-icon">▲</span>冷萃</div>
       <div class="sm-lg-item"><span class="sm-lg-icon">■</span>意式</div>
       <div class="sm-lg-item"><span class="sm-lg-icon">●</span>其他</div>
-      <div class="sm-lg-item"><span style="color:#EFC840;font-size:10px">✦</span>惊艳时刻</div>
+      <div class="sm-lg-item"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EFC840;box-shadow:0 0 5px rgba(239,200,64,.8);vertical-align:middle;margin-right:1px"></span>惊艳时刻</div>
     </div>
     <!-- Detail drawer: slides in on star tap -->
     <div class="sm-detail" id="sm-detail">
@@ -2318,7 +2318,6 @@ function extractSensoryVector(feel,scanData,id){
 
 // Detect coffee method for shape selection
 function getCoffeeShape(r){
-  if(r.wow)return'star';
   const m=(r.scanData?.method||'').toLowerCase();
   const f=(r.feel||'').toLowerCase();
   const n=(r.name||'').toLowerCase();
@@ -2397,6 +2396,28 @@ function renderStarMap(){
     const y=H-pad.b-(Math.min(1,Math.max(0,sv.body+jy)))*ph;
     return{...r,x,y,sv,shape:getCoffeeShape(r)};
   });
+
+  // Spread overlapping stars — find clusters, distribute in ring
+  {
+    const D=14,visited=new Set();
+    pts.forEach((p,i)=>{
+      if(visited.has(i))return;
+      const cluster=[i];
+      pts.forEach((q,j)=>{
+        if(j!==i&&!visited.has(j)&&Math.hypot(p.x-q.x,p.y-q.y)<D) cluster.push(j);
+      });
+      cluster.forEach(k=>visited.add(k));
+      if(cluster.length<2)return;
+      const cx=cluster.reduce((s,k)=>s+pts[k].x,0)/cluster.length;
+      const cy=cluster.reduce((s,k)=>s+pts[k].y,0)/cluster.length;
+      const ring=D*0.7;
+      cluster.forEach((k,idx)=>{
+        const a=(idx/cluster.length)*Math.PI*2-Math.PI/2;
+        pts[k].x=Math.max(pad.l,Math.min(pad.l+pw, cx+Math.cos(a)*ring));
+        pts[k].y=Math.max(pad.t,Math.min(H-pad.b, cy+Math.sin(a)*ring));
+      });
+    });
+  }
 
   // Nebula — warm amber cloud at taste centroid, grows with records
   if(pts.length>=2){
