@@ -1649,8 +1649,20 @@ async function handleCameraInput(input){
     }
 
     try{
-      const base64=e.target.result.split(',')[1];
-      const mime=file.type||'image/jpeg';
+      // 压缩图片：统一转 JPEG，最长边缩至 1024px，避免大图/HEIC 失败
+      const {base64,mime}=await new Promise(res=>{
+        const img2=new Image();
+        img2.onload=()=>{
+          const MAX=1024;
+          let w=img2.width,h=img2.height;
+          if(w>MAX||h>MAX){const s=MAX/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
+          const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+          cv.getContext('2d').drawImage(img2,0,0,w,h);
+          const dataUrl=cv.toDataURL('image/jpeg',0.85);
+          res({base64:dataUrl.split(',')[1],mime:'image/jpeg'});
+        };
+        img2.src=e.target.result;
+      });
       const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
           'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
@@ -1689,9 +1701,10 @@ async function handleCameraInput(input){
       }
       document.getElementById('r-feel').focus();
     }catch(err){
+      console.error('[scan]',err);
       preview.querySelector('.cam-preview-lbl').textContent='识别失败，请手动填写';
       document.getElementById('manual-name-block').style.display='block';
-      document.getElementById('scan-zone').style.display='block';
+      document.getElementById('scan-zone').style.display='none';
       prog.style.width='0';
     }
   };
