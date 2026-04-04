@@ -1523,7 +1523,7 @@ function renderHome(){
       <div class="fca-lead">开始你的第一杯</div>
       <div class="fca-title">拍下手里的咖啡<br>找到更好的下一杯</div>
       <div class="fca-sub">一张照片，一句描述<br>我来告诉你附近哪里有更适合你的那一杯</div>
-      <button class="fca-btn" onclick="showTab('rec');setTimeout(triggerCamera,300)">拍照记录 →</button>
+      <button class="fca-btn" onclick="startWithCamera()">拍照记录 →</button>
       <div class="fca-alt" onclick="showTab('rec')">没有照片？用文字描述也行</div>
     </div>`;
     return;
@@ -1589,6 +1589,12 @@ function setRp(v){
 
 // ── SCAN ──
 function triggerCamera(){
+  document.getElementById('camera-input').value='';
+  document.getElementById('camera-input').click();
+}
+function startWithCamera(){
+  showTab('rec');
+  // 同一手势内直接触发，不走 setTimeout，避免浏览器拦截
   document.getElementById('camera-input').value='';
   document.getElementById('camera-input').click();
 }
