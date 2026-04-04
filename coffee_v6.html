@@ -1721,6 +1721,8 @@ async function saveRec(){
       document.getElementById('s'+i).textContent='完成';
     },dones[i]);
   });
+  // getReply 和 getRouteCard 并行，谁先完成谁先处理
+  const routePromise=getApiKey()?getRouteCard(rec):Promise.resolve(null);
   setTimeout(async()=>{
     const reply=await getReply(rec,recs);
     rec.aiReply=reply;save();
@@ -1730,13 +1732,10 @@ async function saveRec(){
       localStorage.removeItem('cf6_m');
       setTimeout(loadMorning,2500);
     }
-    // 每次保存后都触发路条（有API Key 且有位置才显示）
-    if(getApiKey()){
-      getRouteCard(rec).then(result=>{
-        if(result) setTimeout(()=>showRouteCard(result),1800);
-        else console.warn('[route] getRouteCard returned null');
-      }).catch(e=>console.error('[route] error',e));
-    }
+    // 等路条结果（通常与 reply 同步完成），最多再等 8 秒
+    routePromise.then(result=>{
+      if(result) setTimeout(()=>showRouteCard(result),600);
+    }).catch(e=>console.error('[route]',e));
   },2300);
 }
 function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
@@ -1744,59 +1743,65 @@ function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
 // ── 路条卡片 ──
 async function getRouteCard(rec){
   const apiKey=getApiKey(); if(!apiKey)return null;
-  let shopContext='附近暂无门店数据', routePois=[];
+  let shopLines='（无附近门店数据，请仅根据风味给出通用建议）';
+  let routePois=[];
+  let hasShops=false;
   try{
     const pos=await getLocation();
     const pois=await amapSearch(pos.lng,pos.lat);
     _amapPois=pois;
-    routePois=pois;
     const user=getUserProfile();
-    const groups=groupPois(pois);
-    const open=groups.map(g=>{
+    const open=groupPois(pois).map(g=>{
       const s=g[0];
       const profile=inferShopProfile(s);
       const score=calcMatchScore(user,profile,s);
-      const openStatus=isShopOpen(s);
-      return{s,profile,score,openStatus};
+      return{s,profile,score,openStatus:isShopOpen(s)};
     }).filter(i=>i.openStatus!==false)
-      .sort((a,b)=>b.score.total-a.score.total)
-      .slice(0,6);
+      .sort((a,b)=>b.score.total-a.score.total).slice(0,6);
     routePois=open.map(i=>i.s);
-    shopContext=open.map(i=>`- ${normBrand(i.s.name)}（${distStr(i.s.distance)}，${i.profile.note?.slice(0,22)||shopTrait(i.profile)}）`).join('\n');
-  }catch(e){console.log('[route] location failed',e);}
+    if(open.length){
+      hasShops=true;
+      shopLines=open.map(i=>`- ${normBrand(i.s.name)}（${distStr(i.s.distance)}，${i.profile.note?.slice(0,20)||shopTrait(i.profile)}）`).join('\n');
+    }
+  }catch(e){console.log('[route] shops skipped:',e.message);}
+
+  const shopInstruction=hasShops
+    ?`2. shop：从上面列表中选最适合他的一家（完整原样输出店名）`
+    :`2. shop：输出空字符串""`;
 
   const prompt=`用户刚记录了一杯咖啡：
 名称：${rec.name}
-感受：${rec.feel||'（未填写）'}
+感受：${rec.feel||'暂无描述'}
 ${rec.wow?'这杯让他惊艳了。':'这杯没有特别惊艳他。'}
 
-附近正在营业的咖啡馆（按匹配度排序）：
-${shopContext}
+附近正在营业的咖啡馆：
+${shopLines}
 
-请给出一张"路条"，引导他去喝一杯更适合他的咖啡。
+请给出一张"路条"，引导他喝到更适合他的下一杯。
 
 要求：
-1. hook：一句话（不超过20字），直击他此刻的状态，让他立刻想行动。不描述咖啡参数，说他的感受或欲望，要有画面感和情绪张力。
-2. shop：从上面列表选最适合他的一家（原样输出店名）
-3. drink：具体推荐什么饮品（12字以内）
-4. tip：告诉咖啡师怎么点（10字以内，像朋友叮嘱的语气）
+1. hook：一句话（不超过20字），直击他此刻的感受或欲望，画面感强，让他立刻想行动。禁止描述咖啡参数。
+${shopInstruction}
+3. drink：具体推荐什么饮品（10字以内）
+4. tip：告诉咖啡师怎么点（8字以内，像朋友叮嘱）
 
-只返回JSON，不含其他文字：
-{"hook":"...","shop":"...","drink":"...","tip":"..."}`;
+只返回JSON：{"hook":"...","shop":"...","drink":"...","tip":"..."}`;
 
   try{
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01',
         'content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:220,
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:180,
         messages:[{role:'user',content:prompt}]})
     });
     const data=await resp.json();
     const text=data.content?.[0]?.text||'';
-    const json=JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
-    return{...json,pois:routePois};
-  }catch(e){console.log('[route] claude failed',e);return null;}
+    const m=text.match(/\{[\s\S]*?\}/);
+    if(!m)throw new Error('no JSON in response: '+text.slice(0,80));
+    const json=JSON.parse(m[0]);
+    return{...json,pois:routePois,hasShops};
+  }catch(e){console.error('[route] failed:',e);return null;}
 }
 
 function showRouteCard(result){
