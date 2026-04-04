@@ -383,38 +383,31 @@ textarea.fi{resize:none;line-height:1.65}
 .sm-lg-item{display:flex;align-items:center;gap:4px;font-size:9px;
   color:rgba(237,227,208,.3);font-family:'DM Mono',monospace;letter-spacing:.03em}
 .sm-lg-icon{font-size:10px;color:rgba(200,152,104,.5)}
-.sm-tooltip{position:absolute;background:rgba(8,5,3,.94);border:1px solid rgba(200,152,104,.3);
-  border-radius:6px;padding:9px 12px;pointer-events:none;backdrop-filter:blur(16px);
-  z-index:10;min-width:140px;max-width:180px;box-shadow:0 4px 20px rgba(0,0,0,.4)}
-/* Tooltip always sits over dark canvas — use explicit high-contrast colors */
-.sm-tt-name{font-size:13px;color:#EDE3D0;margin-bottom:4px;font-weight:500;line-height:1.3}
-.sm-tt-feel{font-size:12px;color:rgba(237,227,208,.88);font-style:italic;line-height:1.55;
-  margin-bottom:4px;font-family:'Cormorant Garamond',serif}
-.sm-tt-meta{font-size:10px;color:rgba(237,227,208,.56);letter-spacing:.02em}
-/* sm-words sits in card below canvas — uses theme vars but with boosted opacity */
-.sm-words{display:none;flex-wrap:wrap;gap:6px;padding:10px 13px 12px;
-  background:var(--s1);border-top:1px solid var(--b2)}
-.sm-words-label{width:100%;font-size:10px;color:var(--a);letter-spacing:.07em;
-  text-transform:uppercase;margin-bottom:6px}
-.sm-word{font-size:12px;padding:3px 11px;border:1px solid var(--b3);border-radius:20px;
-  color:var(--ink);font-family:'Cormorant Garamond',serif;font-style:italic;
-  background:var(--a3)}
+/* Star detail drawer — slides in below legend on star tap */
+.sm-detail{max-height:0;overflow:hidden;
+  transition:max-height .35s cubic-bezier(.4,0,.2,1),padding .35s ease;
+  background:var(--s1);border-top:0px solid var(--b1)}
+.sm-detail.on{max-height:260px;padding:13px 15px 15px;border-top-width:1px}
+.sm-d-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px}
+.sm-d-shop{font-size:13px;color:var(--ink);font-weight:500;letter-spacing:.01em}
+.sm-d-date{font-size:10px;color:var(--i3)}
+.sm-d-wow{font-size:11px;color:var(--sp);margin-left:5px}
+.sm-d-summary{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;
+  color:var(--ink);line-height:1.65;margin-bottom:9px;min-height:23px}
+.sm-d-summary.loading{color:var(--i3)}
+.sm-d-feel-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.sm-d-feel{font-size:11px;color:var(--i3);flex:1;line-height:1.5;font-style:italic}
+.sm-d-edit-btn{font-size:10px;color:var(--a);background:none;border:none;padding:2px 0;
+  cursor:pointer;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}
+.sm-d-edit-area{display:none;margin-top:9px}
+.sm-d-textarea{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:4px;
+  padding:8px 10px;font-family:'Noto Serif SC',serif;font-size:12px;color:var(--ink);
+  resize:none;min-height:58px;line-height:1.55;outline:none}
+.sm-d-textarea:focus{border-color:var(--b3)}
+.sm-d-regen{margin-top:7px;width:100%;padding:8px;background:var(--a3);
+  border:1px solid var(--b2);border-radius:4px;color:var(--a);font-size:12px;
+  cursor:pointer;letter-spacing:.04em;font-family:'Noto Serif SC',serif}
 
-/* Shop journey */
-.shop-card{margin:0 14px 12px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:15px}
-.shop-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--b1)}
-.shop-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
-.shop-dot{width:8px;height:8px;border-radius:50%;background:var(--a);flex-shrink:0;margin-top:5px}
-.shop-dot.dim{background:var(--b2)}
-.shop-name{font-size:13px;color:var(--ink);font-weight:500;margin-bottom:2px}
-.shop-meta{font-size:11px;color:var(--i3)}
-.shop-new{font-size:10px;padding:1px 6px;background:rgba(78,138,104,.1);
-  border:1px solid rgba(78,138,104,.25);color:var(--gn);border-radius:2px;
-  margin-left:5px;letter-spacing:.04em}
-.shop-foryou{font-size:10px;padding:1px 6px;background:var(--a3);
-  border:1px solid var(--b2);color:var(--a);border-radius:2px;
-  margin-left:5px;letter-spacing:.04em}
-.shop-zone{font-size:10px;color:var(--i3);margin-top:3px;font-style:italic;letter-spacing:.02em}
 
 /* ── EXPLORE ── */
 .search-wrap{position:relative;margin:0 14px 12px}
@@ -800,11 +793,6 @@ textarea.fi{resize:none;line-height:1.65}
         <span class="sm-al sm-al-left">醇厚</span>
         <span class="sm-al sm-al-right">明亮</span>
       </div>
-      <div class="sm-tooltip" id="sm-tooltip" style="display:none">
-        <div class="sm-tt-name" id="sm-tt-name"></div>
-        <div class="sm-tt-feel" id="sm-tt-feel"></div>
-        <div class="sm-tt-meta" id="sm-tt-meta"></div>
-      </div>
     </div>
     <div class="sm-legend">
       <div class="sm-lg-item"><span class="sm-lg-icon">◆</span>手冲</div>
@@ -813,8 +801,21 @@ textarea.fi{resize:none;line-height:1.65}
       <div class="sm-lg-item"><span class="sm-lg-icon">●</span>其他</div>
       <div class="sm-lg-item"><span style="color:#EFC840;font-size:10px">✦</span>惊艳时刻</div>
     </div>
-    <div class="sm-words" id="sm-words">
-      <div class="sm-words-label" id="sm-words-label"></div>
+    <!-- Detail drawer: slides in on star tap -->
+    <div class="sm-detail" id="sm-detail">
+      <div class="sm-d-hd">
+        <div><span class="sm-d-shop" id="sm-d-shop"></span><span class="sm-d-wow" id="sm-d-wow"></span></div>
+        <div class="sm-d-date" id="sm-d-date"></div>
+      </div>
+      <div class="sm-d-summary" id="sm-d-summary"></div>
+      <div class="sm-d-feel-row" id="sm-d-feel-row">
+        <span class="sm-d-feel" id="sm-d-feel"></span>
+        <button class="sm-d-edit-btn" onclick="smStartEdit()">编辑感受</button>
+      </div>
+      <div class="sm-d-edit-area" id="sm-d-edit-area">
+        <textarea class="sm-d-textarea" id="sm-d-textarea" rows="3" placeholder="重新描述你当时的感受…"></textarea>
+        <button class="sm-d-regen" onclick="smRegenSummary()">AI 重新感受 →</button>
+      </div>
     </div>
   </div>
 
@@ -846,11 +847,6 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="rx-refresh" id="rx-refresh" onclick="refreshPrescription()">重新生成 ↻</div>
   </div>
 
-  <!-- Shop journey -->
-  <div class="sec" id="shop-lbl" style="display:none">店铺足迹</div>
-  <div class="shop-card" id="shop-card" style="display:none">
-    <div id="shop-list"></div>
-  </div>
 
   <div id="pwa-install-btn" style="display:none;margin:0 14px 14px;padding:14px 16px;
   background:var(--s1);border:1px solid var(--b2);border-radius:var(--r);
@@ -1631,6 +1627,8 @@ async function saveRec(){
     const reply=await getReply(rec,recs);
     rec.aiReply=reply;save();
     typewrite(document.getElementById('ai-txt'),reply);
+    // 后台生成星图 summary，不阻塞主流程
+    getSummary(rec).then(s=>{if(s){rec.summary=s;save();}});
     if(recs.length===3||recs.length===8||recs.length%12===0){
       localStorage.removeItem('cf6_m');
       setTimeout(loadMorning,2500);
@@ -1639,6 +1637,60 @@ async function saveRec(){
 }
 function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
 function deleteRec(id){recs=recs.filter(r=>r.id!==id);save();renderHome();}
+
+function typewrite(el,text){
+  el.textContent='';let i=0;
+  const iv=setInterval(()=>{
+    if(i<text.length){el.textContent+=text[i++];}else clearInterval(iv);
+  },25);
+}
+
+// ── AI REPLY (保存时触发，身边朋友视角) ──
+async function getReply(rec,all){
+  const wiki=WIKI.find(w=>rec.name.toLowerCase().includes(w.name.split(' ')[0].toLowerCase())||w.tags?.some(t=>rec.name.toLowerCase().includes(t.toLowerCase())));
+  const stdF=wiki?Object.entries(wiki.flavors||{}).filter(([,v])=>v>=3).map(([k])=>k):[];
+  const prev=all.filter(r=>r.id!==rec.id&&r.name===rec.name);
+  const ctx=[
+    `品名：${rec.name}`,
+    rec.scanData?`店铺：${rec.scanData.shop} ¥${rec.scanData.price} · ${rec.scanData.method}`:'',
+    rec.feel?`自述：「${rec.feel}」`:'',
+    rec.notes?`笔记：${rec.notes}`:'',
+    `评分：${rec.rating||'未评'}星`,
+    rec.wow?'✦ 标记为惊艳时刻':'',
+    stdF.length?`标准参考：${stdF.join('、')}`:'',
+    prev.length?`第${prev.length+1}次记录此品名`:'',
+    `累计${all.length}杯，惊艳${all.filter(r=>r.wow).length}次`
+  ].filter(Boolean).join('\n');
+  const sys=`你是用户身边有见识的咖啡朋友。不是老师，不是评审。说话自然有温度，最多75字，不用列表。做三件事：①用一两句话回应他的感受（感官千人千面，不评判对错）②如有值得注意的信号顺口一提 ③给一个具体可马上行动的下一步建议。如果标记了惊艳时刻，先表达一下兴奋，说说为什么这杯值得记住。`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,system:sys,
+        messages:[{role:'user',content:ctx}]})});
+    const d=await r.json();
+    return d.content?.map(c=>c.text||'').join('').trim()||'记下来了，每一杯都在积累。';
+  }catch(e){return'记下来了。慢慢都会有感觉的。';}
+}
+
+// ── AI SUMMARY (星图点击时，一句话帮用户说出体会) ──
+async function getSummary(rec){
+  if(!getApiKey()) return null;
+  const parts=[
+    `咖啡：${rec.name}`,
+    rec.scanData?.shop?`门店：${rec.scanData.shop}`:'',
+    rec.feel?`用户原话：「${rec.feel}」`:'',
+    rec.wow?'用户认为这是一次惊艳体验':''
+  ].filter(Boolean).join('\n');
+  const sys=`你帮用户用一句自然、感性的中文，说出他当时喝这杯咖啡的真实体会。不要照搬他的原话，要提炼出感受的核心，像一个老朋友帮他说出口。15-30字，不要引号，不要"这杯"开头。`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:60,system:sys,
+        messages:[{role:'user',content:parts}]})});
+    const d=await r.json();
+    return d.content?.map(c=>c.text||'').join('').trim()||null;
+  }catch(e){return null;}
+}
 
 
 
@@ -1703,38 +1755,6 @@ function renderMy(){
     requestAnimationFrame(()=>{renderStarMap();initStarMapInteraction();});
   }
 
-  // Shop journey — with star map position fusion
-  const shopMap={};
-  recs.forEach(r=>{
-    const shop=r.scanData?.shop;
-    if(!shop) return;
-    if(!shopMap[shop]) shopMap[shop]={name:shop,count:0,last:r.date,wow:0,aSum:0,bSum:0};
-    const sv=extractSensoryVector(r.feel,r.scanData,r.id);
-    shopMap[shop].count++;
-    shopMap[shop].aSum+=sv.acidity;
-    shopMap[shop].bSum+=sv.body;
-    if(r.wow) shopMap[shop].wow++;
-  });
-  const shops=Object.values(shopMap).sort((a,b)=>b.count-a.count);
-  if(shops.length){
-    document.getElementById('shop-lbl').style.display='block';
-    document.getElementById('shop-card').style.display='block';
-    document.getElementById('shop-list').innerHTML=shops.slice(0,6).map((s,i)=>{
-      const a=s.aSum/s.count, b=s.bSum/s.count;
-      const zone=a>.55&&b<.45?'明亮轻盈':a>.55&&b>.55?'酸质浓郁':a<.42&&b>.55?'醇厚深烘':a<.42&&b<.45?'清淡柔和':a>.55?'偏明亮':a<.42?'偏醇厚':b>.55?'偏浓郁':'风味均衡';
-      return`<div class="shop-item">
-        <div class="shop-dot${i>1?' dim':''}"></div>
-        <div>
-          <div class="shop-name">${s.name}
-            ${i===0?'<span class="shop-new">常去</span>':''}
-            ${s.wow>0?'<span class="shop-foryou">✦ '+s.wow+'次惊艳</span>':''}
-          </div>
-          <div class="shop-meta">共记录 ${s.count} 杯 · 最近 ${s.last}</div>
-          <div class="shop-zone">在你的星图 · ${zone}</div>
-        </div>
-      </div>`;
-    }).join('');
-  }
 }
 
 function switchTl(mode,btn){
@@ -2425,61 +2445,33 @@ function renderStarMap(){
   canvas._stars=pts;
 }
 
-// Touch/click: tooltip + sm-words
+// ── STAR MAP INTERACTION — bottom drawer ──
 let _starInteractInit=false;
+let _smActiveRec=null; // currently shown record
+
 function initStarMapInteraction(){
   if(_starInteractInit)return;
   _starInteractInit=true;
   const canvas=document.getElementById('star-canvas');
   if(!canvas)return;
-  const axLabels=document.querySelectorAll('.sm-al'); // cached once
-  const smWords=document.getElementById('sm-words');
-  const smWordsLabel=document.getElementById('sm-words-label');
-
-  function showWords(rec){
-    const feel=rec?.feel||'';
-    const words=feel.split(/[，,、。！？\s]+/).filter(w=>w.length>=2&&w.length<=8).slice(0,10);
-    if(!words.length){smWords.style.display='none';return;}
-    smWordsLabel.textContent='你当时的感受';
-    smWords.innerHTML=''; // clear tags only, not the label
-    smWords.appendChild(smWordsLabel);
-    words.forEach(w=>{
-      const s=document.createElement('span');
-      s.className='sm-word';s.textContent=w;
-      smWords.appendChild(s);
-    });
-    smWords.style.display='flex';
-  }
+  const axLabels=document.querySelectorAll('.sm-al');
 
   function hit(cx,cy){
     const rect=canvas.getBoundingClientRect();
     const x=cx-rect.left,y=cy-rect.top;
     const stars=canvas._stars||[];
-    let closest=null,minD=30;
+    let closest=null,minD=32;
     stars.forEach(s=>{const d=Math.hypot(s.x-x,s.y-y);if(d<minD){minD=d;closest=s;}});
-    const tt=document.getElementById('sm-tooltip');
-    if(!tt)return;
     if(closest){
-      document.getElementById('sm-tt-name').textContent=(closest.wow?'✦ ':'')+closest.name;
-      const feel=closest.feel||'';
-      document.getElementById('sm-tt-feel').textContent=feel?`「${feel.slice(0,38)}${feel.length>38?'…':''}」`:'';
-      document.getElementById('sm-tt-meta').textContent=[
-        closest.scanData?.shop,closest.date,
-        closest.rating?'★'.repeat(closest.rating):''
-      ].filter(Boolean).join(' · ');
-      const wW=canvas.offsetWidth,wH=canvas.offsetHeight;
-      let ttL=x+12,ttT=y-16;
-      tt.style.display='block';
-      if(ttL+182>wW-4)ttL=x-182-6;
-      if(ttT<4)ttT=4;
-      if(ttT>wH-90)ttT=wH-90;
-      tt.style.left=ttL+'px';tt.style.top=ttT+'px';
+      // Same star tapped again → close
+      if(_smActiveRec&&_smActiveRec.id===closest.id){
+        smCloseDetail();return;
+      }
+      _smActiveRec=closest;
       axLabels.forEach(el=>el.classList.add('active'));
-      showWords(closest);
+      smOpenDetail(closest);
     } else {
-      tt.style.display='none';
-      axLabels.forEach(el=>el.classList.remove('active'));
-      document.getElementById('sm-words').style.display='none';
+      smCloseDetail();
     }
   }
 
@@ -2489,14 +2481,104 @@ function initStarMapInteraction(){
     const t=e.changedTouches[0];
     hit(t.clientX,t.clientY);
   },{passive:false});
-  const smTooltip=document.getElementById('sm-tooltip');
+
   document.addEventListener('click',e=>{
-    if(!e.target.closest('#sm-canvas-wrap')&&!e.target.closest('#sm-words')){
-      smTooltip.style.display='none';
-      smWords.style.display='none';
-      axLabels.forEach(el=>el.classList.remove('active'));
+    if(!e.target.closest('#star-map-card')){
+      smCloseDetail();
     }
   });
+}
+
+function smCloseDetail(){
+  _smActiveRec=null;
+  document.getElementById('sm-detail').classList.remove('on');
+  document.querySelectorAll('.sm-al').forEach(el=>el.classList.remove('active'));
+  // reset edit area
+  document.getElementById('sm-d-edit-area').style.display='none';
+  document.getElementById('sm-d-feel-row').style.display='flex';
+}
+
+async function smOpenDetail(rec){
+  const detail=document.getElementById('sm-detail');
+  const shop=rec.scanData?.shop||'';
+  document.getElementById('sm-d-shop').textContent=shop||rec.name;
+  document.getElementById('sm-d-wow').textContent=rec.wow?' ✦':'';
+  document.getElementById('sm-d-date').textContent=rec.date||'';
+  document.getElementById('sm-d-feel').textContent=rec.feel?`「${rec.feel}」`:'';
+  document.getElementById('sm-d-edit-area').style.display='none';
+  document.getElementById('sm-d-feel-row').style.display='flex';
+  detail.classList.add('on');
+
+  // Show summary: use cached or fetch
+  const summaryEl=document.getElementById('sm-d-summary');
+  if(rec.summary){
+    summaryEl.textContent=rec.summary;
+    summaryEl.classList.remove('loading');
+  } else {
+    summaryEl.textContent='感受中…';
+    summaryEl.classList.add('loading');
+    const s=await getSummary(rec);
+    if(s){
+      rec.summary=s;
+      // persist to recs array
+      const idx=recs.findIndex(r=>r.id===rec.id);
+      if(idx>-1){recs[idx].summary=s;save();}
+      // only update if this record is still active
+      if(_smActiveRec&&_smActiveRec.id===rec.id){
+        summaryEl.textContent=s;
+        summaryEl.classList.remove('loading');
+      }
+    } else {
+      if(_smActiveRec&&_smActiveRec.id===rec.id){
+        summaryEl.textContent=rec.feel||'';
+        summaryEl.classList.remove('loading');
+      }
+    }
+  }
+}
+
+function smStartEdit(){
+  if(!_smActiveRec)return;
+  document.getElementById('sm-d-feel-row').style.display='none';
+  const ta=document.getElementById('sm-d-textarea');
+  ta.value=_smActiveRec.feel||'';
+  document.getElementById('sm-d-edit-area').style.display='block';
+  ta.focus();
+}
+
+async function smRegenSummary(){
+  if(!_smActiveRec)return;
+  const ta=document.getElementById('sm-d-textarea');
+  const newFeel=ta.value.trim();
+  if(!newFeel)return;
+  // Update rec
+  const idx=recs.findIndex(r=>r.id===_smActiveRec.id);
+  if(idx>-1){
+    recs[idx].feel=newFeel;
+    recs[idx].summary=undefined;
+    save();
+    _smActiveRec=recs[idx];
+  }
+  // Show loading
+  const summaryEl=document.getElementById('sm-d-summary');
+  const btn=document.querySelector('.sm-d-regen');
+  summaryEl.textContent='重新感受中…';
+  summaryEl.classList.add('loading');
+  if(btn){btn.disabled=true;btn.textContent='生成中…';}
+  const s=await getSummary(_smActiveRec);
+  if(s){
+    _smActiveRec.summary=s;
+    if(idx>-1){recs[idx].summary=s;save();}
+    summaryEl.textContent=s;
+  } else {
+    summaryEl.textContent=newFeel;
+  }
+  summaryEl.classList.remove('loading');
+  if(btn){btn.disabled=false;btn.textContent='AI 重新感受 →';}
+  // update feel display and return to view mode
+  document.getElementById('sm-d-feel').textContent=newFeel?`「${newFeel}」`:'';
+  document.getElementById('sm-d-edit-area').style.display='none';
+  document.getElementById('sm-d-feel-row').style.display='flex';
 }
 </script>
 </body>
