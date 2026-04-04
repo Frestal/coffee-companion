@@ -510,6 +510,11 @@ textarea.fi{resize:none;line-height:1.65}
 .sco-hero-reason{font-size:12px;color:var(--i2);font-style:italic;
   font-family:'Cormorant Garamond',serif;padding:4px 15px 0;line-height:1.5}
 .sco-hero-foot{display:flex;justify-content:space-between;align-items:center;padding:9px 15px 13px}
+/* Featured card — 中等匹配，比普通卡片更突出 */
+.sco-featured{margin:0 14px 8px;background:var(--s1);border:1px solid var(--b2);
+  border-left:3px solid var(--a);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .2s}
+.sco-featured:active{border-color:var(--a)}
+.sco-featured .sco-name{font-size:15px}
 /* Regular card */
 .shop-card-outer{margin:0 14px 8px;background:var(--s1);border:1px solid var(--b1);
   border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .2s}
@@ -2098,15 +2103,22 @@ function calcMatchScore(user,profile,poi){
   const distScore=Math.max(0,1-dist/2500);
   const raw=(flavor*.40+specAff*.20+novelty*.25+distScore*.15)*profile.weight*(recent?.7:1);
   const total=Math.min(1,Math.max(0,raw));
-  return{total,flavor,forYou:total>.72&&flavor>.65&&user.count>=3};
+  // For You: 用户记录≥3，且综合分或风味分达标即可（新用户画像不完整时放宽）
+  const profileWeak=user.count<8;
+  const forYou=profileWeak
+    ?(total>.60&&profile.specialty>.78&&user.count>=3)
+    :(total>.68&&flavor>.55&&user.count>=3);
+  return{total,flavor,forYou};
 }
 
 function isShopOpen(poi){
-  const raw=poi.opentime_week||poi.opentime||'';
+  const raw=poi.biz_opentime||poi.opentime_week||poi.opentime||poi.business_hours||'';
   if(!raw)return null;
+  if(/全天|24\s*小时|24h/i.test(raw))return true;
   const now=new Date();
   const cur=now.getHours()*60+now.getMinutes();
-  const m=raw.match(/(\d{1,2})[:\uff1a](\d{2})\s*[-~～至]\s*(\d{1,2})[:\uff1a](\d{2})/);
+  // support separators: - ~ ～ 至 — –
+  const m=raw.match(/(\d{1,2})[:\uff1a](\d{2})\s*[-~～至\u2014\u2013]\s*(\d{1,2})[:\uff1a](\d{2})/);
   if(!m)return null;
   const open=parseInt(m[1])*60+parseInt(m[2]);
   let close=parseInt(m[3])*60+parseInt(m[4]);
@@ -2132,7 +2144,7 @@ function getMatchReason(user,profile,score){
   return'附近的咖啡馆';
 }
 
-function renderShopCard({group,s,profile,openStatus,score,isForYou},user){
+function renderShopCard({group,s,profile,openStatus,score,isForYou,isFeatured},user){
   const name=normBrand(s.name);
   const dist=s.distance?distStr(s.distance):'';
   const isClosed=openStatus===false;
@@ -2154,7 +2166,8 @@ function renderShopCard({group,s,profile,openStatus,score,isForYou},user){
       ${branches}
     </div>`;
   }
-  return`<div class="shop-card-outer${dimCls}" ${group.length===1?`onclick="openShopDetailAmap(${s._idx})"`:''}>
+  const cardCls=isFeatured?'sco-featured':'shop-card-outer';
+  return`<div class="${cardCls}${dimCls}" ${group.length===1?`onclick="openShopDetailAmap(${s._idx})"`:''}>
     <div class="sco-top">
       <div class="sco-left">
         <div class="sco-name">${name}${group.length>1?`<span class="sco-chain-badge">${group.length}家</span>`:''}</div>
@@ -2180,13 +2193,19 @@ function renderPoiGroups(groups,user){
     if(aOk!==bOk)return aOk?-1:1;
     return b.score.total-a.score.total;
   });
-  // For You：最多2家，需营业且过阈值
+  // 三层分级：Hero(For You) → Featured(score>.55) → Standard
+  // 总量上限：营业中最多8家，打烊店最多3家置底
   let fyCount=0;
-  scored.forEach(item=>{
+  const open=scored.filter(i=>i.openStatus!==false);
+  const closed=scored.filter(i=>i.openStatus===false);
+  const visible=[...open.slice(0,8),...closed.slice(0,3)];
+
+  visible.forEach(item=>{
     item.isForYou=item.score.forYou&&fyCount<2&&item.openStatus!==false;
     if(item.isForYou)fyCount++;
+    item.isFeatured=!item.isForYou&&item.score.total>.55&&item.openStatus!==false;
   });
-  return scored.map(item=>renderShopCard(item,user)).join('');
+  return visible.map(item=>renderShopCard(item,user)).join('');
 }
 
 async function renderShopScreen(){
