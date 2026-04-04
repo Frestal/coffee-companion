@@ -1726,14 +1726,16 @@ async function saveRec(){
     rec.aiReply=reply;save();
     typewrite(document.getElementById('ai-txt'),reply);
     getSummary(rec).then(s=>{if(s){rec.summary=s;save();}});
-    if(isFirst||recs.length===1){
-      // 首杯：额外触发路条卡片（isFirst 或 recs 里只有这一条）
-      getRouteCard(rec).then(result=>{
-        if(result)setTimeout(()=>showRouteCard(result),1800);
-      });
-    } else if(recs.length===3||recs.length===8||recs.length%12===0){
+    if(recs.length===3||recs.length===8||recs.length%12===0){
       localStorage.removeItem('cf6_m');
       setTimeout(loadMorning,2500);
+    }
+    // 每次保存后都触发路条（有API Key 且有位置才显示）
+    if(getApiKey()){
+      getRouteCard(rec).then(result=>{
+        if(result) setTimeout(()=>showRouteCard(result),1800);
+        else console.warn('[route] getRouteCard returned null');
+      }).catch(e=>console.error('[route] error',e));
     }
   },2300);
 }
