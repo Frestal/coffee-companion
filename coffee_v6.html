@@ -579,30 +579,23 @@ textarea.fi{resize:none;line-height:1.65}
 .sd-shop-style{font-size:12px;color:var(--i2);line-height:1.65;margin-bottom:10px}
 .sd-shop-features{display:flex;flex-wrap:wrap;gap:5px}
 .sd-shop-feature{font-size:10px;padding:3px 9px;border:1px solid var(--b2);border-radius:10px;color:var(--i2)}
-/* ── 路条卡片 (首次体验) ── */
-.route-overlay{position:fixed;inset:0;z-index:300;background:rgba(11,8,6,.97);
-  display:none;align-items:flex-end;justify-content:center}
-.route-overlay.on{display:flex}
-.route-overlay.on .route-card{transform:translateY(0);opacity:1}
-.route-card{width:100%;max-width:430px;padding:36px 26px 52px;
-  transform:translateY(30px);opacity:0;transition:transform .5s cubic-bezier(.16,1,.3,1),opacity .4s ease;
-  transition-delay:.1s}
+/* ── 路条卡片（内嵌于记录页 AI 回复下方） ── */
+#route-inline{margin-top:2px;animation:up .5s cubic-bezier(.16,1,.3,1)}
+.rc-card{background:#0f0a07;border:1px solid rgba(200,152,104,.25);
+  border-top:2px solid var(--a);border-radius:0 0 var(--r) var(--r);padding:22px 18px 20px}
 .rc-eyebrow{font-size:9px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--a);margin-bottom:22px;opacity:.8}
-.rc-hook{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;
-  color:#f5ede3;line-height:1.35;margin-bottom:32px;min-height:80px}
-.rc-rule{height:1px;background:linear-gradient(90deg,rgba(200,152,104,.4),transparent);margin-bottom:24px}
-.rc-shop-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.rc-shop-name{font-size:17px;font-weight:500;color:#f5ede3;margin-bottom:5px}
-.rc-drink{font-size:13px;color:rgba(245,237,227,.55);margin-bottom:8px}
-.rc-tip{font-size:11px;color:var(--a);font-style:italic;opacity:.85;line-height:1.5}
-.rc-dist{font-size:12px;color:rgba(245,237,227,.35);flex-shrink:0;margin-left:12px;padding-top:3px}
-.rc-nav{display:block;width:100%;margin-top:30px;padding:17px;
+  color:var(--a);opacity:.7;margin-bottom:14px}
+.rc-hook{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;
+  color:#f5ede3;line-height:1.4;margin-bottom:18px}
+.rc-rule{height:1px;background:linear-gradient(90deg,rgba(200,152,104,.35),transparent);margin-bottom:16px}
+.rc-shop-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.rc-shop-name{font-size:15px;font-weight:500;color:#f5ede3;margin-bottom:4px}
+.rc-drink{font-size:12px;color:rgba(245,237,227,.5);margin-bottom:6px}
+.rc-tip{font-size:11px;color:var(--a);font-style:italic;line-height:1.5}
+.rc-dist{font-size:11px;color:rgba(245,237,227,.3);flex-shrink:0;margin-left:10px;padding-top:2px}
+.rc-nav{display:block;width:100%;margin-top:18px;padding:14px;
   background:var(--a);color:#0b0806;border:none;border-radius:var(--r);
-  font-size:14px;font-family:inherit;font-weight:500;cursor:pointer;letter-spacing:.04em}
-.rc-dismiss{display:block;width:100%;margin-top:10px;padding:12px;
-  background:transparent;border:none;color:rgba(245,237,227,.25);
-  font-size:12px;font-family:inherit;cursor:pointer}
+  font-size:13px;font-family:inherit;font-weight:500;cursor:pointer;letter-spacing:.04em}
 /* 首页空状态 — 首次体验 CTA */
 .first-cta{padding:52px 24px 40px;text-align:center}
 .fca-lead{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
@@ -785,6 +778,8 @@ textarea.fi{resize:none;line-height:1.65}
       <div class="ai-res-hd"><div class="ai-pulse"></div><div class="ai-lbl">伴侣说</div></div>
       <div class="ai-txt" id="ai-txt"><span class="cursor"></span></div>
     </div>
+    <!-- 路条卡片（内嵌，AI回复后滑入） -->
+    <div id="route-inline" style="display:none"></div>
   </div>
   <div class="sp"></div>
 </div>
@@ -1560,6 +1555,7 @@ function resetForm(){
   document.getElementById('save-btn').disabled=false;
   document.getElementById('save-btn').textContent='保存这杯咖啡';
   document.getElementById('ai-wrap').style.display='none';
+  const ri=document.getElementById('route-inline');if(ri){ri.style.display='none';ri.innerHTML='';}
   document.getElementById('scan-res').style.display='none';
   document.getElementById('scan-zone').style.display='block';
   document.getElementById('manual-name-block').style.display='block';
@@ -1806,29 +1802,33 @@ ${shopInstruction}
 
 function showRouteCard(result){
   if(!result)return;
-  const{hook,shop,drink,tip,pois=[]}=result;
-  document.getElementById('rc-hook').textContent=hook;
-  document.getElementById('rc-shop-name').textContent=shop;
-  document.getElementById('rc-drink').textContent=drink;
-  document.getElementById('rc-tip').textContent='告诉咖啡师：'+tip;
-  // 找到对应 POI
-  const poi=pois.find(s=>normBrand(s.name).includes(shop.slice(0,4))||shop.includes(normBrand(s.name).slice(0,4)));
-  document.getElementById('rc-dist').textContent=poi?distStr(poi.distance):'';
-  const btn=document.getElementById('rc-nav-btn');
+  const{hook,shop,drink,tip,pois=[],hasShops}=result;
+  const poi=shop?pois.find(s=>normBrand(s.name).includes(shop.slice(0,4))||shop.includes(normBrand(s.name).slice(0,4))):null;
+  const dist=poi?distStr(poi.distance):'';
+  let navBtn='';
   if(poi){
     const loc=typeof poi.location==='string'?poi.location:(poi.location?.getLng?.()+','+poi.location?.getLat?.());
-    btn.onclick=()=>window.open(`https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion`,'_blank');
-    btn.style.display='block';
-  } else { btn.style.display='none'; }
-  const ov=document.getElementById('route-overlay');
-  ov.style.display='flex';
-  setTimeout(()=>ov.classList.add('on'),10);
-}
-
-function closeRouteCard(){
-  const ov=document.getElementById('route-overlay');
-  ov.classList.remove('on');
-  setTimeout(()=>ov.style.display='none',350);
+    navBtn=`<button class="rc-nav" onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(shop)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>`;
+  }
+  const el=document.getElementById('route-inline');
+  el.innerHTML=`<div class="rc-card">
+    <div class="rc-eyebrow">你的下一杯</div>
+    <div class="rc-hook">${hook}</div>
+    <div class="rc-rule"></div>
+    ${shop?`<div class="rc-shop-row">
+      <div>
+        <div class="rc-shop-name">${shop}</div>
+        <div class="rc-drink">${drink}</div>
+        <div class="rc-tip">告诉咖啡师：${tip}</div>
+      </div>
+      <div class="rc-dist">${dist}</div>
+    </div>`:
+    `<div class="rc-drink" style="color:rgba(245,237,227,.6)">${drink}</div>
+     <div class="rc-tip" style="margin-top:6px">告诉咖啡师：${tip}</div>`}
+    ${navBtn}
+  </div>`;
+  el.style.display='block';
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function deleteRec(id){recs=recs.filter(r=>r.id!==id);save();renderHome();}
 
@@ -3138,24 +3138,6 @@ async function smRegenSummary(){
 }
 </script>
 
-<!-- 路条卡片 overlay -->
-<div class="route-overlay" id="route-overlay">
-  <div class="route-card">
-    <div class="rc-eyebrow">你的下一杯</div>
-    <div class="rc-hook" id="rc-hook"></div>
-    <div class="rc-rule"></div>
-    <div class="rc-shop-row">
-      <div>
-        <div class="rc-shop-name" id="rc-shop-name"></div>
-        <div class="rc-drink" id="rc-drink"></div>
-        <div class="rc-tip" id="rc-tip"></div>
-      </div>
-      <div class="rc-dist" id="rc-dist"></div>
-    </div>
-    <button class="rc-nav" id="rc-nav-btn">导航去这里 →</button>
-    <button class="rc-dismiss" onclick="closeRouteCard()">稍后再说</button>
-  </div>
-</div>
 
 </body>
 </html>
