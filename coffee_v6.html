@@ -1477,7 +1477,7 @@ async function saveApiKey(){
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':v,
         'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:5,
+      body:JSON.stringify({model:'claude-3-5-haiku-20241022',max_tokens:5,
         messages:[{role:'user',content:'hi'}]})});
     const d=await r.json();
     if(d.error){
@@ -1541,7 +1541,7 @@ async function loadMorning(){
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:120,system:sys,
+      body:JSON.stringify({model:'claude-3-5-sonnet-20241022',max_tokens:120,system:sys,
         messages:[{role:'user',content:ctx}]})});
     const d=await r.json();
     const txt=d.content?.map(c=>c.text||'').join('').trim()||'你的感受越来越有自己的语言了。';
@@ -1689,7 +1689,7 @@ async function handleCameraInput(input){
       const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
           'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,
+        body:JSON.stringify({model:'claude-3-5-sonnet-20241022',max_tokens:300,
           messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:mime,data:base64}},
             {type:'text',text:`这是一张咖啡相关照片（可能是咖啡杯、豆袋包装、菜单黑板或收据）。请识别并只返回JSON，不确定的字段留空字符串：
@@ -1857,7 +1857,7 @@ ${shopInstruction}
       method:'POST',
       headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01',
         'content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,
+      body:JSON.stringify({model:'claude-3-5-haiku-20241022',max_tokens:200,
         messages:[{role:'user',content:prompt}]})
     });
     const data=await resp.json();
@@ -1957,7 +1957,7 @@ async function getReply(rec,all){
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,system:sys,
+      body:JSON.stringify({model:'claude-3-5-haiku-20241022',max_tokens:200,system:sys,
         messages:[{role:'user',content:ctx}]})});
     const d=await r.json();
     console.log('[reply] status',r.status,d);
@@ -1985,7 +1985,7 @@ async function getSummary(rec){
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:60,system:sys,
+      body:JSON.stringify({model:'claude-3-5-sonnet-20241022',max_tokens:60,system:sys,
         messages:[{role:'user',content:parts}]})});
     const d=await r.json();
     return d.content?.map(c=>c.text||'').join('').trim()||null;
@@ -2877,7 +2877,7 @@ async function loadPrescription(force){
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':getApiKey(),
         'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,
+      body:JSON.stringify({model:'claude-3-5-sonnet-20241022',max_tokens:400,system:sys,
         messages:[{role:'user',content:`记录${recs.length}杯，惊艳时刻：${wowNames}\n\n最近记录：\n${summary}`}]})});
     const d=await r.json();
     const txt=d.content?.[0]?.text||'{}';
