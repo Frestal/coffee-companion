@@ -1305,8 +1305,17 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="pg-sub" id="g-sub">你的咖啡伴侣在这里</div>
   </div>
 
-  <!-- 那句话 Hero Card -->
-  <div class="sentence-hero" id="sentence-hero">
+  <!-- 晨间洞察（AI，仅3杯+有Key时出现） -->
+  <div class="mc" id="mc" style="display:none">
+    <div class="mc-hd"><div class="mc-dot"></div><span class="mc-lbl">昨夜沉淀</span></div>
+    <div class="mc-txt" id="mc-txt"></div>
+  </div>
+
+  <!-- Feed（主内容：最新记录 + 历史） -->
+  <div id="home-feed"></div>
+
+  <!-- 句子工具 strip（次要工具，放在 feed 后） -->
+  <div class="sentence-hero" id="sentence-hero" style="margin-top:4px">
     <div class="sh-ctx">
       <div class="sh-ctx-dot"></div>
       <span class="sh-ctx-lbl" id="sh-ctx-lbl">现在</span>
@@ -1328,14 +1337,6 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
     <div class="sh-copy-feedback" id="sh-copy-feedback">已复制 ✓</div>
   </div>
-
-  <!-- Nightly Dreaming 晨间洞察 -->
-  <div class="mc" id="mc" style="display:none">
-    <div class="mc-hd"><div class="mc-dot"></div><span class="mc-lbl">昨夜沉淀</span></div>
-    <div class="mc-txt" id="mc-txt"></div>
-  </div>
-  <!-- Feed -->
-  <div id="home-feed"></div>
 </div>
 
 <!-- RECORD -->
@@ -1552,10 +1553,13 @@ textarea.fi{resize:none;line-height:1.65}
   <div class="timeline-card" id="tl-card" style="display:none">
     <div class="tl-hd">
       <div class="tl-title">饮用统计</div>
-      <div class="tl-tabs">
-        <button class="tl-tab on" onclick="switchTl('week',this)">周</button>
-        <button class="tl-tab" onclick="switchTl('month',this)">月</button>
-        <button class="tl-tab" onclick="switchTl('total',this)">全部</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <img class="fc-qr-mini" id="fc-qr-mini" src="" alt="QR" onclick="openQrOverlay()" style="width:36px;height:36px;border-radius:4px;cursor:pointer;border:1px solid var(--b2);display:none">
+        <div class="tl-tabs">
+          <button class="tl-tab on" onclick="switchTl('week',this)">周</button>
+          <button class="tl-tab" onclick="switchTl('month',this)">月</button>
+          <button class="tl-tab" onclick="switchTl('total',this)">全部</button>
+        </div>
       </div>
     </div>
     <div class="tl-main-num" id="tl-num">0</div>
@@ -1563,7 +1567,14 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="tl-grid" id="tl-grid"></div>
   </div>
 
-  <!-- Star Map (between 饮用统计 and 惊艳时刻) -->
+  <!-- 惊艳时刻（在星图前，作为感性钩子）-->
+  <div class="sec" id="wow-sec-lbl" style="display:none">✦ 惊艳时刻</div>
+  <div class="wow-module" id="wow-module" style="display:none">
+    <div class="wm-hd"><div class="wm-ico">✦</div><div class="wm-title">值得被记住的瞬间</div></div>
+    <div id="wow-list"></div>
+  </div>
+
+  <!-- 风味星图 -->
   <div class="sec" id="fl-lbl" style="display:none">风味星图</div>
   <div class="star-map-card" id="star-map-card" style="display:none">
     <div class="sm-header">
@@ -1592,8 +1603,14 @@ textarea.fi{resize:none;line-height:1.65}
       <div class="sm-lg-item"><span class="sm-lg-icon">●</span>其他</div>
       <div class="sm-lg-item"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EFC840;box-shadow:0 0 5px rgba(239,200,64,.8);vertical-align:middle;margin-right:1px"></span>惊艳时刻</div>
     </div>
-    <!-- Shop footprint -->
-    <div id="sm-shops" style="padding:0 16px 14px"></div>
+    <!-- Shop footprint — 折叠态，点击展开 -->
+    <div id="sm-shops-wrap" style="display:none">
+      <div onclick="smToggleFootprint()" style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;border-top:1px solid var(--b1)">
+        <span style="font-size:11px;color:var(--a);letter-spacing:.08em;text-transform:uppercase;font-weight:600">足迹</span>
+        <span id="sm-footprint-arrow" style="font-size:12px;color:var(--i3);transition:transform .2s">▼</span>
+      </div>
+      <div id="sm-shops" style="padding:0 16px 14px;display:none"></div>
+    </div>
     <!-- Detail drawer: slides in on star tap -->
     <div class="sm-detail" id="sm-detail">
       <div class="sm-d-hd">
@@ -1613,25 +1630,18 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
   </div>
 
-  <!-- WOW module -->
-  <div class="sec" id="wow-sec-lbl" style="display:none">✦ 惊艳时刻</div>
-  <div class="wow-module" id="wow-module" style="display:none">
-    <div class="wm-hd"><div class="wm-ico">✦</div><div class="wm-title">值得被记住的瞬间</div></div>
-    <div id="wow-list"></div>
-  </div>
-
-  <!-- Profile + feature code -->
+  <!-- Profile -->
   <div class="sec" id="prof-lbl" style="display:none">我是谁</div>
   <div class="profile-card" id="prof-card" style="display:none">
     <div class="pc-style" id="pc-style">——</div>
     <div class="pc-desc" id="pc-desc"></div>
     <div class="pc-identity" id="pc-identity" style="font-size:12px;color:var(--i2);line-height:1.65;font-style:italic;margin-bottom:14px;padding:10px 12px;background:var(--s2);border-radius:var(--r-sm);border-left:2px solid var(--a);display:none"></div>
-    <div class="fc-qr-row" onclick="openQrOverlay()">
-      <img class="fc-qr-mini" id="fc-qr-mini" src="" alt="QR">
-      <div class="fc-qr-info">
+    <div class="fc-box" onclick="copyCode()" style="background:var(--s2);border-radius:var(--r-sm);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+      <div>
         <div class="fc-code" id="fc-code">——</div>
-        <div class="fc-hint">点击查看完整二维码 · 出示给咖啡师</div>
+        <div class="fc-hint">点击复制特征码</div>
       </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,152,104,.6)" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     </div>
   </div>
 
@@ -3305,8 +3315,8 @@ function renderMy(){
     const _qrData=encodeURIComponent(fc.code);
     const _qrMini=`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=${_qrData}&bgcolor=1A1612&color=C89868&format=png&margin=4`;
     const _qrLarge=`https://api.qrserver.com/v1/create-qr-code/?size=440x440&data=${_qrData}&bgcolor=1A1612&color=C89868&format=png&margin=6`;
-    document.getElementById('fc-qr-mini').src=_qrMini;
-    document.getElementById('fc-qr-mini').dataset.large=_qrLarge;
+    const _qrEl=document.getElementById('fc-qr-mini');
+    if(_qrEl){_qrEl.src=_qrMini;_qrEl.style.display='block';}
     document.getElementById('qr-code-txt').textContent=fc.code;
     document.getElementById('qr-large').src=_qrLarge;
     document.getElementById('prof-lbl').style.display='block';
@@ -4865,6 +4875,9 @@ function renderShopFootprint(){
   });
   const list=Object.values(groups).sort((a,b)=>b.latest-a.latest);
   if(list.length===0){el.innerHTML='';return;}
+  // 显示 wrap 容器（含折叠按钮）
+  const wrap=document.getElementById('sm-shops-wrap');
+  if(wrap) wrap.style.display='block';
   // Zone label from avg sensory position
   function zoneLabel(avgA,avgB){
     const acid=avgA>0.58,body=avgB>0.58;
@@ -4892,6 +4905,15 @@ function renderShopFootprint(){
 }
 
 function smShopFilter(encodedShop){ showShopMemory(decodeURIComponent(encodedShop)); }
+
+function smToggleFootprint(){
+  const list=document.getElementById('sm-shops');
+  const arrow=document.getElementById('sm-footprint-arrow');
+  if(!list) return;
+  const open=list.style.display!=='none';
+  list.style.display=open?'none':'block';
+  if(arrow) arrow.style.transform=open?'':'rotate(180deg)';
+}
 
 let _smCurrentShop=null;
 function showShopMemory(shop){
