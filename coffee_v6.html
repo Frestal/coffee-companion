@@ -974,19 +974,36 @@ textarea.fi{resize:none;line-height:1.65}
   background:transparent;color:var(--i2);transition:all .15s}
 .auth-btn.primary{background:var(--a);border-color:var(--a);color:#1A0E06}
 
+/* ── 进店说这句话 card (shop detail top) ── */
+.sd-say-card{background:linear-gradient(148deg,var(--s3),var(--s2));
+  border:1px solid var(--b2);border-radius:var(--r);padding:16px 18px 14px;
+  margin-bottom:18px;position:relative;overflow:hidden}
+.sd-say-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,155,108,.6),transparent)}
+.sd-say-lbl{font-size:10px;color:var(--a);letter-spacing:.09em;text-transform:uppercase;
+  font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sd-say-lbl::after{content:'';flex:1;height:1px;background:var(--b1)}
+.sd-say-sentence{font-family:var(--font-display);font-size:18px;font-style:italic;
+  color:var(--ink);line-height:1.68;margin-bottom:12px;letter-spacing:.01em}
+.sd-say-copy{width:100%;padding:11px;background:var(--a);color:#1A0E06;
+  border:none;border-radius:var(--r-sm);font-size:13px;font-family:inherit;font-weight:700;
+  cursor:pointer;letter-spacing:.02em;
+  box-shadow:0 3px 12px rgba(200,152,104,.3),0 1px 0 rgba(255,255,255,.1) inset;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.sd-say-copy:active{transform:scale(.96)}
+
 /* 今天点什么 AI section */
-.sd-order{background:linear-gradient(140deg,rgba(200,152,104,.07),rgba(200,152,104,.02));
-  border:1px solid rgba(200,152,104,.16);border-radius:var(--r-sm);padding:16px 18px;margin-bottom:18px}
+.sd-order{border-radius:var(--r-sm);padding:4px 0 6px}
 .sd-order-loading{font-size:12px;color:var(--i3);display:flex;align-items:center;gap:9px;padding:4px 0}
 .sd-order-loading::before{content:'';width:14px;height:14px;border:1.5px solid var(--a);
   border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
-.sd-order-match{font-size:14px;color:var(--i2);line-height:1.65;margin-bottom:11px}
+.sd-order-match{font-size:14px;color:var(--i2);line-height:1.65;margin-bottom:10px}
 .sd-order-drink{display:inline-block;font-size:12px;font-weight:600;color:var(--a);
   background:rgba(200,152,104,.1);border:1px solid rgba(200,152,104,.22);
-  border-radius:var(--r-full);padding:4px 14px;margin-bottom:11px}
+  border-radius:var(--r-full);padding:4px 14px;margin-bottom:10px}
 .sd-order-say-lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--i3);margin-bottom:6px;font-weight:600}
-.sd-order-say-txt{font-size:14px;color:var(--ink);line-height:1.7;
+  color:var(--i3);margin-bottom:5px;font-weight:600}
+.sd-order-say-txt{font-size:13px;color:var(--ink);line-height:1.7;
   font-family:var(--font-display);font-style:italic}
 
 /* Buy button */
@@ -1088,6 +1105,12 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="se-brand-badge" id="se-brand-badge">☕ 咖啡伴侣</div>
     <div class="se-title">帮你在这里<br>点到最适合你的那杯</div>
     <div class="se-sub">两步告诉我你现在想要什么<br>我来生成一句话，你说给咖啡师听</div>
+  </div>
+  <!-- Progress bar -->
+  <div style="display:flex;gap:6px;padding:0 28px;margin-bottom:24px;justify-content:center">
+    <div class="ob-prog-dot on" id="se-prog-1" style="transition:all .3s"></div>
+    <div class="ob-prog-dot" id="se-prog-2" style="transition:all .3s"></div>
+    <div class="ob-prog-dot" id="se-prog-3" style="transition:all .3s"></div>
   </div>
   <div class="se-steps" id="se-steps">
     <!-- Step 1 -->
@@ -2268,18 +2291,34 @@ let _seStep1=null,_seStep2=null;
 function initScanEntry(shopId,ctxHint){
   const el=document.getElementById('scan-entry');
   if(!el)return;
+  // Reset state
+  _seAnswers={};
+  const s1=document.getElementById('se-step-1');
+  const s2=document.getElementById('se-step-2');
+  const res=document.getElementById('se-result');
+  const steps=document.getElementById('se-steps');
+  if(s1){s1.style.display='block';s1.style.opacity='1';s1.style.transform='';}
+  if(s2){s2.style.display='none';}
+  if(res){res.style.display='none';}
+  if(steps){steps.style.display='block';}
+  // Reset progress dots
+  ['se-prog-1','se-prog-2','se-prog-3'].forEach((id,i)=>{
+    const d=document.getElementById(id);
+    if(d){d.className='ob-prog-dot'+(i===0?' on':'');}
+  });
+  // Clear chip selections
+  document.querySelectorAll('[id^="se-s"]').forEach(el=>el.classList.remove('on'));
   // Set brand badge
   const badge=document.getElementById('se-brand-badge');
-  if(shopId&&badge){
-    const brand=BRAND_KB[shopId];
-    badge.textContent=(brand?'☕ '+brand._name:'☕ 咖啡伴侣');
+  if(badge){
+    const brand=shopId&&BRAND_KB[shopId];
+    badge.textContent=brand?'☕ '+brand._name:'☕ 咖啡伴侣';
   }
-  // Pre-select scene from URL ctx hint
   if(ctxHint==='mall') _sceneIdx=2;
   else if(ctxHint==='office') _sceneIdx=1;
   el.style.display='flex';
   el.style.flexDirection='column';
-  document.getElementById('scan-entry').scrollTop=0;
+  el.scrollTop=0;
 }
 
 function closeScanEntry(){
@@ -2291,23 +2330,40 @@ function closeScanEntry(){
 let _seAnswers={};
 function seSelect(step,value){
   _seAnswers['s'+step]=value;
-  // Highlight selection
   const prefix='se-s'+step+'-';
   document.querySelectorAll('[id^="'+prefix+'"]').forEach(el=>el.classList.remove('on'));
   const sel=document.getElementById(prefix+value);
   if(sel) sel.classList.add('on');
 
-  // After brief pause, advance
   setTimeout(()=>{
     if(step===1){
-      document.getElementById('se-step-1').style.display='none';
-      document.getElementById('se-step-2').style.display='block';
+      const s1=document.getElementById('se-step-1');
+      s1.style.opacity='0';s1.style.transform='translateX(-20px)';
+      s1.style.transition='opacity .22s,transform .22s';
+      setTimeout(()=>{
+        s1.style.display='none';
+        const s2=document.getElementById('se-step-2');
+        s2.style.opacity='0';s2.style.transform='translateX(20px)';
+        s2.style.display='block';
+        requestAnimationFrame(()=>{
+          s2.style.transition='opacity .28s,transform .28s cubic-bezier(.16,1,.3,1)';
+          s2.style.opacity='1';s2.style.transform='translateX(0)';
+        });
+        // progress dots
+        document.getElementById('se-prog-2')?.classList.add('on');
+      },220);
     } else {
-      // Generate result
       document.getElementById('se-steps').style.display='none';
+      // progress dot 3
+      document.getElementById('se-prog-3')?.classList.add('on');
       const sentence=seComputeSentence();
       document.getElementById('se-sentence').textContent=sentence;
-      document.getElementById('se-result').style.display='block';
+      const result=document.getElementById('se-result');
+      result.style.opacity='0';result.style.display='block';
+      requestAnimationFrame(()=>{
+        result.style.transition='opacity .35s cubic-bezier(.16,1,.3,1)';
+        result.style.opacity='1';
+      });
     }
   },280);
 }
@@ -2393,11 +2449,23 @@ function renderHome(){
   const el=document.getElementById('home-feed');
   if(!recs.length){
     el.innerHTML=`<div class="first-cta">
-      <div class="fca-lead">开始你的第一杯</div>
-      <div class="fca-title">拍下手里的咖啡<br>找到更好的下一杯</div>
-      <div class="fca-sub">一张照片，一句描述<br>我来告诉你附近哪里有更适合你的那一杯</div>
-      <button class="fca-btn" onclick="startWithCamera()">拍照记录 →</button>
-      <div class="fca-alt" onclick="go('rec')">没有照片？用文字描述也行</div>
+      <div class="fca-lead">上面那句话是通用版本</div>
+      <div class="fca-title">告诉我你想要什么<br>让它只属于你</div>
+      <div class="fca-sub">两步快速问答，句子就会<br>根据你的偏好变得更精准</div>
+      <button class="fca-btn" onclick="initScanEntry(null,null)">快速定制这句话 →</button>
+      <div style="margin:20px 0;display:flex;align-items:center;gap:12px">
+        <div style="flex:1;height:1px;background:var(--b1)"></div>
+        <span style="font-size:11px;color:var(--i3)">或者</span>
+        <div style="flex:1;height:1px;background:var(--b1)"></div>
+      </div>
+      <div style="font-size:13px;color:var(--i3);margin-bottom:14px;line-height:1.6">
+        喝完一杯，告诉我感受<br>记录越多，句子越准
+      </div>
+      <button style="width:100%;padding:13px;background:transparent;border:1px solid var(--b2);
+        border-radius:var(--r);font-size:13px;font-family:inherit;color:var(--a);cursor:pointer;
+        letter-spacing:.02em;transition:background .18s"
+        onclick="startWithCamera()">拍照记录第一杯 →</button>
+      <div class="fca-alt" onclick="go('rec')" style="margin-top:10px">没有照片？用文字描述也行</div>
     </div>`;
     return;
   }
@@ -3822,12 +3890,22 @@ function openShopDetailAmap(idx){
   </div>`:'';
 
   const loc=typeof s.location==='string'?s.location:(s.location?.getLng?.()+','+s.location?.getLat?.());
-  // 今天点什么：有 API Key 且有用户数据时显示，否则隐藏
+  // 进店说这句话 — 本地即时生成，无需 API
+  const user=getUserProfile();
+  const shopSentence=buildShopSentence(profile,user);
+  const sayCard=`<div class="sd-say-card">
+    <div class="sd-say-lbl">进这家店说这句话</div>
+    <div class="sd-say-sentence">${shopSentence}</div>
+    <button class="sd-say-copy" id="sd-say-copy-btn" onclick="copyShopSentence('${shopSentence.replace(/'/g,"\\'")}')">复制这句话</button>
+  </div>`;
+
+  // 今天点什么：有 API Key 时异步补充 AI 分析
   const showOrder=!!getApiKey();
   const orderBlock=showOrder
-    ?`<div class="sd-sec"><h3>今天点什么</h3><div class="sd-order" id="sd-order"><div class="sd-order-loading">正在为你分析…</div></div></div>`
+    ?`<div class="sd-sec"><h3>更多分析</h3><div class="sd-order" id="sd-order"><div class="sd-order-loading">AI 正在分析…</div></div></div>`
     :'';
   document.getElementById('sd-body').innerHTML=`
+    ${sayCard}
     ${kbHtml}
     ${orderBlock}
     ${realHtml}
@@ -3854,6 +3932,36 @@ function openShopDetailAmap(idx){
 
   // 异步生成"今天点什么"
   if(showOrder) loadShopOrder(s,profile);
+}
+
+// ── SHOP SENTENCE — 进这家店说这句话（本地，即时，无API）──
+function buildShopSentence(brandProfile, userProfile){
+  const sp=brandProfile.specialty||0.5;
+  const likeAcid=userProfile&&userProfile.avgA>0.55;
+  const likeBody=userProfile&&userProfile.avgB>0.55;
+  const isNew=!userProfile||userProfile.count<2;
+
+  if(sp>=0.85){
+    if(isNew) return '今天有什么主推的单品推荐吗，手冲，不加奶';
+    if(likeAcid) return '今天有果酸感明亮的单品推荐吗，SOE或手冲，直饮不加奶';
+    if(likeBody) return '有处理法偏日晒或厌氧的单品推荐吗，醇厚感强一点的';
+    return '今天有什么最值得尝试的单品，偏轻盈干净，手冲';
+  }
+  if(sp>=0.72){
+    if(isNew) return '有今天主推的精品推荐吗，拿铁或者手冲都行';
+    if(likeAcid) return '有果香感清爽的手冲推荐吗，不加奶也好喝的那种';
+    if(likeBody) return '来一杯醇厚一点的拿铁，全脂牛奶，咖啡味稍重';
+    return '今天有什么特别值得点的，你们主打什么风格';
+  }
+  if(sp>=0.52){
+    if(isNew) return '今天有什么好推荐的，不加糖就好';
+    if(likeAcid) return '有口感清爽一点的推荐吗，不太苦，不加奶也能喝';
+    if(likeBody) return '来一杯拿铁，全脂，咖啡味重一点';
+    return '今天有特调或者主推单品吗，不太甜就好';
+  }
+  if(isNew) return '今天有什么好喝的推荐，不太苦就好';
+  if(likeBody) return '来一杯拿铁，全脂，少甜或者不加糖';
+  return '今天有什么主推的，咖啡味明显一点，不加糖';
 }
 
 async function loadShopOrder(s,profile){
@@ -4093,6 +4201,12 @@ function showPrescription(rx){
       附近找这个风格的店 →
     </button>`;
   document.getElementById('rx-refresh').style.display='block';
+}
+
+function copyShopSentence(sentence){
+  const btn=document.getElementById('sd-say-copy-btn');
+  navigator.clipboard?.writeText(sentence).catch(()=>{});
+  if(btn){btn.textContent='已复制 ✓';setTimeout(()=>{btn.textContent='复制这句话';},2000);}
 }
 
 function copyPrescription(){
