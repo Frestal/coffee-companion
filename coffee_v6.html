@@ -1307,28 +1307,18 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="pg-sub" id="g-sub">你的咖啡伴侣在这里</div>
   </div>
 
-  <!-- 晨间洞察（AI，仅3杯+有Key时出现） -->
-  <div class="mc" id="mc" style="display:none">
-    <div class="mc-hd"><div class="mc-dot"></div><span class="mc-lbl">昨夜沉淀</span></div>
-    <div class="mc-txt" id="mc-txt"></div>
-  </div>
-
-  <!-- Feed（主内容：最新记录 + 历史） -->
-  <div id="home-feed"></div>
-
-  <!-- 句子工具 strip（次要工具，放在 feed 后） -->
-  <div class="sentence-hero" id="sentence-hero" style="margin-top:4px">
+  <!-- 句子 Hero：主内容，准备去喝 -->
+  <div class="sentence-hero" id="sentence-hero">
     <div class="sh-ctx">
       <div class="sh-ctx-dot"></div>
       <span class="sh-ctx-lbl" id="sh-ctx-lbl">现在</span>
-      <span class="sh-ctx-scene" id="sh-ctx-scene" onclick="shCycleScene()">日常</span>
     </div>
     <div class="sh-sentence" id="sh-sentence">今天有什么好推荐的，不加糖就好</div>
     <div class="sh-mood-row">
-      <button class="sh-chip on" id="sh-chip-auto" onclick="setSentenceMood(null)">随缘</button>
-      <button class="sh-chip" id="sh-chip-boost" onclick="setSentenceMood('boost')">提神</button>
-      <button class="sh-chip" id="sh-chip-relax" onclick="setSentenceMood('relax')">静下来</button>
-      <button class="sh-chip" id="sh-chip-explore" onclick="setSentenceMood('explore')">寻味</button>
+      <button class="sh-chip on" id="sh-sit-0" onclick="setSituation(0)">随便来杯</button>
+      <button class="sh-chip" id="sh-sit-1" onclick="setSituation(1)">需要提神</button>
+      <button class="sh-chip" id="sh-sit-2" onclick="setSituation(2)">慢下来</button>
+      <button class="sh-chip" id="sh-sit-3" onclick="setSituation(3)">探索一下</button>
     </div>
     <div class="sh-actions">
       <button class="sh-copy" onclick="copySentence()">
@@ -1339,6 +1329,15 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
     <div class="sh-copy-feedback" id="sh-copy-feedback">已复制 ✓</div>
   </div>
+
+  <!-- 晨间洞察（AI，仅3杯+有Key时出现） -->
+  <div class="mc" id="mc" style="display:none">
+    <div class="mc-hd"><div class="mc-dot"></div><span class="mc-lbl">昨夜沉淀</span></div>
+    <div class="mc-txt" id="mc-txt"></div>
+  </div>
+
+  <!-- Feed（记录日志） -->
+  <div id="home-feed"></div>
 </div>
 
 <!-- RECORD -->
@@ -1638,20 +1637,8 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
   </div>
 
-  <!-- Profile -->
-  <div class="sec" id="prof-lbl" style="display:none">我是谁</div>
-  <div class="profile-card" id="prof-card" style="display:none">
-    <div class="pc-style" id="pc-style">——</div>
-    <div class="pc-desc" id="pc-desc"></div>
-    <div class="pc-identity" id="pc-identity" style="font-size:12px;color:var(--i2);line-height:1.65;font-style:italic;margin-bottom:14px;padding:10px 12px;background:var(--s2);border-radius:var(--r-sm);border-left:2px solid var(--a);display:none"></div>
-    <div class="fc-box" onclick="copyCode()" style="background:var(--s2);border-radius:var(--r-sm);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer">
-      <div>
-        <div class="fc-code" id="fc-code">——</div>
-        <div class="fc-hint">点击复制特征码</div>
-      </div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,152,104,.6)" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    </div>
-  </div>
+  <!-- 隐藏的特征码（供 JS 读取，不在界面显示） -->
+  <div id="fc-code" style="display:none">——</div>
 
   <!-- Prescription -->
   <div class="sec" id="rx-lbl" style="display:none">调配处方</div>
@@ -2356,8 +2343,14 @@ function setGreeting(){
 // ── DYNAMIC SENTENCE ENGINE ──
 let _sentenceMood=null;   // null|'boost'|'relax'|'explore'
 let _sentenceScene=null;  // null|'office'|'mall'|'residential'|'explore'
-const _SCENES=['日常','工作区','购物中心','社区','景区'];
-let _sceneIdx=0;
+// 情境：scene + mood 合一，对应今天页 4 个 chip
+const _SITUATIONS=[
+  {label:'随便来杯',scene:'',           mood:null},
+  {label:'需要提神',scene:'office',     mood:'boost'},
+  {label:'慢下来',  scene:'residential',mood:'relax'},
+  {label:'探索一下',scene:'explore',    mood:'explore'},
+];
+let _sitIdx=0;
 
 function getTimeCtx(){
   const h=new Date().getHours();
@@ -2415,41 +2408,27 @@ function buildDynamicSentence(profile, sceneCtx, moodOverride){
 
 function renderSentenceHero(){
   const profile=getUserProfile();
-  const sceneMap=['','office','mall','residential','explore'];
-  const sceneCtx=sceneMap[_sceneIdx]||'';
-  const sentence=buildDynamicSentence(profile,sceneCtx,_sentenceMood);
-
+  const sit=_SITUATIONS[_sitIdx]||_SITUATIONS[0];
+  const sentence=buildDynamicSentence(profile,sit.scene,sit.mood);
   const el=document.getElementById('sh-sentence');
-  const ctx=document.getElementById('sh-ctx-lbl');
-  const sceneEl=document.getElementById('sh-ctx-scene');
   if(!el)return;
-
   el.classList.add('updating');
-  setTimeout(()=>{
-    el.textContent=sentence;
-    el.classList.remove('updating');
-  },160);
-
+  setTimeout(()=>{el.textContent=sentence;el.classList.remove('updating');},160);
   const time=getTimeCtx();
+  const ctx=document.getElementById('sh-ctx-lbl');
   if(ctx) ctx.textContent=time.label+' · '+time.vibe;
-  if(sceneEl) sceneEl.textContent=_SCENES[_sceneIdx];
-
-  // Sync chip states
-  ['auto','boost','relax','explore'].forEach(m=>{
-    const c=document.getElementById('sh-chip-'+m);
-    if(c) c.classList.toggle('on', _sentenceMood===(m==='auto'?null:m));
-  });
+  for(let i=0;i<_SITUATIONS.length;i++){
+    const c=document.getElementById('sh-sit-'+i);
+    if(c) c.classList.toggle('on',i===_sitIdx);
+  }
 }
 
-function setSentenceMood(mood){
-  _sentenceMood=mood;
+function setSituation(idx){
+  _sitIdx=idx;
+  _sentenceMood=_SITUATIONS[idx].mood;
   renderSentenceHero();
 }
 
-function shCycleScene(){
-  _sceneIdx=(_sceneIdx+1)%_SCENES.length;
-  renderSentenceHero();
-}
 
 // ── 句子展示卡 ──
 function showSentenceCard(sentence){
@@ -3299,16 +3278,11 @@ function renderMy(){
     loadPrescription(false);
   }
 
-  // Profile + code
+  // 特征码 + 身份卡 overlay
   if(recs.length>=3){
     const fc=generateFeatureCode(recs);
-    document.getElementById('pc-style').textContent=fc.zenStyle;
-    document.getElementById('pc-desc').textContent=fc.desc;
-    const pcId=document.getElementById('pc-identity');
-    if(pcId){pcId.textContent=fc.identity;pcId.style.display='block';}
     document.getElementById('fc-code').textContent=fc.code;
     const _qrData=encodeURIComponent(fc.code);
-    const _qrMini=`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=${_qrData}&bgcolor=1A1612&color=C89868&format=png&margin=4`;
     const _qrLarge=`https://api.qrserver.com/v1/create-qr-code/?size=440x440&data=${_qrData}&bgcolor=1A1612&color=C89868&format=png&margin=6`;
     const _cupBtn=document.getElementById('fc-cup-btn');
     if(_cupBtn) _cupBtn.style.display='block';
@@ -3318,8 +3292,6 @@ function renderMy(){
     const _qpd=document.getElementById('qr-profile-desc');
     if(_qpn) _qpn.textContent=fc.zenStyle||'';
     if(_qpd) _qpd.textContent=fc.desc||'';
-    document.getElementById('prof-lbl').style.display='block';
-    document.getElementById('prof-card').style.display='block';
   }
 
   // Star Map
