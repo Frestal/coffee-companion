@@ -487,9 +487,11 @@ textarea.fi{resize:none;line-height:1.65}
 .qr-modal{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r-lg);
   padding:32px 28px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;
   box-shadow:0 24px 60px rgba(0,0,0,.5)}
-.qr-large{width:220px;height:220px;border-radius:10px}
-.qr-code-txt{font-family:var(--font-mono);font-size:16px;color:var(--a);letter-spacing:.1em;font-weight:500}
-.qr-desc{font-size:12px;color:var(--i3);text-align:center;line-height:1.6}
+.qr-profile-name{font-family:var(--font-display);font-size:20px;font-style:italic;color:var(--a);text-align:center;margin-bottom:4px}
+.qr-profile-desc{font-size:12px;color:var(--i2);text-align:center;line-height:1.6;max-width:220px;margin-bottom:8px}
+.qr-large{width:200px;height:200px;border-radius:10px}
+.qr-code-txt{font-family:var(--font-mono);font-size:13px;color:var(--i3);letter-spacing:.08em}
+.qr-desc{font-size:11px;color:var(--i3);text-align:center;line-height:1.6}
 .qr-close-btn{margin-top:4px;padding:10px 32px;background:transparent;
   border:1.5px solid var(--b2);border-radius:var(--r-full);
   font-size:13px;color:var(--i2);cursor:pointer;font-family:inherit;transition:all .15s}
@@ -1505,16 +1507,7 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="psub" id="shop-page-sub">基于你的特征码，为你推荐</div>
   </div>
 
-  <!-- 搜索栏 -->
-  <div class="shop-search-bar">
-    <input type="search" id="shop-search-input" class="ssb-input"
-      placeholder="搜索咖啡馆名称…"
-      onkeydown="if(event.key==='Enter'){this.blur();doShopSearch();}"
-      autocomplete="off" autocorrect="off" spellcheck="false">
-    <button class="ssb-btn" onclick="doShopSearch()">搜索</button>
-  </div>
-
-  <!-- 特征码出示区 → 句子优先 -->
+  <!-- 进店句子卡 -->
   <div class="code-show-card" id="code-show-card">
     <div class="csc-eyebrow">进店可以这样说</div>
     <div class="csc-sentence" id="csc-sentence">积累几杯记录后，这里会出现专属于你的一句话</div>
@@ -1527,6 +1520,15 @@ textarea.fi{resize:none;line-height:1.65}
 
   <!-- 店铺列表 -->
   <div id="shop-list-wrap"></div>
+
+  <!-- 搜索栏（次要，沉底） -->
+  <div class="shop-search-bar" style="margin-top:8px">
+    <input type="search" id="shop-search-input" class="ssb-input"
+      placeholder="搜索特定咖啡馆…"
+      onkeydown="if(event.key==='Enter'){this.blur();doShopSearch();}"
+      autocomplete="off" autocorrect="off" spellcheck="false">
+    <button class="ssb-btn" onclick="doShopSearch()">搜索</button>
+  </div>
 
   <!-- 店铺详情 sheet -->
   <div class="shop-detail-overlay" id="shop-detail-overlay" onclick="closeShopDetail(event)">
@@ -1554,7 +1556,20 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="tl-hd">
       <div class="tl-title">饮用统计</div>
       <div style="display:flex;align-items:center;gap:10px">
-        <img class="fc-qr-mini" id="fc-qr-mini" src="" alt="QR" onclick="openQrOverlay()" style="width:36px;height:36px;border-radius:4px;cursor:pointer;border:1px solid var(--b2);display:none">
+        <button id="fc-cup-btn" onclick="openQrOverlay()" style="display:none;background:transparent;border:none;cursor:pointer;padding:0;line-height:0" title="我是谁 · 特征码">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 杯身 -->
+            <path d="M7 11h14l-2 12H9L7 11z" fill="var(--a)" opacity=".18"/>
+            <path d="M7 11h14l-2 12H9L7 11z" stroke="var(--a)" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- 杯口加粗线 -->
+            <line x1="6" y1="11" x2="22" y2="11" stroke="var(--a)" stroke-width="2" stroke-linecap="round"/>
+            <!-- 把手 -->
+            <path d="M21 14c3 0 4 1.5 4 3s-1 3-4 3" stroke="var(--a)" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- 蒸汽 -->
+            <path d="M12 8c0-1.5 2-1.5 2-3" stroke="var(--a)" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>
+            <path d="M16 8c0-1.5 2-1.5 2-3" stroke="var(--a)" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>
+          </svg>
+        </button>
         <div class="tl-tabs">
           <button class="tl-tab on" onclick="switchTl('week',this)">周</button>
           <button class="tl-tab" onclick="switchTl('month',this)">月</button>
@@ -1565,13 +1580,6 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="tl-main-num" id="tl-num">0</div>
     <div class="tl-main-lbl" id="tl-lbl">杯 · 本周</div>
     <div class="tl-grid" id="tl-grid"></div>
-  </div>
-
-  <!-- 惊艳时刻（在星图前，作为感性钩子）-->
-  <div class="sec" id="wow-sec-lbl" style="display:none">✦ 惊艳时刻</div>
-  <div class="wow-module" id="wow-module" style="display:none">
-    <div class="wm-hd"><div class="wm-ico">✦</div><div class="wm-title">值得被记住的瞬间</div></div>
-    <div id="wow-list"></div>
   </div>
 
   <!-- 风味星图 -->
@@ -1790,12 +1798,14 @@ textarea.fi{resize:none;line-height:1.65}
   </div>
 </div>
 
-<!-- QR 特征码全屏 overlay -->
+<!-- 身份卡 overlay（我是谁 + 特征码 QR） -->
 <div class="qr-overlay" id="qr-overlay" onclick="closeQrOverlay()">
   <div class="qr-modal" onclick="event.stopPropagation()">
+    <div class="qr-profile-name" id="qr-profile-name"></div>
+    <div class="qr-profile-desc" id="qr-profile-desc"></div>
     <img class="qr-large" id="qr-large" src="" alt="QR Code">
     <div class="qr-code-txt" id="qr-code-txt"></div>
-    <div class="qr-desc">出示给咖啡师 · 扫码识别你的口味档案</div>
+    <div class="qr-desc">出示给咖啡师 · 他自然明白你想要什么</div>
     <button class="qr-close-btn" onclick="closeQrOverlay()">好了</button>
   </div>
 </div>
@@ -3282,21 +3292,6 @@ function renderMy(){
   renderTl(tlMode);
   document.getElementById('tl-card').style.display='block';
 
-  // WOW module
-  const wows=recs.filter(r=>r.wow);
-  if(wows.length){
-    document.getElementById('wow-sec-lbl').style.display='block';
-    document.getElementById('wow-module').style.display='block';
-    document.getElementById('wow-list').innerHTML=wows.slice(0,5).map(r=>`
-      <div class="wow-item">
-        <div class="wi-name">${r.name}</div>
-        ${r.feel?`<div class="wi-feel">「${r.feel}」</div>`:''}
-        <div class="wi-meta">${r.scanData?.shop?r.scanData.shop+' · ':''} ${r.date}
-          <span class="wi-share" onclick="openShare(${r.id})">分享这一刻 →</span>
-        </div>
-      </div>`).join('');
-  }
-
   // Prescription (≥3 records)
   if(recs.length>=3){
     document.getElementById('rx-lbl').style.display='block';
@@ -3315,10 +3310,14 @@ function renderMy(){
     const _qrData=encodeURIComponent(fc.code);
     const _qrMini=`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=${_qrData}&bgcolor=1A1612&color=C89868&format=png&margin=4`;
     const _qrLarge=`https://api.qrserver.com/v1/create-qr-code/?size=440x440&data=${_qrData}&bgcolor=1A1612&color=C89868&format=png&margin=6`;
-    const _qrEl=document.getElementById('fc-qr-mini');
-    if(_qrEl){_qrEl.src=_qrMini;_qrEl.style.display='block';}
+    const _cupBtn=document.getElementById('fc-cup-btn');
+    if(_cupBtn) _cupBtn.style.display='block';
     document.getElementById('qr-code-txt').textContent=fc.code;
     document.getElementById('qr-large').src=_qrLarge;
+    const _qpn=document.getElementById('qr-profile-name');
+    const _qpd=document.getElementById('qr-profile-desc');
+    if(_qpn) _qpn.textContent=fc.zenStyle||'';
+    if(_qpd) _qpd.textContent=fc.desc||'';
     document.getElementById('prof-lbl').style.display='block';
     document.getElementById('prof-card').style.display='block';
   }
