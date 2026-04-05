@@ -723,6 +723,19 @@ textarea.fi{resize:none;line-height:1.65}
   font-family:var(--font-display);padding:5px 17px 0;line-height:1.55}
 .sco-hero-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 17px 15px}
 
+/* ── 店铺筛选栏 ── */
+.shop-filter-bar{display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:center}
+.shop-filter-bar::-webkit-scrollbar{display:none}
+.sfb-group{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.sfb-divider{width:1px;height:14px;background:var(--b2);flex-shrink:0;margin:0 2px}
+.sfb-chip{padding:6px 13px;border-radius:var(--r-full);border:1.5px solid var(--b2);
+  background:transparent;font-size:12px;color:var(--i2);font-family:var(--font-ui);
+  cursor:pointer;white-space:nowrap;transition:all .15s;font-weight:500;letter-spacing:.01em}
+.sfb-chip:active{transform:scale(.96)}
+.sfb-chip.on{background:var(--a);color:var(--bg);border-color:var(--a);font-weight:600}
+.sfb-result{font-size:11px;color:var(--i3);padding:0 16px 4px;letter-spacing:.02em}
+
 /* Section headers */
 .sco-section{margin-bottom:22px}
 .sco-section-title{font-size:11px;letter-spacing:.1em;text-transform:uppercase;
@@ -1482,8 +1495,11 @@ textarea.fi{resize:none;line-height:1.65}
     <button class="csc-btn" onclick="copyFeatureCode()">复制特征码</button>
   </div>
 
+  <!-- 筛选栏 -->
+  <div class="shop-filter-bar" id="shop-filter-bar" style="display:none"></div>
+  <div class="sfb-result" id="sfb-result" style="display:none"></div>
+
   <!-- 店铺列表 -->
-  <div class="sec" style="padding-top:4px">附近推荐</div>
   <div id="shop-list-wrap"></div>
 
   <!-- 店铺详情 sheet -->
@@ -3914,10 +3930,15 @@ async function renderShopScreen(){
     const {lng,lat,isIp}=pos;
     const pois=await amapSearch(lng,lat);
     _amapPois=pois;
+    _shopFilter={open:false,type:'all',dist:'all'}; // 每次重新定位后重置筛选
     const groups=groupPois(pois);
     const subLabel=user?._fromStar?'根据这颗星的风味，为你找到附近相配的咖啡馆':recs.length>=3?'为你找到附近相配的咖啡馆':'积累3杯记录后将获得个性化推荐';
     document.getElementById('shop-page-sub').textContent=subLabel;
-    wrap.innerHTML=(isIp?`<div style="padding:6px 14px;font-size:11px;color:var(--i3);text-align:center">已使用 IP 定位，结果精度有限</div>`:'')+renderPoiGroups(groups,user);
+    const ipNote=isIp?`<div style="padding:6px 14px;font-size:11px;color:var(--i3);text-align:center">已使用 IP 定位，结果精度有限</div>`:'';
+    wrap.innerHTML=ipNote+renderPoiGroups(groups,user);
+    renderFilterBar();
+    const resultEl=document.getElementById('sfb-result');
+    if(resultEl) resultEl.style.display='none';
     if(_shopAutoOpen){
       _shopAutoOpen=false;
       setTimeout(()=>{ if(_amapPois.length) openShopDetailAmap(0); },120);
@@ -3951,6 +3972,11 @@ async function doShopSearch(){
   const q=(document.getElementById('shop-search-input')?.value||'').trim();
   if(!q){clearShopSearch();return;}
   document.getElementById('shop-page-sub').textContent=`搜索"${q}"`;
+  // 搜索时隐藏筛选栏
+  const bar=document.getElementById('shop-filter-bar');
+  const resultEl=document.getElementById('sfb-result');
+  if(bar) bar.style.display='none';
+  if(resultEl) resultEl.style.display='none';
   const wrap=document.getElementById('shop-list-wrap');
   wrap.innerHTML=`<div style="padding:48px 20px;text-align:center;color:var(--i3);font-size:13px">
     <div style="font-size:22px;margin-bottom:10px;opacity:.4">🔍</div>搜索中…</div>`;
@@ -3980,6 +4006,84 @@ function clearShopSearch(){
   if(inp) inp.value='';
   document.getElementById('shop-page-sub').textContent=recs.length>=3?'为你找到附近相配的咖啡馆':'积累3杯记录后将获得个性化推荐';
   renderShopScreen();
+}
+
+// ── 筛选功能 ──
+let _shopFilter={open:false,type:'all',dist:'all'};
+
+function renderFilterBar(){
+  const bar=document.getElementById('shop-filter-bar');
+  if(!bar||!_amapPois.length)return;
+  const f=_shopFilter;
+  bar.innerHTML=`
+    <div class="sfb-group">
+      <button class="sfb-chip${f.open?' on':''}" onclick="setShopFilter('open',${!f.open})">营业中</button>
+    </div>
+    <div class="sfb-divider"></div>
+    <div class="sfb-group">
+      <button class="sfb-chip${f.type==='all'?' on':''}" onclick="setShopFilter('type','all')">全部</button>
+      <button class="sfb-chip${f.type==='specialty'?' on':''}" onclick="setShopFilter('type','specialty')">精品</button>
+      <button class="sfb-chip${f.type==='quality'?' on':''}" onclick="setShopFilter('type','quality')">品质连锁</button>
+    </div>
+    <div class="sfb-divider"></div>
+    <div class="sfb-group">
+      <button class="sfb-chip${f.dist==='all'?' on':''}" onclick="setShopFilter('dist','all')">不限距离</button>
+      <button class="sfb-chip${f.dist==='1000'?' on':''}" onclick="setShopFilter('dist','1000')">1km内</button>
+      <button class="sfb-chip${f.dist==='3000'?' on':''}" onclick="setShopFilter('dist','3000')">3km内</button>
+    </div>`;
+  bar.style.display='flex';
+}
+
+function setShopFilter(key,val){
+  _shopFilter[key]=val;
+  reApplyShopFilter();
+}
+
+function applyShopFilterToGroups(groups){
+  const f=_shopFilter;
+  return groups.filter(group=>{
+    const s=group[0];
+    if(f.open&&isShopOpen(s)===false) return false;
+    if(f.type!=='all'){
+      const profile=inferShopProfile(s);
+      if(f.type==='specialty'&&profile.specialty<0.70) return false;
+      if(f.type==='quality'&&(profile.specialty<0.45||profile.specialty>=0.70)) return false;
+    }
+    if(f.dist!=='all'){
+      const maxDist=+f.dist;
+      if(+s.distance>maxDist) return false;
+    }
+    return true;
+  });
+}
+
+function reApplyShopFilter(){
+  renderFilterBar();
+  const user=_shopUser||getUserProfile();
+  const allGroups=groupPois(_amapPois);
+  const filtered=applyShopFilterToGroups(allGroups);
+  const wrap=document.getElementById('shop-list-wrap');
+  const resultEl=document.getElementById('sfb-result');
+  if(!filtered.length){
+    wrap.innerHTML=`<div style="padding:44px 20px;text-align:center;color:var(--i3);font-size:13px">
+      <div style="font-size:28px;opacity:.25;margin-bottom:10px">☕</div>
+      没有符合条件的咖啡馆，试着放宽筛选条件
+      <div style="margin-top:14px"><button onclick="resetShopFilter()" style="padding:8px 20px;border:1px solid var(--b2);border-radius:var(--r-full);background:transparent;color:var(--a);font-size:12px;cursor:pointer;font-family:inherit">清除筛选</button></div>
+    </div>`;
+    if(resultEl){resultEl.textContent=`0 家`;resultEl.style.display='block';}
+    return;
+  }
+  const totalActive=_shopFilter.open||_shopFilter.type!=='all'||_shopFilter.dist!=='all';
+  if(resultEl){
+    resultEl.textContent=totalActive?`筛选结果：${filtered.length} 家（共 ${allGroups.length} 家）`:'';
+    resultEl.style.display=totalActive?'block':'none';
+  }
+  wrap.innerHTML=renderPoiGroups(filtered,user);
+}
+
+function resetShopFilter(){
+  _shopFilter={open:false,type:'all',dist:'all'};
+  reApplyShopFilter();
 }
 
 function openShopDetailAmap(idx){
