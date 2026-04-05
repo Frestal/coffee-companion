@@ -61,21 +61,31 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
 .bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);
   width:100%;max-width:430px;z-index:100;
   background:var(--nav-bg);border-top:1px solid var(--b1);
-  backdrop-filter:blur(32px) saturate(180%);-webkit-backdrop-filter:blur(32px) saturate(180%);
+  backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);
   display:flex;padding-bottom:env(safe-area-inset-bottom)}
 .bni{flex:1;display:flex;flex-direction:column;align-items:center;
-  padding:10px 0 8px;gap:4px;cursor:pointer;border:none;background:transparent;
-  color:var(--i3);font-family:var(--font-ui);transition:color .2s;-webkit-user-select:none}
+  padding:11px 0 9px;gap:4px;cursor:pointer;border:none;background:transparent;
+  color:var(--i3);font-family:var(--font-ui);transition:color .22s;-webkit-user-select:none;
+  position:relative}
 .bni.on{color:var(--a)}
-.bni svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5;transition:transform .15s}
-.bni.on svg{transform:scale(1.08)}
+.bni::after{content:'';position:absolute;bottom:calc(9px + env(safe-area-inset-bottom)/2);
+  left:50%;transform:translateX(-50%) scaleX(0);
+  width:4px;height:4px;border-radius:2px;background:var(--a);
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1)}
+.bni.on::after{transform:translateX(-50%) scaleX(1)}
+.bni svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.5;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1)}
+.bni.on svg{transform:scale(1.1)}
+.bni:active svg{transform:scale(.9)}
 .bni>span{font-size:10px;letter-spacing:.02em;font-weight:500}
 .bni.rec-btn{color:var(--bg)}
-.bni.rec-btn .ring{width:52px;height:52px;border-radius:26px;background:var(--a);
-  display:flex;align-items:center;justify-content:center;margin-top:-22px;
-  box-shadow:0 6px 24px rgba(200,152,104,.44),0 2px 8px rgba(0,0,0,.3);
-  transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s}
-.bni.rec-btn:active .ring{transform:scale(.92);box-shadow:0 2px 12px rgba(200,152,104,.3)}
+.bni.rec-btn::after{display:none}
+.bni.rec-btn .ring{width:54px;height:54px;border-radius:27px;background:var(--a);
+  display:flex;align-items:center;justify-content:center;margin-top:-24px;
+  box-shadow:0 6px 28px rgba(200,152,104,.5),0 2px 8px rgba(0,0,0,.3),
+    0 1px 0 rgba(255,255,255,.18) inset;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s}
+.bni.rec-btn:active .ring{transform:scale(.91);box-shadow:0 2px 12px rgba(200,152,104,.3)}
 .bni.rec-btn svg{stroke:var(--bg);width:24px;height:24px}
 .bni.rec-btn>span{color:var(--i3)}
 
@@ -116,14 +126,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
   color:var(--a);margin-bottom:8px}
 
 /* ── SHARED ── */
-.hd{padding:54px 20px 14px}
-.pg-title{font-family:var(--font-display);font-size:30px;font-weight:300;color:var(--ink);line-height:1.2}
+.hd{padding:calc(env(safe-area-inset-top) + 44px) 20px 12px}
+.pg-title{font-family:var(--font-display);font-size:32px;font-weight:300;color:var(--ink);line-height:1.18;letter-spacing:-.01em}
 .pg-title em{font-style:italic;color:var(--a)}
-.pg-sub{font-size:12px;color:var(--i3);margin-top:5px;letter-spacing:.03em}
-.sec{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--i3);
-  padding:0 20px 10px;font-weight:600}
-@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.anim{animation:up .35s cubic-bezier(.16,1,.3,1)}
+.pg-sub{font-size:12px;color:var(--i3);margin-top:6px;letter-spacing:.03em}
+.sec{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--i3);
+  padding:4px 20px 10px;font-weight:700}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:up .38s cubic-bezier(.16,1,.3,1)}
 
 /* ── HOME ── */
 .mc{margin:0 16px 14px;border-radius:var(--r);
@@ -134,16 +144,17 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
 .mc-hd{display:flex;align-items:center;gap:7px;margin-bottom:8px}
 .mc-dot{width:5px;height:5px;border-radius:50%;background:var(--a);animation:pulse 2.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.mc-lbl{font-size:11px;color:var(--a);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
-.mc-txt{font-size:14px;color:var(--i2);line-height:1.8;font-family:var(--font-display);font-style:italic}
+.mc-lbl{font-size:11px;color:var(--a);letter-spacing:.09em;text-transform:uppercase;font-weight:700}
+.mc-txt{font-size:14px;color:var(--i2);line-height:1.82;font-family:var(--font-display);font-style:italic}
 
 /* Home feed */
 .feed-wrap{padding:0 16px}
-.rc{background:var(--s1);border-radius:var(--r);
-  padding:16px 18px;margin-bottom:10px;
-  box-shadow:0 1px 0 var(--b1),var(--shadow);
-  transition:transform .15s}
-.rc:active{transform:scale(.99)}
+.rc{background:var(--s1);border-radius:var(--r-lg);
+  padding:18px 18px;margin-bottom:10px;
+  box-shadow:0 1px 0 rgba(200,155,108,.08) inset,var(--shadow);
+  border:1px solid var(--b1);
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.rc:active{transform:scale(.985)}
 .rc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .rc-name{font-size:15px;font-weight:600;color:var(--ink);line-height:1.3;letter-spacing:-.01em}
 .rc-wow-badge{display:inline-block;font-size:10px;padding:2px 8px;margin-left:6px;
@@ -819,6 +830,111 @@ textarea.fi{resize:none;line-height:1.65}
 .fca-alt{margin-top:16px;font-size:13px;color:var(--i3);cursor:pointer;
   text-decoration:underline;text-underline-offset:3px}
 
+/* ── SENTENCE HERO CARD — 那句话 ── */
+.sentence-hero{
+  margin:0 16px 16px;border-radius:var(--r-lg);
+  background:linear-gradient(148deg,var(--s3) 0%,var(--s1) 60%,var(--s2) 100%);
+  border:1px solid var(--b2);padding:20px 20px 18px;
+  position:relative;overflow:hidden;
+  box-shadow:0 4px 32px rgba(0,0,0,.36),0 1px 0 rgba(200,155,108,.12) inset}
+.sentence-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 0%,rgba(200,155,108,.55) 40%,rgba(200,155,108,.8) 60%,transparent 100%)}
+.sh-ctx{display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.sh-ctx-dot{width:5px;height:5px;border-radius:50%;background:var(--a);animation:pulse 2.4s infinite}
+.sh-ctx-lbl{font-size:11px;color:var(--a);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+.sh-ctx-scene{font-size:11px;color:var(--i3);letter-spacing:.04em;margin-left:auto;
+  padding:2px 9px;border-radius:var(--r-full);border:1px solid var(--b1);cursor:pointer;
+  transition:border-color .18s}
+.sh-ctx-scene:active{border-color:var(--b2)}
+.sh-sentence{font-family:var(--font-display);font-size:20px;font-style:italic;
+  color:var(--ink);line-height:1.68;margin-bottom:16px;min-height:68px;
+  letter-spacing:.01em;transition:opacity .2s}
+.sh-sentence.updating{opacity:.4}
+.sh-mood-row{display:flex;gap:7px;margin-bottom:16px;overflow-x:auto;
+  scrollbar-width:none;-ms-overflow-style:none;padding-bottom:2px}
+.sh-mood-row::-webkit-scrollbar{display:none}
+.sh-chip{padding:5px 14px;border-radius:var(--r-full);flex-shrink:0;
+  background:var(--s4);border:1px solid var(--b1);
+  font-size:12px;color:var(--i2);cursor:pointer;
+  font-family:var(--font-ui);letter-spacing:.02em;
+  transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.sh-chip.on{background:rgba(200,155,108,.18);border-color:var(--b3);
+  color:var(--a);transform:scale(1.04)}
+.sh-actions{display:flex;gap:9px}
+.sh-copy{flex:1;padding:13px 16px;background:var(--a);color:#1A0E06;
+  border:none;border-radius:var(--r);font-size:14px;font-family:var(--font-ui);
+  font-weight:700;cursor:pointer;letter-spacing:.02em;
+  box-shadow:0 4px 18px rgba(200,152,104,.38),0 1px 0 rgba(255,255,255,.12) inset;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s;
+  display:flex;align-items:center;justify-content:center;gap:7px}
+.sh-copy:active{transform:scale(.95);box-shadow:0 2px 8px rgba(200,152,104,.2)}
+.sh-copy-icon{width:15px;height:15px;opacity:.8}
+.sh-shop{padding:13px 16px;background:transparent;border:1px solid var(--b2);
+  border-radius:var(--r);font-size:13px;color:var(--i2);font-family:var(--font-ui);
+  cursor:pointer;white-space:nowrap;letter-spacing:.02em;
+  transition:background .18s,color .18s,border-color .18s}
+.sh-shop:active{background:var(--b1);color:var(--a);border-color:var(--b3)}
+.sh-copy-feedback{position:absolute;inset:0;border-radius:var(--r-lg);
+  background:rgba(200,155,108,.12);display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:18px;font-style:italic;color:var(--a);
+  opacity:0;pointer-events:none;transition:opacity .3s}
+.sh-copy-feedback.show{opacity:1}
+
+/* ── SCAN ENTRY — 扫码入场 ── */
+.scan-entry{position:fixed;inset:0;z-index:400;background:var(--bg);
+  display:flex;flex-direction:column;overflow-y:auto;
+  padding-top:env(safe-area-inset-top);padding-bottom:calc(env(safe-area-inset-bottom)+20px)}
+.se-bar{height:52px;display:flex;align-items:center;padding:0 20px;
+  justify-content:flex-end}
+.se-skip{font-size:13px;color:var(--i3);cursor:pointer;padding:8px 0}
+.se-header{padding:20px 28px 32px;text-align:center}
+.se-brand-badge{display:inline-flex;align-items:center;gap:6px;
+  padding:5px 14px;border-radius:var(--r-full);
+  background:rgba(200,155,108,.1);border:1px solid var(--b2);
+  font-size:11px;color:var(--a);letter-spacing:.07em;font-weight:700;
+  text-transform:uppercase;margin-bottom:20px}
+.se-title{font-family:var(--font-display);font-size:28px;font-weight:300;
+  color:var(--ink);line-height:1.28;margin-bottom:10px}
+.se-sub{font-size:14px;color:var(--i2);line-height:1.6}
+.se-steps{padding:0 20px}
+.se-step-block{animation:ob-in .4s cubic-bezier(.16,1,.3,1)}
+.se-q{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:14px;
+  padding:0 4px;letter-spacing:-.01em}
+.se-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:28px}
+.se-opt{padding:18px 14px;background:var(--s2);border:1.5px solid var(--b1);
+  border-radius:var(--r);text-align:center;cursor:pointer;
+  transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.se-opt.on{background:rgba(200,155,108,.1);border-color:var(--b3)}
+.se-opt:active{transform:scale(.97)}
+.se-opt-icon{font-size:26px;margin-bottom:7px}
+.se-opt-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;letter-spacing:-.01em}
+.se-opt-sub{font-size:11px;color:var(--i3);line-height:1.4}
+.se-result{padding:0 20px 32px;animation:ob-in .5s cubic-bezier(.16,1,.3,1)}
+.se-result-lbl{font-size:11px;color:var(--a);letter-spacing:.08em;font-weight:700;
+  text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.se-result-lbl::after{content:'';flex:1;height:1px;background:var(--b1)}
+.se-result-card{background:linear-gradient(148deg,var(--s2),var(--s1));
+  border:1px solid var(--b2);border-radius:var(--r-lg);padding:22px 20px;
+  margin-bottom:16px;position:relative;overflow:hidden}
+.se-result-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,155,108,.7),transparent)}
+.se-result-sentence{font-family:var(--font-display);font-size:20px;font-style:italic;
+  color:var(--ink);line-height:1.68;letter-spacing:.01em}
+.se-result-hint{font-size:11px;color:var(--i3);margin-top:10px;letter-spacing:.03em}
+.se-btn-copy{width:100%;padding:15px;background:var(--a);color:#1A0E06;
+  border:none;border-radius:var(--r);font-size:15px;font-family:inherit;font-weight:700;
+  cursor:pointer;letter-spacing:.02em;margin-bottom:10px;
+  box-shadow:0 4px 20px rgba(200,152,104,.38);
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
+.se-btn-copy:active{transform:scale(.97)}
+.se-btn-record{width:100%;padding:14px;background:transparent;
+  border:1px solid var(--b2);border-radius:var(--r);
+  font-size:14px;font-family:inherit;color:var(--i2);cursor:pointer;
+  transition:border-color .18s,color .18s}
+.se-btn-record:active{border-color:var(--b3);color:var(--a)}
+.se-enter-app{text-align:center;margin-top:20px;font-size:12px;color:var(--i3);
+  cursor:pointer;letter-spacing:.03em}
+
 /* Shop detail sheet */
 .shop-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);z-index:200;display:none;align-items:flex-end}
@@ -963,12 +1079,114 @@ textarea.fi{resize:none;line-height:1.65}
 
 </div>
 
+<!-- SCAN ENTRY — QR 扫码入场 -->
+<div id="scan-entry" style="display:none">
+  <div class="se-bar">
+    <span class="se-skip" onclick="closeScanEntry()">跳过</span>
+  </div>
+  <div class="se-header">
+    <div class="se-brand-badge" id="se-brand-badge">☕ 咖啡伴侣</div>
+    <div class="se-title">帮你在这里<br>点到最适合你的那杯</div>
+    <div class="se-sub">两步告诉我你现在想要什么<br>我来生成一句话，你说给咖啡师听</div>
+  </div>
+  <div class="se-steps" id="se-steps">
+    <!-- Step 1 -->
+    <div class="se-step-block" id="se-step-1">
+      <div class="se-q">你现在的状态更像？</div>
+      <div class="se-options">
+        <div class="se-opt" id="se-s1-work" onclick="seSelect(1,'work')">
+          <div class="se-opt-icon">💼</div>
+          <div class="se-opt-lbl">工作间隙</div>
+          <div class="se-opt-sub">需要提神<br>快速决策</div>
+        </div>
+        <div class="se-opt" id="se-s1-chill" onclick="seSelect(1,'chill')">
+          <div class="se-opt-icon">🛍️</div>
+          <div class="se-opt-lbl">悠闲逛逛</div>
+          <div class="se-opt-sub">有时间慢慢喝<br>可以尝试新的</div>
+        </div>
+        <div class="se-opt" id="se-s1-meet" onclick="seSelect(1,'meet')">
+          <div class="se-opt-icon">🗣️</div>
+          <div class="se-opt-lbl">跟人约见</div>
+          <div class="se-opt-sub">喝着聊天<br>稳定好喝就行</div>
+        </div>
+        <div class="se-opt" id="se-s1-alone" onclick="seSelect(1,'alone')">
+          <div class="se-opt-icon">🎧</div>
+          <div class="se-opt-lbl">一个人待着</div>
+          <div class="se-opt-sub">享受当下<br>来点有意思的</div>
+        </div>
+      </div>
+    </div>
+    <!-- Step 2 -->
+    <div class="se-step-block" id="se-step-2" style="display:none">
+      <div class="se-q">咖啡对你来说更偏向？</div>
+      <div class="se-options">
+        <div class="se-opt" id="se-s2-acid" onclick="seSelect(2,'acid')">
+          <div class="se-opt-icon">🍋</div>
+          <div class="se-opt-lbl">清爽果酸</div>
+          <div class="se-opt-sub">明亮 · 干净<br>像柑橘或浆果</div>
+        </div>
+        <div class="se-opt" id="se-s2-body" onclick="seSelect(2,'body')">
+          <div class="se-opt-icon">🍫</div>
+          <div class="se-opt-lbl">醇厚浓郁</div>
+          <div class="se-opt-sub">巧克力 · 坚果<br>厚重有层次</div>
+        </div>
+        <div class="se-opt" id="se-s2-sweet" onclick="seSelect(2,'sweet')">
+          <div class="se-opt-icon">🥛</div>
+          <div class="se-opt-lbl">甜感顺口</div>
+          <div class="se-opt-sub">加奶也好喝<br>不太苦</div>
+        </div>
+        <div class="se-opt" id="se-s2-random" onclick="seSelect(2,'random')">
+          <div class="se-opt-icon">🎲</div>
+          <div class="se-opt-lbl">随便推荐</div>
+          <div class="se-opt-sub">今天交给你了<br>来个惊喜吧</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Result -->
+  <div class="se-result" id="se-result" style="display:none">
+    <div class="se-result-lbl">跟咖啡师说这句话</div>
+    <div class="se-result-card">
+      <div class="se-result-sentence" id="se-sentence"></div>
+      <div class="se-result-hint">把这句话说出来，咖啡师就明白了</div>
+    </div>
+    <button class="se-btn-copy" onclick="seCopySentence()">复制这句话</button>
+    <button class="se-btn-record" onclick="seGoRecord()">喝完记录这杯，让推荐越来越准 →</button>
+    <div class="se-enter-app" onclick="closeScanEntry()">进入咖啡伴侣 →</div>
+  </div>
+</div>
+
 <!-- HOME -->
 <div class="scr on" id="s-home">
   <div class="hd">
     <div class="pg-title" id="g-title">今天，<em>喝了吗</em></div>
     <div class="pg-sub" id="g-sub">你的咖啡伴侣在这里</div>
   </div>
+
+  <!-- 那句话 Hero Card -->
+  <div class="sentence-hero" id="sentence-hero">
+    <div class="sh-ctx">
+      <div class="sh-ctx-dot"></div>
+      <span class="sh-ctx-lbl" id="sh-ctx-lbl">现在</span>
+      <span class="sh-ctx-scene" id="sh-ctx-scene" onclick="shCycleScene()">日常</span>
+    </div>
+    <div class="sh-sentence" id="sh-sentence">今天有什么好推荐的，不加糖就好</div>
+    <div class="sh-mood-row">
+      <button class="sh-chip on" id="sh-chip-auto" onclick="setSentenceMood(null)">随意</button>
+      <button class="sh-chip" id="sh-chip-boost" onclick="setSentenceMood('boost')">提神</button>
+      <button class="sh-chip" id="sh-chip-relax" onclick="setSentenceMood('relax')">放松</button>
+      <button class="sh-chip" id="sh-chip-explore" onclick="setSentenceMood('explore')">尝新</button>
+    </div>
+    <div class="sh-actions">
+      <button class="sh-copy" onclick="copySentence()">
+        <svg class="sh-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        复制这句话
+      </button>
+      <button class="sh-shop" onclick="go('shop')">找对口的店</button>
+    </div>
+    <div class="sh-copy-feedback" id="sh-copy-feedback">已复制 ✓</div>
+  </div>
+
   <!-- Nightly Dreaming 晨间洞察 -->
   <div class="mc" id="mc" style="display:none">
     <div class="mc-hd"><div class="mc-dot"></div><span class="mc-lbl">昨夜沉淀</span></div>
@@ -1916,6 +2134,14 @@ function openApiKeySetup(){document.getElementById('apikey-overlay').classList.a
 function init(){
   initTheme();
   setGreeting();initStars();initCats();renderWiki();renderHome();renderMy();
+  renderSentenceHero();
+  // QR scan entry detection
+  const params=new URLSearchParams(window.location.search);
+  const scanShop=params.get('shop');
+  const scanCtx=params.get('ctx');
+  if(scanShop||params.get('scan')){
+    initScanEntry(scanShop,scanCtx);
+  }
   if(!getApiKey()) openApiKeySetup();
   else if(recs.length>=3) loadMorning();
 }
@@ -1928,13 +2154,208 @@ function setGreeting(){
   document.getElementById('g-title').innerHTML=`${g[0]}，<em>${g[1]}</em>`;
 }
 
+// ── DYNAMIC SENTENCE ENGINE ──
+let _sentenceMood=null;   // null|'boost'|'relax'|'explore'
+let _sentenceScene=null;  // null|'office'|'mall'|'residential'|'explore'
+const _SCENES=['日常','工作区','购物中心','社区','景区'];
+let _sceneIdx=0;
+
+function getTimeCtx(){
+  const h=new Date().getHours();
+  if(h>=5&&h<9)  return{id:'dawn',    label:'晨间',    vibe:'提神起动'};
+  if(h>=9&&h<12) return{id:'morning', label:'上午',    vibe:'专注状态'};
+  if(h>=12&&h<14)return{id:'noon',    label:'午间',    vibe:'短暂休息'};
+  if(h>=14&&h<18)return{id:'afternoon',label:'下午',   vibe:'午后时光'};
+  if(h>=18&&h<21)return{id:'evening', label:'傍晚',    vibe:'放松下班'};
+  return                {id:'night',  label:'夜间',    vibe:'慢下来'};
+}
+
+function buildDynamicSentence(profile, sceneCtx, moodOverride){
+  const time=getTimeCtx();
+  const likeAcid=profile&&profile.avgA>0.55;
+  const likeBody=profile&&profile.avgB>0.55;
+  const isNew=!profile||profile.count<2;
+
+  // Auto-infer mood from time + scene if not overridden
+  let mood=moodOverride;
+  if(!mood){
+    if(time.id==='dawn'||time.id==='morning') mood='boost';
+    else if(sceneCtx==='mall'||time.id==='evening'||time.id==='night') mood='relax';
+    else mood='relax';
+  }
+
+  // Scene suffix hint
+  const sceneSuffix={
+    office:   '，快一点也OK',
+    mall:     '，有什么特色的吗',
+    residential:'',
+    explore:  '，你们这里有什么主打的'
+  }[sceneCtx||'']||'';
+
+  if(mood==='boost'){
+    if(isNew) return '有提神效果好的推荐吗，不太甜，不加糖'+sceneSuffix;
+    if(likeAcid) return '今天有果酸感明亮的单品推荐吗，手冲不加奶'+sceneSuffix;
+    if(likeBody) return '来一杯浓缩感强一点的美式，正常浓度'+sceneSuffix;
+    return '有提神的推荐吗，单品或者美式都行，不加糖'+sceneSuffix;
+  }
+  if(mood==='relax'){
+    if(isNew) return '今天有主推的特调或者单品吗，偏甜一点也OK'+sceneSuffix;
+    if(likeAcid&&likeBody) return '今天有果香感的精品推荐吗，偏轻盈清爽的'+sceneSuffix;
+    if(likeBody) return '来一杯醇厚顺口的拿铁，全脂牛奶'+sceneSuffix;
+    if(likeAcid) return '有果酸感清爽的推荐吗，不加奶也好喝的'+sceneSuffix;
+    return '今天想喝点顺口的，有什么推荐，不太苦就好'+sceneSuffix;
+  }
+  if(mood==='explore'){
+    if(isNew) return '你们今天有什么最值得尝试的，来个惊喜吧'+sceneSuffix;
+    return '今天想试点不一样的，你们有什么特别推荐的'+sceneSuffix;
+  }
+  // default
+  if(isNew) return '今天有什么好推荐的，不加糖就好';
+  return likeAcid?'今天有果酸感的推荐吗，手冲或者单品都行':'今天有什么主推的，醇厚一点的';
+}
+
+function renderSentenceHero(){
+  const profile=getUserProfile();
+  const sceneMap=['','office','mall','residential','explore'];
+  const sceneCtx=sceneMap[_sceneIdx]||'';
+  const sentence=buildDynamicSentence(profile,sceneCtx,_sentenceMood);
+
+  const el=document.getElementById('sh-sentence');
+  const ctx=document.getElementById('sh-ctx-lbl');
+  const sceneEl=document.getElementById('sh-ctx-scene');
+  if(!el)return;
+
+  el.classList.add('updating');
+  setTimeout(()=>{
+    el.textContent=sentence;
+    el.classList.remove('updating');
+  },160);
+
+  const time=getTimeCtx();
+  if(ctx) ctx.textContent=time.label+' · '+time.vibe;
+  if(sceneEl) sceneEl.textContent=_SCENES[_sceneIdx];
+
+  // Sync chip states
+  ['auto','boost','relax','explore'].forEach(m=>{
+    const c=document.getElementById('sh-chip-'+m);
+    if(c) c.classList.toggle('on', _sentenceMood===(m==='auto'?null:m));
+  });
+}
+
+function setSentenceMood(mood){
+  _sentenceMood=mood;
+  renderSentenceHero();
+}
+
+function shCycleScene(){
+  _sceneIdx=(_sceneIdx+1)%_SCENES.length;
+  renderSentenceHero();
+}
+
+function copySentence(){
+  const sentence=document.getElementById('sh-sentence')?.textContent||'';
+  const fb=document.getElementById('sh-copy-feedback');
+  navigator.clipboard?.writeText(sentence).then(()=>{
+    if(fb){fb.classList.add('show');setTimeout(()=>fb.classList.remove('show'),1600);}
+  }).catch(()=>{
+    if(fb){fb.classList.add('show');setTimeout(()=>fb.classList.remove('show'),1600);}
+  });
+}
+
+// ── SCAN ENTRY (QR码入场) ──
+let _seStep1=null,_seStep2=null;
+
+function initScanEntry(shopId,ctxHint){
+  const el=document.getElementById('scan-entry');
+  if(!el)return;
+  // Set brand badge
+  const badge=document.getElementById('se-brand-badge');
+  if(shopId&&badge){
+    const brand=BRAND_KB[shopId];
+    badge.textContent=(brand?'☕ '+brand._name:'☕ 咖啡伴侣');
+  }
+  // Pre-select scene from URL ctx hint
+  if(ctxHint==='mall') _sceneIdx=2;
+  else if(ctxHint==='office') _sceneIdx=1;
+  el.style.display='flex';
+  el.style.flexDirection='column';
+  document.getElementById('scan-entry').scrollTop=0;
+}
+
+function closeScanEntry(){
+  const el=document.getElementById('scan-entry');
+  if(el){el.style.display='none';}
+  renderSentenceHero();
+}
+
+let _seAnswers={};
+function seSelect(step,value){
+  _seAnswers['s'+step]=value;
+  // Highlight selection
+  const prefix='se-s'+step+'-';
+  document.querySelectorAll('[id^="'+prefix+'"]').forEach(el=>el.classList.remove('on'));
+  const sel=document.getElementById(prefix+value);
+  if(sel) sel.classList.add('on');
+
+  // After brief pause, advance
+  setTimeout(()=>{
+    if(step===1){
+      document.getElementById('se-step-1').style.display='none';
+      document.getElementById('se-step-2').style.display='block';
+    } else {
+      // Generate result
+      document.getElementById('se-steps').style.display='none';
+      const sentence=seComputeSentence();
+      document.getElementById('se-sentence').textContent=sentence;
+      document.getElementById('se-result').style.display='block';
+    }
+  },280);
+}
+
+function seComputeSentence(){
+  const s1=_seAnswers.s1||'';
+  const s2=_seAnswers.s2||'';
+  const profile=getUserProfile();
+  // Map answers to mood
+  const moodMap={work:'boost',chill:'explore',meet:'relax',alone:'explore'};
+  const mood=moodMap[s1]||null;
+  // Build context
+  let sentence='';
+  if(s2==='acid') sentence=mood==='boost'?
+    '今天有果酸感明亮的单品推荐吗，手冲，不加奶不加糖':
+    '有柑橘或莓果调的单品推荐吗，轻盈干净的那种';
+  else if(s2==='body') sentence=mood==='boost'?
+    '来一杯浓缩感强一点的美式，正常浓度':
+    '有醇厚顺口的推荐吗，巧克力或坚果调，可以加全脂奶';
+  else if(s2==='sweet') sentence=mood==='work'?
+    '来一杯拿铁，全脂，咖啡味稍重一点':
+    '有甜感好的推荐吗，加奶也好喝的，不太苦就好';
+  else sentence='今天有什么最值得尝试的推荐吗，来个惊喜吧';
+  return sentence||buildDynamicSentence(profile,null,mood);
+}
+
+function seCopySentence(){
+  const sentence=document.getElementById('se-sentence')?.textContent||'';
+  const btn=document.querySelector('.se-btn-copy');
+  navigator.clipboard?.writeText(sentence).catch(()=>{});
+  if(btn){btn.textContent='已复制 ✓';setTimeout(()=>{btn.textContent='复制这句话';},2000);}
+  // Also sync to main hero
+  _sentenceMood=null;
+  renderSentenceHero();
+}
+
+function seGoRecord(){
+  closeScanEntry();
+  go('rec');
+}
+
 // ── NAVIGATION ──
 function go(id){
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.bni').forEach(b=>b.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   const nb=document.getElementById('n-'+id);if(nb)nb.classList.add('on');
-  if(id==='home'){renderHome();if(recs.length>=3)loadMorning();}
+  if(id==='home'){renderHome();renderSentenceHero();if(recs.length>=3)loadMorning();}
   if(id==='my') renderMy();
   if(id==='shop') renderShopScreen();
   if(id==='rec') resetForm();
