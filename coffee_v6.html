@@ -739,8 +739,10 @@ textarea.fi{resize:none;line-height:1.65}
 .sco-gc-status-closed{font-size:10px;color:rgba(255,255,255,.45)}
 .sco-gc-dist{font-size:10px;color:rgba(255,255,255,.6)}
 .sco-gc-foryou{position:absolute;top:10px;left:10px;
-  font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
-  background:var(--a);color:#0b0806;padding:4px 9px;border-radius:var(--r-full)}
+  font-size:9px;letter-spacing:.08em;font-weight:700;
+  background:rgba(11,8,6,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:var(--a);padding:4px 10px;border-radius:var(--r-full);
+  border:1px solid rgba(200,152,104,.30)}
 .sco-gc-spec{position:absolute;top:10px;right:10px;
   font-size:9px;letter-spacing:.07em;font-weight:700;text-transform:uppercase;
   background:rgba(255,255,255,.15);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
@@ -763,8 +765,11 @@ textarea.fi{resize:none;line-height:1.65}
 .sfb-result{font-size:11px;color:var(--i3);padding:0 16px 4px;letter-spacing:.02em}
 
 /* 分区小标题 */
-.sco-section-lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--i3);padding:14px 16px 6px;font-weight:600;grid-column:span 2}
+.sco-section-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--a);padding:14px 16px 6px;font-weight:700;grid-column:span 2;
+  display:flex;align-items:center;gap:7px}
+.sco-section-lbl::before{content:'';display:block;width:3px;height:12px;
+  background:var(--a);border-radius:2px;flex-shrink:0}
 
 /* List wrapper + Row card */
 .sco-list-wrap{margin:0 16px;border-radius:var(--r);overflow:hidden;
@@ -3583,6 +3588,9 @@ const BRAND_KB=[
   {aliases:['metal hands','铁手'],mark:'MH',color:'#141414',
     acidity:[.38,.62],body:[.35,.55],specialty:.85,weight:1,
     note:'2016年北京创立，自烘焙，亚洲Top50。以"脏脏咖啡"和氮气冷萃著称，中/中深烘意式风格'},
+  {aliases:['gee coffee','gee coffee roasters','gee咖啡','啡猫记咖啡','gee'],mark:'GEE',color:'#1a1208',
+    acidity:[.65,.88],body:[.20,.42],specialty:.88,weight:1,
+    note:'2012年深圳创立，创始人郭锦为中国大陆首位COE&BOP双料国际评审。产地直采+自主烘焙，"香水系列"日晒耶加雪菲为招牌，Coffee Review 91-93分。8-12家门店（深圳+广州）'},
   // ── 精品连锁 (specialty 0.70–0.84) ──
   {aliases:['mellower','麦隆'],mark:'ML',color:'#1a1006',
     acidity:[.55,.78],body:[.30,.55],specialty:.78,weight:1,
@@ -3803,7 +3811,7 @@ function renderGridCard({group,s,profile,openStatus,score},user,wide,isForYou){
     :`background:${shopGradient(profile)}`;
   // 徽章
   const specLabel=profile.specialty>.88?'顶级精品':profile.specialty>.78?'精品':profile.specialty>.60?'品质':'';
-  const forYouBadge=isForYou?`<div class="sco-gc-foryou">为你挑选</div>`:'';
+  const forYouBadge=isForYou?`<div class="sco-gc-foryou">◆ 为你挑选</div>`:'';
   const specBadge=specLabel&&!isForYou?`<div class="sco-gc-spec">${specLabel}</div>`:'';
   const branchBadge=group.length>1?`<span class="sco-gc-branches">${group.length}家</span>`:'';
   // 营业状态
