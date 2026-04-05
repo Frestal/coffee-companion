@@ -3903,7 +3903,7 @@ async function renderShopScreen(){
     const {lng,lat,isIp}=pos;
     const pois=await amapSearch(lng,lat);
     _amapPois=pois;
-    _shopFilter={open:false,type:'all',dist:'all'}; // 每次重新定位后重置筛选
+    _shopFilter={open:false,venue:'all',flavor:'all',dist:'all'}; // 每次重新定位后重置筛选
     const groups=groupPois(pois);
     const subLabel=user?._fromStar?'根据这颗星的风味，为你找到附近相配的咖啡馆':recs.length>=3?'为你找到附近相配的咖啡馆':'积累3杯记录后将获得个性化推荐';
     document.getElementById('shop-page-sub').textContent=subLabel;
@@ -3982,33 +3982,52 @@ function clearShopSearch(){
 }
 
 // ── 筛选功能 ──
-let _shopFilter={open:false,type:'all',dist:'all'};
+// open: 营业中 toggle         → ②③ 实用入口
+// venue: indie/chain/all      → ① 找独立馆 / ③ 找熟悉连锁
+// flavor: bright/rich/all     → ① 口味导向
+// dist: 500/1000/3000/all     → ② 距离优先
+let _shopFilter={open:false,venue:'all',flavor:'all',dist:'all'};
+
+function _sfChip(label,key,val,cur){
+  const on=(key==='open'?cur===true:cur===val);
+  return`<button class="sfb-chip${on?' on':''}" onclick="setShopFilter('${key}',${
+    key==='open'?!cur:`'${val}'`
+  })">${label}</button>`;
+}
 
 function renderFilterBar(){
   const bar=document.getElementById('shop-filter-bar');
   if(!bar||!_amapPois.length)return;
   const f=_shopFilter;
-  bar.innerHTML=`
-    <div class="sfb-group">
-      <button class="sfb-chip${f.open?' on':''}" onclick="setShopFilter('open',${!f.open})">营业中</button>
+  bar.innerHTML=
+    // 营业中 — ②③ 入口
+    `<div class="sfb-group">${_sfChip('营业中','open',true,f.open)}</div>
+    <div class="sfb-divider"></div>`+
+    // 独立 / 连锁 — ①③ 入口
+    `<div class="sfb-group">
+      ${_sfChip('独立馆','venue','indie',f.venue)}
+      ${_sfChip('连锁品牌','venue','chain',f.venue)}
     </div>
-    <div class="sfb-divider"></div>
-    <div class="sfb-group">
-      <button class="sfb-chip${f.type==='all'?' on':''}" onclick="setShopFilter('type','all')">全部</button>
-      <button class="sfb-chip${f.type==='specialty'?' on':''}" onclick="setShopFilter('type','specialty')">精品</button>
-      <button class="sfb-chip${f.type==='quality'?' on':''}" onclick="setShopFilter('type','quality')">品质连锁</button>
+    <div class="sfb-divider"></div>`+
+    // 口味方向 — ① 入口
+    `<div class="sfb-group">
+      ${_sfChip('偏酸亮','flavor','bright',f.flavor)}
+      ${_sfChip('偏醇厚','flavor','rich',f.flavor)}
     </div>
-    <div class="sfb-divider"></div>
-    <div class="sfb-group">
-      <button class="sfb-chip${f.dist==='all'?' on':''}" onclick="setShopFilter('dist','all')">不限距离</button>
-      <button class="sfb-chip${f.dist==='1000'?' on':''}" onclick="setShopFilter('dist','1000')">1km内</button>
-      <button class="sfb-chip${f.dist==='3000'?' on':''}" onclick="setShopFilter('dist','3000')">3km内</button>
+    <div class="sfb-divider"></div>`+
+    // 距离 — ② 入口
+    `<div class="sfb-group">
+      ${_sfChip('500m','dist','500',f.dist)}
+      ${_sfChip('1km','dist','1000',f.dist)}
+      ${_sfChip('3km','dist','3000',f.dist)}
     </div>`;
   bar.style.display='flex';
 }
 
 function setShopFilter(key,val){
-  _shopFilter[key]=val;
+  if(key==='open') _shopFilter.open=val;
+  // 同组再点一次 = 取消（切换回 all/false）
+  else _shopFilter[key]=(_shopFilter[key]===val)?'all':val;
   reApplyShopFilter();
 }
 
@@ -4016,16 +4035,22 @@ function applyShopFilterToGroups(groups){
   const f=_shopFilter;
   return groups.filter(group=>{
     const s=group[0];
+    // 营业中
     if(f.open&&isShopOpen(s)===false) return false;
-    if(f.type!=='all'){
-      const profile=inferShopProfile(s);
-      if(f.type==='specialty'&&profile.specialty<0.70) return false;
-      if(f.type==='quality'&&(profile.specialty<0.45||profile.specialty>=0.70)) return false;
+    // 独立馆 vs 连锁：以同名门店数量作判断（多门店=连锁）
+    if(f.venue!=='all'){
+      const isChain=group.length>1;
+      if(f.venue==='indie'&&isChain) return false;
+      if(f.venue==='chain'&&!isChain) return false;
     }
-    if(f.dist!=='all'){
-      const maxDist=+f.dist;
-      if(+s.distance>maxDist) return false;
+    // 口味方向
+    if(f.flavor!=='all'){
+      const p=inferShopProfile(s);
+      if(f.flavor==='bright'&&p.acidity[0]<0.52) return false;  // 偏酸亮：下限>=0.52
+      if(f.flavor==='rich'&&p.body[1]<0.60) return false;        // 偏醇厚：上限>=0.60
     }
+    // 距离
+    if(f.dist!=='all'&&+s.distance>+f.dist) return false;
     return true;
   });
 }
@@ -4043,19 +4068,19 @@ function reApplyShopFilter(){
       没有符合条件的咖啡馆，试着放宽筛选条件
       <div style="margin-top:14px"><button onclick="resetShopFilter()" style="padding:8px 20px;border:1px solid var(--b2);border-radius:var(--r-full);background:transparent;color:var(--a);font-size:12px;cursor:pointer;font-family:inherit">清除筛选</button></div>
     </div>`;
-    if(resultEl){resultEl.textContent=`0 家`;resultEl.style.display='block';}
+    if(resultEl){resultEl.textContent='0 家';resultEl.style.display='block';}
     return;
   }
-  const totalActive=_shopFilter.open||_shopFilter.type!=='all'||_shopFilter.dist!=='all';
+  const anyActive=f=>f.open||f.venue!=='all'||f.flavor!=='all'||f.dist!=='all';
   if(resultEl){
-    resultEl.textContent=totalActive?`筛选结果：${filtered.length} 家（共 ${allGroups.length} 家）`:'';
-    resultEl.style.display=totalActive?'block':'none';
+    resultEl.textContent=anyActive(_shopFilter)?`找到 ${filtered.length} 家`:'';
+    resultEl.style.display=anyActive(_shopFilter)?'block':'none';
   }
   wrap.innerHTML=renderPoiGroups(filtered,user);
 }
 
 function resetShopFilter(){
-  _shopFilter={open:false,type:'all',dist:'all'};
+  _shopFilter={open:false,venue:'all',flavor:'all',dist:'all'};
   reApplyShopFilter();
 }
 
