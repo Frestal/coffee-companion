@@ -136,29 +136,28 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
 .anim{animation:up .38s cubic-bezier(.16,1,.3,1)}
 
 /* ── HOME ── */
-.mc{margin:0 16px 14px;border-radius:var(--r);
-  background:linear-gradient(140deg,rgba(200,152,104,.09),rgba(200,152,104,.02));
-  border:1px solid var(--b2);padding:16px 18px;position:relative;overflow:hidden}
-.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--a),transparent)}
-.mc-hd{display:flex;align-items:center;gap:7px;margin-bottom:8px}
-.mc-dot{width:5px;height:5px;border-radius:50%;background:var(--a);animation:pulse 2.5s infinite}
+/* 晨间洞察：editorial 风格，不用卡片框，用左侧细线做视觉锚点 */
+.mc{margin:0 20px 18px;padding:0 0 0 14px;
+  border-left:2px solid rgba(200,155,108,.3);position:relative}
+.mc-hd{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.mc-dot{width:4px;height:4px;border-radius:50%;background:var(--a);animation:pulse 2.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.mc-lbl{font-size:11px;color:var(--a);letter-spacing:.09em;text-transform:uppercase;font-weight:700}
-.mc-txt{font-size:14px;color:var(--i2);line-height:1.82;font-family:var(--font-display);font-style:italic}
+.mc-lbl{font-size:10px;color:var(--a);letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.mc-txt{font-size:15px;color:var(--i2);line-height:1.85;font-family:var(--font-display);font-style:italic}
 
-/* Home feed */
+/* Home feed — 清洁分层 */
 .feed-wrap{padding:0 16px}
+/* 最新一杯：清洁卡片，白底感，内容优先，无琥珀色污染 */
 .rc{background:var(--s1);border-radius:var(--r-lg);
-  padding:18px 18px;margin-bottom:10px;
-  box-shadow:0 1px 0 rgba(200,155,108,.08) inset,var(--shadow);
-  border:1px solid var(--b1);
+  padding:18px 18px;margin-bottom:6px;
+  box-shadow:0 2px 16px rgba(0,0,0,.22),0 1px 0 rgba(255,255,255,.03) inset;
+  border:1px solid rgba(255,255,255,.04);
   transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
 .rc:active{transform:scale(.985)}
 .rc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .rc-name{font-size:15px;font-weight:600;color:var(--ink);line-height:1.3;letter-spacing:-.01em}
 .rc-wow-badge{display:inline-block;font-size:10px;padding:2px 8px;margin-left:6px;
-  background:rgba(255,214,10,.08);border:1px solid rgba(255,214,10,.25);
+  background:rgba(255,214,10,.08);border:1px solid rgba(255,214,10,.22);
   color:var(--sp);border-radius:var(--r-full);letter-spacing:.04em;vertical-align:middle}
 .rc-meta{font-size:12px;color:var(--i3);margin-top:3px}
 .rc-right{text-align:right;flex-shrink:0;margin-left:10px}
@@ -175,11 +174,12 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
   padding:2px 0;line-height:1;opacity:.4;transition:opacity .15s;display:block;margin-left:auto}
 .rc-del:active{opacity:1;color:var(--rd)}
 
-/* ── History compact rows ── */
-.rc-hist{border-radius:var(--r);margin-bottom:6px;overflow:hidden;
-  background:var(--s1);box-shadow:0 1px 0 var(--b1);transition:transform .12s}
-.rc-hist:active{transform:scale(.99)}
-.rc-hist-row{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer}
+/* 历史记录：列表态，不用卡片框，用分割线区分条目 */
+.rc-hist{margin-bottom:0;overflow:hidden;background:transparent;
+  border-bottom:1px solid var(--b1);transition:background .15s}
+.rc-hist:last-child{border-bottom:none}
+.rc-hist:active{background:var(--s1)}
+.rc-hist-row{display:flex;align-items:center;gap:12px;padding:13px 4px;cursor:pointer}
 .rc-hist-date{font-size:11px;color:var(--i3);flex-shrink:0;width:30px;text-align:center;
   line-height:1.3;font-variant-numeric:tabular-nums}
 .rc-hist-body{flex:1;min-width:0}
@@ -830,15 +830,15 @@ textarea.fi{resize:none;line-height:1.65}
 .fca-alt{margin-top:16px;font-size:13px;color:var(--i3);cursor:pointer;
   text-decoration:underline;text-underline-offset:3px}
 
-/* ── SENTENCE HERO CARD — 那句话 ── */
+/* ── SENTENCE HERO CARD — 那句话（视觉最高级，与其他内容形成明确区隔）── */
 .sentence-hero{
-  margin:0 16px 16px;border-radius:var(--r-lg);
-  background:linear-gradient(148deg,var(--s3) 0%,var(--s1) 60%,var(--s2) 100%);
-  border:1px solid var(--b2);padding:20px 20px 18px;
+  margin:0 16px 20px;border-radius:var(--r-lg);
+  background:linear-gradient(160deg,#1E1509 0%,#160F07 55%,#1A1108 100%);
+  border:1px solid rgba(200,155,108,.24);padding:22px 20px 18px;
   position:relative;overflow:hidden;
-  box-shadow:0 4px 32px rgba(0,0,0,.36),0 1px 0 rgba(200,155,108,.12) inset}
+  box-shadow:0 8px 40px rgba(0,0,0,.5),0 1px 0 rgba(200,155,108,.18) inset}
 .sentence-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent 0%,rgba(200,155,108,.55) 40%,rgba(200,155,108,.8) 60%,transparent 100%)}
+  background:linear-gradient(90deg,transparent 0%,rgba(200,155,108,.7) 35%,rgba(220,175,120,.9) 55%,transparent 100%)}
 .sh-ctx{display:flex;align-items:center;gap:7px;margin-bottom:14px}
 .sh-ctx-dot{width:5px;height:5px;border-radius:50%;background:var(--a);animation:pulse 2.4s infinite}
 .sh-ctx-lbl{font-size:11px;color:var(--a);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
@@ -1103,8 +1103,8 @@ textarea.fi{resize:none;line-height:1.65}
   </div>
   <div class="se-header">
     <div class="se-brand-badge" id="se-brand-badge">☕ 咖啡伴侣</div>
-    <div class="se-title">帮你在这里<br>点到最适合你的那杯</div>
-    <div class="se-sub">两步告诉我你现在想要什么<br>我来生成一句话，你说给咖啡师听</div>
+    <div class="se-title">帮你找到<br>今天那一杯</div>
+    <div class="se-sub">两个问题，一句话就有了<br>说给咖啡师，他自然明白</div>
   </div>
   <!-- Progress bar -->
   <div style="display:flex;gap:6px;padding:0 28px;margin-bottom:24px;justify-content:center">
@@ -1115,67 +1115,67 @@ textarea.fi{resize:none;line-height:1.65}
   <div class="se-steps" id="se-steps">
     <!-- Step 1 -->
     <div class="se-step-block" id="se-step-1">
-      <div class="se-q">你现在的状态更像？</div>
+      <div class="se-q">此刻，你是哪种状态</div>
       <div class="se-options">
         <div class="se-opt" id="se-s1-work" onclick="seSelect(1,'work')">
           <div class="se-opt-icon">💼</div>
           <div class="se-opt-lbl">工作间隙</div>
-          <div class="se-opt-sub">需要提神<br>快速决策</div>
+          <div class="se-opt-sub">需要提神<br>也需要快</div>
         </div>
         <div class="se-opt" id="se-s1-chill" onclick="seSelect(1,'chill')">
-          <div class="se-opt-icon">🛍️</div>
-          <div class="se-opt-lbl">悠闲逛逛</div>
-          <div class="se-opt-sub">有时间慢慢喝<br>可以尝试新的</div>
+          <div class="se-opt-icon">🌿</div>
+          <div class="se-opt-lbl">悠闲时光</div>
+          <div class="se-opt-sub">慢慢来<br>可以探索</div>
         </div>
         <div class="se-opt" id="se-s1-meet" onclick="seSelect(1,'meet')">
-          <div class="se-opt-icon">🗣️</div>
-          <div class="se-opt-lbl">跟人约见</div>
-          <div class="se-opt-sub">喝着聊天<br>稳定好喝就行</div>
+          <div class="se-opt-icon">🕯️</div>
+          <div class="se-opt-lbl">与人相遇</div>
+          <div class="se-opt-sub">聊天为主<br>好喝不抢戏</div>
         </div>
         <div class="se-opt" id="se-s1-alone" onclick="seSelect(1,'alone')">
           <div class="se-opt-icon">🎧</div>
-          <div class="se-opt-lbl">一个人待着</div>
-          <div class="se-opt-sub">享受当下<br>来点有意思的</div>
+          <div class="se-opt-lbl">独处</div>
+          <div class="se-opt-sub">只为自己<br>来点特别的</div>
         </div>
       </div>
     </div>
     <!-- Step 2 -->
     <div class="se-step-block" id="se-step-2" style="display:none">
-      <div class="se-q">咖啡对你来说更偏向？</div>
+      <div class="se-q">这一杯，你希望它是</div>
       <div class="se-options">
         <div class="se-opt" id="se-s2-acid" onclick="seSelect(2,'acid')">
           <div class="se-opt-icon">🍋</div>
-          <div class="se-opt-lbl">清爽果酸</div>
-          <div class="se-opt-sub">明亮 · 干净<br>像柑橘或浆果</div>
+          <div class="se-opt-lbl">明亮清爽</div>
+          <div class="se-opt-sub">果酸 · 干净<br>像清晨的光</div>
         </div>
         <div class="se-opt" id="se-s2-body" onclick="seSelect(2,'body')">
-          <div class="se-opt-icon">🍫</div>
-          <div class="se-opt-lbl">醇厚浓郁</div>
-          <div class="se-opt-sub">巧克力 · 坚果<br>厚重有层次</div>
+          <div class="se-opt-icon">🍂</div>
+          <div class="se-opt-lbl">醇厚深沉</div>
+          <div class="se-opt-sub">巧克力 · 坚果<br>落地有根</div>
         </div>
         <div class="se-opt" id="se-s2-sweet" onclick="seSelect(2,'sweet')">
-          <div class="se-opt-icon">🥛</div>
-          <div class="se-opt-lbl">甜感顺口</div>
-          <div class="se-opt-sub">加奶也好喝<br>不太苦</div>
+          <div class="se-opt-icon">🌸</div>
+          <div class="se-opt-lbl">柔和甜感</div>
+          <div class="se-opt-sub">加奶也好喝<br>不苦不涩</div>
         </div>
         <div class="se-opt" id="se-s2-random" onclick="seSelect(2,'random')">
-          <div class="se-opt-icon">🎲</div>
-          <div class="se-opt-lbl">随便推荐</div>
-          <div class="se-opt-sub">今天交给你了<br>来个惊喜吧</div>
+          <div class="se-opt-icon">✦</div>
+          <div class="se-opt-lbl">全凭推荐</div>
+          <div class="se-opt-sub">今天交给你<br>给我一个惊喜</div>
         </div>
       </div>
     </div>
   </div>
   <!-- Result -->
   <div class="se-result" id="se-result" style="display:none">
-    <div class="se-result-lbl">跟咖啡师说这句话</div>
+    <div class="se-result-lbl">把这句话说给咖啡师</div>
     <div class="se-result-card">
       <div class="se-result-sentence" id="se-sentence"></div>
-      <div class="se-result-hint">把这句话说出来，咖啡师就明白了</div>
+      <div class="se-result-hint">说出口，他自然明白</div>
     </div>
-    <button class="se-btn-copy" onclick="seCopySentence()">复制这句话</button>
-    <button class="se-btn-record" onclick="seGoRecord()">喝完记录这杯，让推荐越来越准 →</button>
-    <div class="se-enter-app" onclick="closeScanEntry()">进入咖啡伴侣 →</div>
+    <button class="se-btn-copy" onclick="seCopySentence()">带走这句话</button>
+    <button class="se-btn-record" onclick="seGoRecord()">喝完记一记，下次会更准 →</button>
+    <div class="se-enter-app" onclick="closeScanEntry()">进入咖啡伴侣</div>
   </div>
 </div>
 
@@ -1195,17 +1195,17 @@ textarea.fi{resize:none;line-height:1.65}
     </div>
     <div class="sh-sentence" id="sh-sentence">今天有什么好推荐的，不加糖就好</div>
     <div class="sh-mood-row">
-      <button class="sh-chip on" id="sh-chip-auto" onclick="setSentenceMood(null)">随意</button>
+      <button class="sh-chip on" id="sh-chip-auto" onclick="setSentenceMood(null)">随缘</button>
       <button class="sh-chip" id="sh-chip-boost" onclick="setSentenceMood('boost')">提神</button>
-      <button class="sh-chip" id="sh-chip-relax" onclick="setSentenceMood('relax')">放松</button>
-      <button class="sh-chip" id="sh-chip-explore" onclick="setSentenceMood('explore')">尝新</button>
+      <button class="sh-chip" id="sh-chip-relax" onclick="setSentenceMood('relax')">静下来</button>
+      <button class="sh-chip" id="sh-chip-explore" onclick="setSentenceMood('explore')">寻味</button>
     </div>
     <div class="sh-actions">
       <button class="sh-copy" onclick="copySentence()">
         <svg class="sh-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        复制这句话
+        带走这句话
       </button>
-      <button class="sh-shop" onclick="go('shop')">找对口的店</button>
+      <button class="sh-shop" onclick="go('shop')">找这样的店</button>
     </div>
     <div class="sh-copy-feedback" id="sh-copy-feedback">已复制 ✓</div>
   </div>
@@ -1449,7 +1449,7 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="sm-header">
       <div>
         <div class="sm-title">你的味觉宇宙</div>
-        <div class="sm-sub">每一杯是一颗星 · 轻触查看</div>
+        <div class="sm-sub">每一杯都在这里 · 轻触感受</div>
       </div>
       <button id="sm-trail-btn" onclick="smToggleTrail()" style="background:transparent;border:1px solid var(--b2);
         border-radius:var(--r-full);padding:4px 10px;font-size:10px;font-family:inherit;
@@ -2216,25 +2216,25 @@ function buildDynamicSentence(profile, sceneCtx, moodOverride){
   }[sceneCtx||'']||'';
 
   if(mood==='boost'){
-    if(isNew) return '有提神效果好的推荐吗，不太甜，不加糖'+sceneSuffix;
-    if(likeAcid) return '今天有果酸感明亮的单品推荐吗，手冲不加奶'+sceneSuffix;
-    if(likeBody) return '来一杯浓缩感强一点的美式，正常浓度'+sceneSuffix;
-    return '有提神的推荐吗，单品或者美式都行，不加糖'+sceneSuffix;
+    if(isNew) return '有提神的推荐吗，清饮就好'+sceneSuffix;
+    if(likeAcid) return '有明亮果酸的单品吗，手冲，清饮'+sceneSuffix;
+    if(likeBody) return '一杯美式，正常浓度，不加糖'+sceneSuffix;
+    return '提神的推荐一杯，手冲或美式'+sceneSuffix;
   }
   if(mood==='relax'){
-    if(isNew) return '今天有主推的特调或者单品吗，偏甜一点也OK'+sceneSuffix;
-    if(likeAcid&&likeBody) return '今天有果香感的精品推荐吗，偏轻盈清爽的'+sceneSuffix;
-    if(likeBody) return '来一杯醇厚顺口的拿铁，全脂牛奶'+sceneSuffix;
-    if(likeAcid) return '有果酸感清爽的推荐吗，不加奶也好喝的'+sceneSuffix;
-    return '今天想喝点顺口的，有什么推荐，不太苦就好'+sceneSuffix;
+    if(isNew) return '今天有什么值得慢慢喝的'+sceneSuffix;
+    if(likeAcid&&likeBody) return '有果香感的精品推荐吗，偏轻盈的那种'+sceneSuffix;
+    if(likeBody) return '一杯拿铁，全脂，不加糖'+sceneSuffix;
+    if(likeAcid) return '有果酸感清爽的吗，清饮也好喝的'+sceneSuffix;
+    return '今天想喝点顺口的，有什么推荐'+sceneSuffix;
   }
   if(mood==='explore'){
-    if(isNew) return '你们今天有什么最值得尝试的，来个惊喜吧'+sceneSuffix;
-    return '今天想试点不一样的，你们有什么特别推荐的'+sceneSuffix;
+    if(isNew) return '今天有什么特别值得试的，交给你了'+sceneSuffix;
+    return '想试点不一样的，今天有什么惊喜'+sceneSuffix;
   }
-  // default
-  if(isNew) return '今天有什么好推荐的，不加糖就好';
-  return likeAcid?'今天有果酸感的推荐吗，手冲或者单品都行':'今天有什么主推的，醇厚一点的';
+  // default / 随缘
+  if(isNew) return '今天有什么值得喝的，清饮就好';
+  return likeAcid?'有果酸感的推荐吗，手冲最好':'今天有什么主推的，醇厚一点';
 }
 
 function renderSentenceHero(){
@@ -2316,14 +2316,32 @@ function initScanEntry(shopId,ctxHint){
   }
   if(ctxHint==='mall') _sceneIdx=2;
   else if(ctxHint==='office') _sceneIdx=1;
+  el.style.opacity='0';
   el.style.display='flex';
   el.style.flexDirection='column';
   el.scrollTop=0;
+  // 隐藏底部导航，全屏开屏态
+  document.querySelector('.bnav')?.style.setProperty('display','none');
+  requestAnimationFrame(()=>{
+    el.style.transition='opacity .35s cubic-bezier(.16,1,.3,1)';
+    el.style.opacity='1';
+  });
 }
+
 
 function closeScanEntry(){
   const el=document.getElementById('scan-entry');
-  if(el){el.style.display='none';}
+  if(el){
+    el.style.opacity='0';
+    el.style.transition='opacity .25s';
+    setTimeout(()=>{
+      el.style.display='none';
+      el.style.opacity='';
+      el.style.transition='';
+    },250);
+  }
+  // 恢复底部导航
+  document.querySelector('.bnav')?.style.removeProperty('display');
   renderSentenceHero();
 }
 
@@ -2449,23 +2467,24 @@ function renderHome(){
   const el=document.getElementById('home-feed');
   if(!recs.length){
     el.innerHTML=`<div class="first-cta">
-      <div class="fca-lead">上面那句话是通用版本</div>
-      <div class="fca-title">告诉我你想要什么<br>让它只属于你</div>
-      <div class="fca-sub">两步快速问答，句子就会<br>根据你的偏好变得更精准</div>
-      <button class="fca-btn" onclick="initScanEntry(null,null)">快速定制这句话 →</button>
-      <div style="margin:20px 0;display:flex;align-items:center;gap:12px">
+      <div class="fca-lead">上面那句话还不是你的</div>
+      <div class="fca-title">两个问题之后<br>它才真正属于你</div>
+      <div class="fca-sub">说给咖啡师，他自然明白<br>时间会让它越来越准</div>
+      <button class="fca-btn" onclick="initScanEntry(null,null)">让这句话属于你 →</button>
+      <div style="margin:22px 0 18px;display:flex;align-items:center;gap:14px">
         <div style="flex:1;height:1px;background:var(--b1)"></div>
-        <span style="font-size:11px;color:var(--i3)">或者</span>
+        <span style="font-size:11px;color:var(--i3);letter-spacing:.06em">或者</span>
         <div style="flex:1;height:1px;background:var(--b1)"></div>
       </div>
-      <div style="font-size:13px;color:var(--i3);margin-bottom:14px;line-height:1.6">
-        喝完一杯，告诉我感受<br>记录越多，句子越准
+      <div style="font-size:13px;color:var(--i3);margin-bottom:14px;line-height:1.75;
+        font-family:var(--font-display);font-style:italic">
+        每记录一杯，那句话就更懂你一点
       </div>
       <button style="width:100%;padding:13px;background:transparent;border:1px solid var(--b2);
         border-radius:var(--r);font-size:13px;font-family:inherit;color:var(--a);cursor:pointer;
         letter-spacing:.02em;transition:background .18s"
-        onclick="startWithCamera()">拍照记录第一杯 →</button>
-      <div class="fca-alt" onclick="go('rec')" style="margin-top:10px">没有照片？用文字描述也行</div>
+        onclick="startWithCamera()">记录第一杯 →</button>
+      <div class="fca-alt" onclick="go('rec')" style="margin-top:10px">没有照片，用文字也行</div>
     </div>`;
     return;
   }
@@ -2473,7 +2492,7 @@ function renderHome(){
   const latest=recs[0];
   const history=recs.slice(1,30);
   const histHtml=history.length
-    ?`<div style="margin-top:6px">${history.map(r=>renderHistRow(r)).join('')}</div>`
+    ?`<div style="margin:10px 4px 0;border-top:1px solid var(--b1)">${history.map(r=>renderHistRow(r)).join('')}</div>`
     :'';
   el.innerHTML=`<div class="feed-wrap">${renderFeedCard(latest)}${histHtml}</div>`;
 }
@@ -3894,9 +3913,9 @@ function openShopDetailAmap(idx){
   const user=getUserProfile();
   const shopSentence=buildShopSentence(profile,user);
   const sayCard=`<div class="sd-say-card">
-    <div class="sd-say-lbl">进这家店说这句话</div>
+    <div class="sd-say-lbl">进门说这句话</div>
     <div class="sd-say-sentence">${shopSentence}</div>
-    <button class="sd-say-copy" id="sd-say-copy-btn" onclick="copyShopSentence('${shopSentence.replace(/'/g,"\\'")}')">复制这句话</button>
+    <button class="sd-say-copy" id="sd-say-copy-btn" onclick="copyShopSentence('${shopSentence.replace(/'/g,"\\'")}')">带走这句话</button>
   </div>`;
 
   // 今天点什么：有 API Key 时异步补充 AI 分析
@@ -3942,26 +3961,26 @@ function buildShopSentence(brandProfile, userProfile){
   const isNew=!userProfile||userProfile.count<2;
 
   if(sp>=0.85){
-    if(isNew) return '今天有什么主推的单品推荐吗，手冲，不加奶';
-    if(likeAcid) return '今天有果酸感明亮的单品推荐吗，SOE或手冲，直饮不加奶';
-    if(likeBody) return '有处理法偏日晒或厌氧的单品推荐吗，醇厚感强一点的';
-    return '今天有什么最值得尝试的单品，偏轻盈干净，手冲';
+    if(isNew) return '有主推的单品吗，手冲，清饮';
+    if(likeAcid) return '有明亮果酸的单品吗，SOE或手冲，清饮';
+    if(likeBody) return '日晒或厌氧的单品有吗，醇厚感强一点的';
+    return '最值得喝的单品是哪支，手冲，轻盈一点';
   }
   if(sp>=0.72){
-    if(isNew) return '有今天主推的精品推荐吗，拿铁或者手冲都行';
-    if(likeAcid) return '有果香感清爽的手冲推荐吗，不加奶也好喝的那种';
-    if(likeBody) return '来一杯醇厚一点的拿铁，全脂牛奶，咖啡味稍重';
-    return '今天有什么特别值得点的，你们主打什么风格';
+    if(isNew) return '今天有什么主推的，拿铁或手冲都行';
+    if(likeAcid) return '有果香感的手冲吗，清饮好喝的那种';
+    if(likeBody) return '一杯拿铁，全脂，咖啡味重一点';
+    return '今天你们最值得喝的是什么';
   }
   if(sp>=0.52){
-    if(isNew) return '今天有什么好推荐的，不加糖就好';
-    if(likeAcid) return '有口感清爽一点的推荐吗，不太苦，不加奶也能喝';
-    if(likeBody) return '来一杯拿铁，全脂，咖啡味重一点';
-    return '今天有特调或者主推单品吗，不太甜就好';
+    if(isNew) return '有什么好推荐的，不加糖就好';
+    if(likeAcid) return '清爽一点的推荐一杯，不太苦，清饮也行';
+    if(likeBody) return '一杯拿铁，全脂，不加糖';
+    return '有特调或者主推单品吗，不太甜就好';
   }
-  if(isNew) return '今天有什么好喝的推荐，不太苦就好';
-  if(likeBody) return '来一杯拿铁，全脂，少甜或者不加糖';
-  return '今天有什么主推的，咖啡味明显一点，不加糖';
+  if(isNew) return '有什么好喝的推荐，不太苦就好';
+  if(likeBody) return '一杯拿铁，全脂，少甜';
+  return '有什么主推的，咖啡味明显一点，不加糖';
 }
 
 async function loadShopOrder(s,profile){
