@@ -860,56 +860,83 @@ textarea.fi{resize:none;line-height:1.65}
 
 <!-- ── ONBOARDING ── -->
 <div class="onboard" id="onboard" style="display:none">
+
   <!-- Step 0: Welcome -->
   <div class="ob-step" id="ob-s0">
     <div class="ob-progress">
-      <div class="ob-prog-dot on" id="op0"></div>
-      <div class="ob-prog-dot" id="op1"></div>
-      <div class="ob-prog-dot" id="op2"></div>
+      <div class="ob-prog-dot on"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div>
     </div>
     <div class="ob-icon">☕</div>
     <div class="ob-headline">你好，<br>我是你的<em style="font-style:italic;color:var(--a)">咖啡伴侣</em></div>
-    <div class="ob-sub">不是点单助手，不是专业评测。<br>只是认真陪你记住每一杯，<br>帮你找到属于自己的那一杯。</div>
+    <div class="ob-sub">记住每一杯，找到更好的下一杯。</div>
     <div class="ob-feature-list">
-      <div class="ob-feature"><div class="ob-feature-icon">📷</div><div class="ob-feature-text">拍一张照片，AI帮你识别并记录咖啡信息</div></div>
-      <div class="ob-feature"><div class="ob-feature-icon">✦</div><div class="ob-feature-text">你的惊艳时刻，会变成星图里最亮的那颗星</div></div>
-      <div class="ob-feature"><div class="ob-feature-icon">🗺</div><div class="ob-feature-text">根据你的口味，找到附近真正适合你的咖啡馆</div></div>
+      <div class="ob-feature"><div class="ob-feature-icon">📷</div><div class="ob-feature-text">拍照识别 · AI 自动填写咖啡信息</div></div>
+      <div class="ob-feature"><div class="ob-feature-icon">✦</div><div class="ob-feature-text">惊艳时刻成为星图里最亮的星</div></div>
+      <div class="ob-feature"><div class="ob-feature-icon">☁️</div><div class="ob-feature-text">账号登录 · 多设备同步所有记录</div></div>
     </div>
-    <button class="ob-btn" onclick="obNext(1)">开始 →</button>
-    <button class="ob-btn-ghost" onclick="obSkip()">已经用过，直接进入</button>
+    <button class="ob-btn" onclick="obNext('signup')">创建账号</button>
+    <button class="ob-btn" style="background:var(--s3);color:var(--ink);box-shadow:none;margin-top:-4px" onclick="obNext('signin')">已有账号，登录</button>
+    <button class="ob-btn-ghost" onclick="obSkip()">先不登录，本地使用</button>
   </div>
 
-  <!-- Step 1: Name -->
-  <div class="ob-step" id="ob-s1" style="display:none">
+  <!-- Step signup: 注册 -->
+  <div class="ob-step" id="ob-signup" style="display:none">
     <div class="ob-progress">
-      <div class="ob-prog-dot" id="op0b"></div>
-      <div class="ob-prog-dot on" id="op1b"></div>
-      <div class="ob-prog-dot" id="op2b"></div>
+      <div class="ob-prog-dot"></div><div class="ob-prog-dot on"></div><div class="ob-prog-dot"></div>
     </div>
-    <div class="ob-icon">👋</div>
-    <div class="ob-headline">怎么称呼你？</div>
-    <div class="ob-sub" style="margin-bottom:28px">这只存在你的手机上，<br>让伴侣和你的对话更有温度。</div>
+    <div class="ob-icon" style="font-size:48px;margin-bottom:20px">✉️</div>
+    <div class="ob-headline" style="font-size:26px;margin-bottom:6px">创建账号</div>
+    <div class="ob-sub" style="margin-bottom:24px;font-size:14px">记录将安全存储在云端，<br>换设备也不会丢失。</div>
     <div class="ob-input-wrap">
-      <label class="ob-label">你的名字</label>
-      <input class="ob-input" id="ob-name" type="text" placeholder="随便填，昵称也行…" autocomplete="off" maxlength="20">
+      <label class="ob-label">昵称</label>
+      <input class="ob-input" id="ob-rname" type="text" placeholder="叫我…" autocomplete="name" maxlength="20" style="font-size:16px">
     </div>
-    <button class="ob-btn" onclick="obNext(2)">继续 →</button>
-    <button class="ob-btn-ghost" onclick="obNext(2)">先跳过</button>
+    <div class="ob-input-wrap">
+      <label class="ob-label">邮箱</label>
+      <input class="ob-input" id="ob-remail" type="email" placeholder="your@email.com" autocomplete="email" style="font-size:16px">
+    </div>
+    <div class="ob-input-wrap">
+      <label class="ob-label">密码（6位以上）</label>
+      <input class="ob-input" id="ob-rpass" type="password" placeholder="••••••••" autocomplete="new-password" style="font-size:16px">
+    </div>
+    <div id="ob-err" style="font-size:13px;color:var(--rd);margin-bottom:12px;min-height:18px;text-align:left"></div>
+    <button class="ob-btn" onclick="obSignUp()">注册并开始 →</button>
+    <button class="ob-btn-ghost" onclick="obNext('s0')">← 返回</button>
   </div>
 
-  <!-- Step 2: Ready -->
-  <div class="ob-step" id="ob-s2" style="display:none">
+  <!-- Step signin: 登录 -->
+  <div class="ob-step" id="ob-signin" style="display:none">
     <div class="ob-progress">
-      <div class="ob-prog-dot" id="op0c"></div>
-      <div class="ob-prog-dot" id="op1c"></div>
-      <div class="ob-prog-dot on" id="op2c"></div>
+      <div class="ob-prog-dot"></div><div class="ob-prog-dot on"></div><div class="ob-prog-dot"></div>
+    </div>
+    <div class="ob-icon" style="font-size:48px;margin-bottom:20px">🔑</div>
+    <div class="ob-headline" style="font-size:26px;margin-bottom:6px">欢迎回来</div>
+    <div class="ob-sub" style="margin-bottom:24px;font-size:14px">登录后自动同步你的所有记录。</div>
+    <div class="ob-input-wrap">
+      <label class="ob-label">邮箱</label>
+      <input class="ob-input" id="ob-lemail" type="email" placeholder="your@email.com" autocomplete="email" style="font-size:16px">
+    </div>
+    <div class="ob-input-wrap">
+      <label class="ob-label">密码</label>
+      <input class="ob-input" id="ob-lpass" type="password" placeholder="••••••••" autocomplete="current-password" style="font-size:16px">
+    </div>
+    <div id="ob-lerr" style="font-size:13px;color:var(--rd);margin-bottom:12px;min-height:18px;text-align:left"></div>
+    <button class="ob-btn" onclick="obSignIn()">登录 →</button>
+    <button class="ob-btn-ghost" onclick="obNext('s0')">← 返回</button>
+  </div>
+
+  <!-- Step ready: 完成 -->
+  <div class="ob-step" id="ob-ready" style="display:none">
+    <div class="ob-progress">
+      <div class="ob-prog-dot"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot on"></div>
     </div>
     <div class="ob-icon">🌟</div>
     <div class="ob-greeting" id="ob-greeting">你好，</div>
     <div class="ob-headline">一切准备好了</div>
-    <div class="ob-sub">每一杯都值得被认真记录。<br>下次喝咖啡时，让我陪你。</div>
+    <div class="ob-sub" id="ob-ready-sub">每一杯都值得被认真记录。</div>
     <button class="ob-btn" onclick="obFinish()">开始记录第一杯 →</button>
   </div>
+
 </div>
 
 <!-- HOME -->
@@ -1233,6 +1260,47 @@ textarea.fi{resize:none;line-height:1.65}
   </div>
   <div style="font-size:11px;color:var(--a);letter-spacing:.04em">安装 →</div>
 </div>
+  <!-- 账号状态卡片 -->
+  <div id="account-card" style="margin:0 14px 14px;padding:16px;background:var(--s1);border-radius:var(--r);box-shadow:0 1px 0 var(--b1)">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+      <div id="acc-avatar" style="width:44px;height:44px;border-radius:22px;background:var(--a3);border:1.5px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">☕</div>
+      <div style="flex:1;min-width:0">
+        <div id="acc-name" style="font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em">本地模式</div>
+        <div id="acc-email" style="font-size:12px;color:var(--i3);margin-top:2px">未登录 · 数据仅存本地</div>
+      </div>
+      <div id="acc-sync-dot" style="display:none;width:8px;height:8px;border-radius:4px;background:var(--gn);flex-shrink:0"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="acc-login-btn" onclick="openAuthSheet()" style="flex:1;padding:10px;background:var(--a);color:#0b0806;border:none;border-radius:var(--r-lg);font-size:13px;font-family:inherit;font-weight:600;cursor:pointer;transition:opacity .15s">登录 / 注册</button>
+      <button id="acc-logout-btn" onclick="supaSignOut(true)" style="display:none;flex:1;padding:10px;background:var(--s2);color:var(--i2);border:none;border-radius:var(--r-lg);font-size:13px;font-family:inherit;font-weight:500;cursor:pointer">退出登录</button>
+      <button id="acc-sync-btn" onclick="manualSync()" style="display:none;padding:10px 16px;background:var(--a3);border:1.5px solid var(--b2);color:var(--a);border-radius:var(--r-lg);font-size:13px;font-family:inherit;font-weight:500;cursor:pointer">同步 ↻</button>
+    </div>
+  </div>
+
+  <!-- Auth sheet (login from My page) -->
+  <div id="auth-sheet-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(12px);z-index:400;align-items:flex-end" onclick="closeAuthSheet(event)">
+    <div style="width:100%;max-width:430px;margin:0 auto;background:var(--s1);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:28px 24px 44px">
+      <div style="width:36px;height:4px;background:var(--s4);border-radius:2px;margin:0 auto 24px"></div>
+      <div id="auth-sheet-title" style="font-family:var(--font-display);font-size:24px;color:var(--ink);margin-bottom:6px">登录账号</div>
+      <div id="auth-sheet-sub" style="font-size:13px;color:var(--i3);margin-bottom:24px">登录后记录将自动同步到云端</div>
+      <div style="display:flex;gap:8px;margin-bottom:20px">
+        <button id="auth-tab-in" onclick="authTabSwitch('in')" style="flex:1;padding:9px;background:var(--a);color:#0b0806;border:none;border-radius:var(--r-lg);font-size:13px;font-family:inherit;font-weight:600;cursor:pointer">登录</button>
+        <button id="auth-tab-up" onclick="authTabSwitch('up')" style="flex:1;padding:9px;background:var(--s2);color:var(--i2);border:none;border-radius:var(--r-lg);font-size:13px;font-family:inherit;font-weight:500;cursor:pointer">注册</button>
+      </div>
+      <div id="auth-name-row" style="margin-bottom:12px;display:none">
+        <input id="auth-name" type="text" placeholder="昵称" autocomplete="name" style="width:100%;padding:14px 16px;background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r-sm);font-size:15px;color:var(--ink);font-family:inherit;outline:none;-webkit-appearance:none">
+      </div>
+      <div style="margin-bottom:12px">
+        <input id="auth-email" type="email" placeholder="邮箱" autocomplete="email" style="width:100%;padding:14px 16px;background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r-sm);font-size:15px;color:var(--ink);font-family:inherit;outline:none;-webkit-appearance:none">
+      </div>
+      <div style="margin-bottom:16px">
+        <input id="auth-pass" type="password" placeholder="密码（6位以上）" autocomplete="current-password" style="width:100%;padding:14px 16px;background:var(--s2);border:1.5px solid var(--b1);border-radius:var(--r-sm);font-size:15px;color:var(--ink);font-family:inherit;outline:none;-webkit-appearance:none">
+      </div>
+      <div id="auth-err" style="font-size:13px;color:var(--rd);margin-bottom:12px;min-height:18px"></div>
+      <button id="auth-submit-btn" onclick="authSubmit()" style="width:100%;padding:15px;background:var(--a);color:#0b0806;border:none;border-radius:var(--r-lg);font-size:15px;font-family:inherit;font-weight:600;cursor:pointer;box-shadow:0 4px 18px rgba(200,152,104,.32)">登录</button>
+    </div>
+  </div>
+
   <div style="margin:0 14px 14px;padding:12px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="openApiKeySetup()">
     <div>
       <div style="font-size:13px;color:var(--ink);margin-bottom:2px">API Key 设置</div>
@@ -2250,7 +2318,11 @@ async function saveRec(){
     }
   })();
 }
-function save(){localStorage.setItem('cf6',JSON.stringify(recs));}
+function save(){
+  localStorage.setItem('cf6',JSON.stringify(recs));
+  // 后台静默同步到云端（有登录时）
+  if(_supaSession) syncToCloud().catch(()=>{});
+}
 let _lastSavedRec=null;
 async function triggerRouteCard(){
   const rec=_lastSavedRec;if(!rec)return;
@@ -3944,25 +4016,251 @@ async function smRegenSummary(){
   document.getElementById('sm-d-feel-row').style.display='flex';
 }
 
-// ── ONBOARDING ──
-function obInit(){
-  const profile=JSON.parse(localStorage.getItem('cf6_profile')||'null');
-  if(!profile){
-    document.getElementById('onboard').style.display='flex';
+// ── SUPABASE AUTH & SYNC ──
+const SUPA_URL='https://rjgitrwsqbglawwmvtts.supabase.co';
+const SUPA_KEY='sb_publishable_kBOH5Q-8cOLEWBr1fi8rNg_dh6dyBOL';
+let _supaSession=null,_supaUser=null;
+
+function supaHeaders(extra={}){
+  const h={'Content-Type':'application/json','apikey':SUPA_KEY,...extra};
+  if(_supaSession?.access_token) h['Authorization']=`Bearer ${_supaSession.access_token}`;
+  return h;
+}
+async function supaSignUp(email,password,name){
+  const r=await fetch(`${SUPA_URL}/auth/v1/signup`,{
+    method:'POST',headers:supaHeaders(),
+    body:JSON.stringify({email,password,data:{name}})
+  });
+  const d=await r.json();
+  if(d.error||d.msg) throw new Error(d.error?.message||d.msg||'注册失败');
+  if(d.session){_supaSession=d.session;_supaUser=d.user;saveSupa(d);}
+  else if(d.user&&!d.session) throw new Error('请检查邮箱，点击确认链接后再登录');
+  return d;
+}
+async function supaSignIn(email,password){
+  const r=await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`,{
+    method:'POST',headers:supaHeaders(),
+    body:JSON.stringify({email,password})
+  });
+  const d=await r.json();
+  if(d.error||d.error_code) throw new Error(d.error_description||d.msg||'邮箱或密码错误');
+  _supaSession=d;_supaUser=d.user;saveSupa(d);
+  return d;
+}
+async function supaSignOut(reload=false){
+  if(_supaSession?.access_token){
+    await fetch(`${SUPA_URL}/auth/v1/logout`,{method:'POST',headers:supaHeaders()}).catch(()=>{});
+  }
+  _supaSession=null;_supaUser=null;
+  localStorage.removeItem('cf6_supa');
+  updateAccountUI();
+  if(reload) renderHome();
+}
+function saveSupa(d){localStorage.setItem('cf6_supa',JSON.stringify(d));}
+function supaRestoreSession(){
+  const raw=localStorage.getItem('cf6_supa');if(!raw)return false;
+  try{
+    const s=JSON.parse(raw);
+    const exp=(s.expires_at||s.session?.expires_at||0)*1000;
+    if(s.access_token&&exp>Date.now()){_supaSession=s;_supaUser=s.user;return true;}
+    // try refresh
+    supaRefresh(s.refresh_token||s.session?.refresh_token).catch(()=>{});
+  }catch(e){}
+  return false;
+}
+async function supaRefresh(rt){
+  if(!rt)return;
+  const r=await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`,{
+    method:'POST',headers:supaHeaders(),body:JSON.stringify({refresh_token:rt})
+  });
+  const d=await r.json();
+  if(d.access_token){_supaSession=d;_supaUser=d.user;saveSupa(d);updateAccountUI();}
+}
+
+// ── CLOUD SYNC ──
+async function syncToCloud(){
+  if(!_supaSession||!_supaUser) return;
+  try{
+    await fetch(`${SUPA_URL}/rest/v1/cf6_records`,{
+      method:'POST',
+      headers:{...supaHeaders(),'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({user_id:_supaUser.id,data:JSON.stringify(recs),updated_at:new Date().toISOString()})
+    });
+  }catch(e){console.log('[sync↑]',e.message);}
+}
+async function loadFromCloud(){
+  if(!_supaSession||!_supaUser) return null;
+  try{
+    const r=await fetch(`${SUPA_URL}/rest/v1/cf6_records?user_id=eq.${_supaUser.id}&select=data,updated_at`,{
+      headers:supaHeaders()
+    });
+    const d=await r.json();
+    if(Array.isArray(d)&&d[0]?.data) return JSON.parse(d[0].data);
+  }catch(e){console.log('[sync↓]',e.message);}
+  return null;
+}
+async function manualSync(){
+  const btn=document.getElementById('acc-sync-btn');
+  if(btn){btn.textContent='同步中…';btn.disabled=true;}
+  const cloud=await loadFromCloud();
+  if(cloud&&cloud.length>recs.length){
+    recs=cloud;save();renderHome();
+    const el=document.getElementById('acc-sync-dot');if(el)el.style.background='var(--gn)';
+  } else {
+    await syncToCloud();
+  }
+  if(btn){btn.textContent='同步 ↻';btn.disabled=false;}
+}
+
+// ── ACCOUNT UI ──
+function updateAccountUI(){
+  const card=document.getElementById('account-card');if(!card)return;
+  const nameEl=document.getElementById('acc-name');
+  const emailEl=document.getElementById('acc-email');
+  const loginBtn=document.getElementById('acc-login-btn');
+  const logoutBtn=document.getElementById('acc-logout-btn');
+  const syncBtn=document.getElementById('acc-sync-btn');
+  const dot=document.getElementById('acc-sync-dot');
+  const avatar=document.getElementById('acc-avatar');
+  if(_supaUser){
+    const name=_supaUser.user_metadata?.name||_supaUser.email?.split('@')[0]||'你好';
+    if(nameEl)nameEl.textContent=name;
+    if(emailEl)emailEl.textContent=_supaUser.email+' · 已同步';
+    if(loginBtn)loginBtn.style.display='none';
+    if(logoutBtn)logoutBtn.style.display='block';
+    if(syncBtn)syncBtn.style.display='block';
+    if(dot)dot.style.display='block';
+    if(avatar)avatar.textContent='☁️';
+  }else{
+    if(nameEl)nameEl.textContent='本地模式';
+    if(emailEl)emailEl.textContent='未登录 · 数据仅存本地';
+    if(loginBtn)loginBtn.style.display='block';
+    if(logoutBtn)logoutBtn.style.display='none';
+    if(syncBtn)syncBtn.style.display='none';
+    if(dot)dot.style.display='none';
+    if(avatar)avatar.textContent='☕';
   }
 }
-function obNext(step){
+
+// ── AUTH SHEET (from My page) ──
+let _authMode='in';
+function openAuthSheet(){
+  document.getElementById('auth-sheet-overlay').style.display='flex';
+  authTabSwitch('in');
+}
+function closeAuthSheet(e){
+  if(e.target===document.getElementById('auth-sheet-overlay'))
+    document.getElementById('auth-sheet-overlay').style.display='none';
+}
+function authTabSwitch(mode){
+  _authMode=mode;
+  const nameRow=document.getElementById('auth-name-row');
+  const title=document.getElementById('auth-sheet-title');
+  const tabIn=document.getElementById('auth-tab-in');
+  const tabUp=document.getElementById('auth-tab-up');
+  const btn=document.getElementById('auth-submit-btn');
+  if(mode==='in'){
+    if(nameRow)nameRow.style.display='none';
+    if(title)title.textContent='登录账号';
+    if(btn)btn.textContent='登录';
+    if(tabIn){tabIn.style.background='var(--a)';tabIn.style.color='#0b0806';}
+    if(tabUp){tabUp.style.background='var(--s2)';tabUp.style.color='var(--i2)';}
+  }else{
+    if(nameRow)nameRow.style.display='block';
+    if(title)title.textContent='创建账号';
+    if(btn)btn.textContent='注册';
+    if(tabIn){tabIn.style.background='var(--s2)';tabIn.style.color='var(--i2)';}
+    if(tabUp){tabUp.style.background='var(--a)';tabUp.style.color='#0b0806';}
+  }
+  document.getElementById('auth-err').textContent='';
+}
+async function authSubmit(){
+  const btn=document.getElementById('auth-submit-btn');
+  const errEl=document.getElementById('auth-err');
+  const email=(document.getElementById('auth-email')?.value||'').trim();
+  const pass=document.getElementById('auth-pass')?.value||'';
+  if(!email||!pass){errEl.textContent='请填写邮箱和密码';return;}
+  btn.textContent='处理中…';btn.disabled=true;errEl.textContent='';
+  try{
+    if(_authMode==='up'){
+      const name=(document.getElementById('auth-name')?.value||'').trim();
+      await supaSignUp(email,pass,name);
+    }else{
+      await supaSignIn(email,pass);
+    }
+    document.getElementById('auth-sheet-overlay').style.display='none';
+    updateAccountUI();
+    // 登录后同步
+    if(_supaSession){
+      const cloud=await loadFromCloud();
+      if(cloud&&cloud.length>recs.length){recs=cloud;save();renderHome();}
+      else await syncToCloud();
+    }
+  }catch(e){errEl.textContent=e.message;}
+  btn.disabled=false;
+  btn.textContent=_authMode==='in'?'登录':'注册';
+}
+
+// ── ONBOARDING ──
+function obInit(){
+  const hasProfile=!!localStorage.getItem('cf6_profile');
+  supaRestoreSession();
+  if(hasProfile||_supaUser){updateAccountUI();return;}
+  document.getElementById('onboard').style.display='flex';
+  obShowStep('ob-s0');
+}
+function obShowStep(id){
   document.querySelectorAll('.ob-step').forEach(s=>s.style.display='none');
-  const el=document.getElementById('ob-s'+step);
+  const el=document.getElementById(id);if(!el)return;
   el.style.display='block';
   el.style.animation='none';
   requestAnimationFrame(()=>{el.style.animation='ob-in .5s cubic-bezier(.16,1,.3,1)';});
-  if(step===1) setTimeout(()=>document.getElementById('ob-name')?.focus(),300);
-  if(step===2){
-    const name=(document.getElementById('ob-name')?.value||'').trim();
-    document.getElementById('ob-greeting').textContent=name?`你好，${name}。`:'你好，';
-    localStorage.setItem('cf6_profile',JSON.stringify({name:name||'',ts:Date.now()}));
-  }
+}
+function obNext(target){
+  if(target==='s0') obShowStep('ob-s0');
+  else if(target==='signup'){obShowStep('ob-signup');setTimeout(()=>document.getElementById('ob-rname')?.focus(),300);}
+  else if(target==='signin'){obShowStep('ob-signin');setTimeout(()=>document.getElementById('ob-lemail')?.focus(),300);}
+}
+async function obSignUp(){
+  const name=(document.getElementById('ob-rname')?.value||'').trim();
+  const email=(document.getElementById('ob-remail')?.value||'').trim();
+  const pass=document.getElementById('ob-rpass')?.value||'';
+  const errEl=document.getElementById('ob-err');
+  errEl.textContent='';
+  if(!email||!pass){errEl.textContent='请填写邮箱和密码';return;}
+  if(pass.length<6){errEl.textContent='密码至少6位';return;}
+  const btn=document.querySelector('#ob-signup .ob-btn');
+  if(btn){btn.textContent='注册中…';btn.disabled=true;}
+  try{
+    await supaSignUp(email,pass,name);
+    await _finishAuth(name||email.split('@')[0],'注册成功！云端同步已开启。');
+  }catch(e){errEl.textContent=e.message;}
+  if(btn){btn.disabled=false;btn.textContent='注册并开始 →';}
+}
+async function obSignIn(){
+  const email=(document.getElementById('ob-lemail')?.value||'').trim();
+  const pass=document.getElementById('ob-lpass')?.value||'';
+  const errEl=document.getElementById('ob-lerr');
+  errEl.textContent='';
+  if(!email||!pass){errEl.textContent='请填写邮箱和密码';return;}
+  const btn=document.querySelector('#ob-signin .ob-btn');
+  if(btn){btn.textContent='登录中…';btn.disabled=true;}
+  try{
+    await supaSignIn(email,pass);
+    const name=_supaUser?.user_metadata?.name||email.split('@')[0];
+    // 拉取云端记录
+    const cloud=await loadFromCloud();
+    if(cloud&&cloud.length>0){recs=cloud;save();}
+    await _finishAuth(name,'欢迎回来！记录已同步。');
+  }catch(e){errEl.textContent=e.message;}
+  if(btn){btn.disabled=false;btn.textContent='登录 →';}
+}
+async function _finishAuth(name,subText){
+  document.getElementById('ob-greeting').textContent=name?`你好，${name}。`:'你好，';
+  document.getElementById('ob-ready-sub').textContent=subText;
+  obShowStep('ob-ready');
+  localStorage.setItem('cf6_profile',JSON.stringify({name:name||'',ts:Date.now()}));
+  updateAccountUI();
 }
 function obSkip(){
   localStorage.setItem('cf6_profile',JSON.stringify({name:'',ts:Date.now()}));
@@ -3970,9 +4268,11 @@ function obSkip(){
 }
 function obFinish(){
   document.getElementById('onboard').style.display='none';
+  // 如果已登录且有本地记录，上传
+  if(_supaSession&&recs.length) syncToCloud().catch(()=>{});
   go('rec');
 }
-// Run onboarding check after app loads
+// Run after app loads
 setTimeout(obInit,200);
 </script>
 
