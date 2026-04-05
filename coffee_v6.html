@@ -649,6 +649,65 @@ textarea.fi{resize:none;line-height:1.65}
   font-size:13px;color:var(--a);cursor:pointer;font-family:var(--font-ui);
   font-weight:500;transition:all .15s}
 .csc-btn:active{background:var(--a3)}
+.csc-identity{font-size:12px;color:var(--i2);line-height:1.65;font-style:italic;margin-top:6px;margin-bottom:14px;padding-top:6px;border-top:1px solid var(--b1)}
+
+/* ── 句子展示卡 overlay ── */
+.sentence-display-overlay{position:fixed;inset:0;z-index:500;background:rgba(11,8,6,.92);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  display:none;align-items:center;justify-content:center;padding:28px}
+.sentence-display-overlay.on{display:flex}
+.sentence-display-card{width:100%;max-width:360px;background:var(--s1);
+  border-radius:var(--r-lg);padding:32px 26px 28px;
+  border:1px solid var(--b2);
+  box-shadow:0 24px 64px rgba(0,0,0,.6),0 0 0 1px rgba(200,155,80,.08);
+  text-align:center;animation:sdcIn .32s cubic-bezier(.32,1,.2,1)}
+@keyframes sdcIn{from{opacity:0;transform:scale(.94) translateY(16px)}to{opacity:1;transform:none}}
+.sdc-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--a);
+  margin-bottom:18px;font-weight:600;opacity:.7}
+.sdc-sentence{font-family:var(--font-display);font-size:22px;font-style:italic;
+  color:var(--ink);line-height:1.65;margin-bottom:24px;letter-spacing:.01em}
+.sdc-hint{font-size:12px;color:var(--i3);margin-bottom:20px;line-height:1.5}
+.sdc-close{width:100%;padding:13px;background:var(--a);color:var(--bg);
+  border:none;border-radius:var(--r);font-size:14px;font-family:var(--font-ui);
+  font-weight:700;cursor:pointer;letter-spacing:.02em}
+.sdc-close:active{opacity:.85}
+
+/* ── 店铺记忆 drawer ── */
+.shop-memory-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:none;align-items:flex-end}
+.shop-memory-overlay.on{display:flex}
+.shop-memory-sheet{width:100%;max-width:430px;margin:0 auto;background:var(--s1);
+  border-radius:var(--r-lg) var(--r-lg) 0 0;border:1px solid var(--b1);
+  max-height:85vh;overflow-y:auto;
+  transform:translateY(100%);transition:transform .32s cubic-bezier(.32,1,.2,1)}
+.shop-memory-overlay.on .shop-memory-sheet{transform:translateY(0)}
+.smo-head{padding:18px 20px 12px;border-bottom:1px solid var(--b1)}
+.smo-title{font-family:var(--font-display);font-size:20px;font-weight:400;color:var(--ink)}
+.smo-meta{font-size:12px;color:var(--i3);margin-top:4px}
+.smo-body{padding:12px 16px}
+.smo-rec{background:var(--s2);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;
+  border:1px solid var(--b1)}
+.smo-rec-date{font-size:11px;color:var(--i3);margin-bottom:6px;letter-spacing:.03em}
+.smo-rec-feel{font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:10px}
+.smo-rec-wow{display:inline-block;font-size:11px;color:var(--a);background:rgba(200,155,80,.12);
+  padding:2px 8px;border-radius:20px;margin-bottom:8px}
+.smo-rec-edit{width:100%;padding:9px;background:transparent;border:1px solid var(--b2);
+  border-radius:var(--r-sm);font-size:12px;color:var(--i2);font-family:var(--font-ui);
+  cursor:pointer;transition:all .15s}
+.smo-rec-edit:active{background:var(--b1);color:var(--a)}
+.smo-edit-area{width:100%;background:var(--s3);border:1px solid var(--b2);
+  border-radius:var(--r-sm);padding:10px;font-size:13px;color:var(--ink);
+  font-family:var(--font-ui);resize:none;outline:none;line-height:1.6;margin-top:8px;
+  box-sizing:border-box}
+.smo-save-btn{margin-top:8px;padding:9px 18px;background:var(--a);color:var(--bg);
+  border:none;border-radius:var(--r-sm);font-size:12px;font-family:var(--font-ui);
+  font-weight:700;cursor:pointer}
+.smo-footer{padding:16px;border-top:1px solid var(--b1)}
+.smo-explore-btn{width:100%;padding:14px;background:transparent;border:1.5px solid var(--b2);
+  border-radius:var(--r);font-size:13px;color:var(--a);font-family:var(--font-ui);
+  cursor:pointer;letter-spacing:.02em;transition:all .15s}
+.smo-explore-btn:active{background:var(--a);color:var(--bg)}
 
 /* ── 探店卡片 ── */
 /* Hero card — For You 精准推荐 */
@@ -1214,7 +1273,7 @@ textarea.fi{resize:none;line-height:1.65}
         <svg class="sh-copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         带走这句话
       </button>
-      <button class="sh-shop" onclick="go('shop')">找这样的店</button>
+      <button class="sh-shop" onclick="goShopAutoOpen()">找这样的店</button>
     </div>
     <div class="sh-copy-feedback" id="sh-copy-feedback">已复制 ✓</div>
   </div>
@@ -1408,6 +1467,7 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="csc-label">我的咖啡特征码</div>
     <div class="csc-code" id="csc-code">CF-——</div>
     <div class="csc-style" id="csc-style">积累记录后自动生成</div>
+    <div class="csc-identity" id="csc-identity" style="display:none"></div>
     <div class="csc-hint">出示给咖啡馆，让店员立刻了解你的口味偏好</div>
     <button class="csc-btn" onclick="copyFeatureCode()">复制特征码</button>
   </div>
@@ -1514,6 +1574,7 @@ textarea.fi{resize:none;line-height:1.65}
   <div class="profile-card" id="prof-card" style="display:none">
     <div class="pc-style" id="pc-style">——</div>
     <div class="pc-desc" id="pc-desc"></div>
+    <div class="pc-identity" id="pc-identity" style="font-size:12px;color:var(--i2);line-height:1.65;font-style:italic;margin-bottom:14px;padding:10px 12px;background:var(--s2);border-radius:var(--r-sm);border-left:2px solid var(--a);display:none"></div>
     <div class="fc-box" id="fc-box" onclick="copyCode()">
       <div>
         <div class="fc-code" id="fc-code">——</div>
@@ -1654,6 +1715,31 @@ textarea.fi{resize:none;line-height:1.65}
     <div class="share-btns">
       <button class="share-btn" onclick="closeApiKeySetup()">跳过（AI功能不可用）</button>
       <button class="share-btn primary" id="apikey-save-btn" onclick="saveApiKey()">验证并保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 句子展示卡 overlay -->
+<div class="sentence-display-overlay" id="sentence-display-overlay" onclick="closeSentenceCard(event)">
+  <div class="sentence-display-card" id="sentence-display-card">
+    <div class="sdc-label">对咖啡师说</div>
+    <div class="sdc-sentence" id="sdc-sentence"></div>
+    <div class="sdc-hint">念出来就好，他自然明白你想要什么</div>
+    <button class="sdc-close" onclick="closeSentenceCardDirect()">好，我记住了</button>
+  </div>
+</div>
+
+<!-- 店铺记忆 drawer -->
+<div class="shop-memory-overlay" id="shop-memory-overlay" onclick="closeShopMemory(event)">
+  <div class="shop-memory-sheet" id="shop-memory-sheet">
+    <div class="drag"></div>
+    <div class="smo-head">
+      <div class="smo-title" id="smo-title"></div>
+      <div class="smo-meta" id="smo-meta"></div>
+    </div>
+    <div class="smo-body" id="smo-body"></div>
+    <div class="smo-footer">
+      <button class="smo-explore-btn" onclick="smFindSimilar()">找相似风味的附近咖啡馆 →</button>
     </div>
   </div>
 </div>
@@ -2284,14 +2370,27 @@ function shCycleScene(){
   renderSentenceHero();
 }
 
+// ── 句子展示卡 ──
+function showSentenceCard(sentence){
+  if(!sentence) return;
+  document.getElementById('sdc-sentence').textContent=sentence;
+  const ov=document.getElementById('sentence-display-overlay');
+  ov.style.display='flex';
+  setTimeout(()=>ov.classList.add('on'),10);
+  navigator.clipboard?.writeText(sentence).catch(()=>{});
+}
+function closeSentenceCard(e){
+  if(e.target===document.getElementById('sentence-display-overlay')) closeSentenceCardDirect();
+}
+function closeSentenceCardDirect(){
+  const ov=document.getElementById('sentence-display-overlay');
+  ov.classList.remove('on');
+  setTimeout(()=>ov.style.display='none',300);
+}
+
 function copySentence(){
   const sentence=document.getElementById('sh-sentence')?.textContent||'';
-  const fb=document.getElementById('sh-copy-feedback');
-  navigator.clipboard?.writeText(sentence).then(()=>{
-    if(fb){fb.classList.add('show');setTimeout(()=>fb.classList.remove('show'),1600);}
-  }).catch(()=>{
-    if(fb){fb.classList.add('show');setTimeout(()=>fb.classList.remove('show'),1600);}
-  });
+  showSentenceCard(sentence);
 }
 
 // ── SCAN ENTRY (QR码入场) ──
@@ -2430,9 +2529,7 @@ function seComputeSentence(){
 function seCopySentence(){
   localStorage.setItem('cf6_scan_done','1');
   const sentence=document.getElementById('se-sentence')?.textContent||'';
-  const btn=document.querySelector('.se-btn-copy');
-  navigator.clipboard?.writeText(sentence).catch(()=>{});
-  if(btn){btn.textContent='已带走 ✓';setTimeout(()=>{btn.textContent='带走这句话';},2000);}
+  showSentenceCard(sentence);
   _sentenceMood=null;
   renderSentenceHero();
 }
@@ -3138,21 +3235,12 @@ function renderMy(){
 
   // Profile + code
   if(recs.length>=3){
-    const uniq=new Set(recs.map(r=>r.name)).size;
-    const isExp=uniq/recs.length>.65;
-    const avgA=recs.filter(r=>r.scanData).length; // proxy
-    const wowRate=recs.filter(r=>r.wow).length/recs.length;
-    let style,desc;
-    if(isExp&&recs.some(r=>r.feel?.includes('酸'))){style='产区猎人';desc='在不同产区和处理法之间游走，对风味的细微差异有敏锐感知。';}
-    else if(isExp){style='风味探险家';desc='享受探索不同咖啡的过程，口味版图持续扩展。';}
-    else if(wowRate>=.25){style='惊喜收集者';desc='审美清晰，对真正打动自己的咖啡有极强的感知力。';}
-    else{style='深耕者';desc='在自己喜欢的范围内越喝越准，对细节越来越敏感。';}
-    const topFeel=recs.filter(r=>r.feel).map(r=>r.feel.slice(0,2))[0]||'CF';
-    const styleCode=style==='产区猎人'?'RH':style==='风味探险家'?'FE':style==='惊喜收集者'?'WC':'DP';
-    const code=`CF-${styleCode}-${topFeel.toUpperCase()}-${String(recs.length).padStart(3,'0')}`;
-    document.getElementById('pc-style').textContent=style;
-    document.getElementById('pc-desc').textContent=desc;
-    document.getElementById('fc-code').textContent=code;
+    const fc=generateFeatureCode(recs);
+    document.getElementById('pc-style').textContent=fc.zenStyle;
+    document.getElementById('pc-desc').textContent=fc.desc;
+    const pcId=document.getElementById('pc-identity');
+    if(pcId){pcId.textContent=fc.identity;pcId.style.display='block';}
+    document.getElementById('fc-code').textContent=fc.code;
     document.getElementById('prof-lbl').style.display='block';
     document.getElementById('prof-card').style.display='block';
   }
@@ -3373,6 +3461,12 @@ function initTheme(){
 // ── SHOP ──
 let _amapPois = [];
 let _shopUser = null; // shared for detail modal
+let _shopAutoOpen = false; // 跳转探店后自动打开第一家店详情
+
+function goShopAutoOpen(){
+  _shopAutoOpen = true;
+  go('shop');
+}
 
 function distStr(m){return +m>=1000?(+m/1000).toFixed(1)+'km':Math.round(+m)+'m';}
 
@@ -3768,12 +3862,17 @@ let _userPos=null; // 保存用户位置，供搜索复用
 
 async function renderShopScreen(){
   // 特征码同步
-  const fcCode=document.getElementById('fc-code');
-  const codeEl=document.getElementById('csc-code');
-  const styleEl=document.getElementById('csc-style');
-  if(fcCode?.textContent&&fcCode.textContent!=='——'){
-    codeEl.textContent=fcCode.textContent;
-    styleEl.textContent=document.getElementById('pc-style')?.textContent||'';
+  if(recs.length>=3){
+    const fc=generateFeatureCode(recs);
+    const codeEl=document.getElementById('csc-code');
+    const styleEl=document.getElementById('csc-style');
+    const idEl=document.getElementById('csc-identity');
+    if(codeEl) codeEl.textContent=fc.code;
+    if(styleEl) styleEl.textContent=fc.zenStyle;
+    if(idEl){idEl.textContent=fc.identity;idEl.style.display='block';}
+    // 同步到我的页面（如果已经渲染过）
+    const fcCode=document.getElementById('fc-code');
+    if(fcCode&&fcCode.textContent==='——') fcCode.textContent=fc.code;
   }
   // 如果搜索栏有内容，执行搜索而非附近推荐
   const q=(document.getElementById('shop-search-input')?.value||'').trim();
@@ -3795,6 +3894,10 @@ async function renderShopScreen(){
     const subLabel=user?._fromStar?'根据这颗星的风味，为你找到附近相配的咖啡馆':recs.length>=3?'为你找到附近相配的咖啡馆':'积累3杯记录后将获得个性化推荐';
     document.getElementById('shop-page-sub').textContent=subLabel;
     wrap.innerHTML=(isIp?`<div style="padding:6px 14px;font-size:11px;color:var(--i3);text-align:center">已使用 IP 定位，结果精度有限</div>`:'')+renderPoiGroups(groups,user);
+    if(_shopAutoOpen){
+      _shopAutoOpen=false;
+      setTimeout(()=>{ if(_amapPois.length) openShopDetailAmap(0); },120);
+    }
   }catch(e){
     wrap.innerHTML=`<div style="padding:48px 20px;text-align:center">
       <div style="font-size:32px;opacity:.25;margin-bottom:12px">📍</div>
@@ -4242,9 +4345,7 @@ function showPrescription(rx){
 }
 
 function copyShopSentence(sentence){
-  const btn=document.getElementById('sd-say-copy-btn');
-  navigator.clipboard?.writeText(sentence).catch(()=>{});
-  if(btn){btn.textContent='已复制 ✓';setTimeout(()=>{btn.textContent='复制这句话';},2000);}
+  showSentenceCard(sentence);
 }
 
 function copyPrescription(){
@@ -4539,11 +4640,56 @@ function renderShopFootprint(){
     }).join('');
 }
 
-function smShopFilter(encodedShop){
-  // Highlight stars from this shop on the map (future: dim others)
-  // For now: tap navigates to explore with this shop's avg sensory profile
-  const shop=decodeURIComponent(encodedShop);
+function smShopFilter(encodedShop){ showShopMemory(decodeURIComponent(encodedShop)); }
+
+let _smCurrentShop=null;
+function showShopMemory(shop){
+  _smCurrentShop=shop;
   const shopRecs=recs.filter(r=>(r.scanData?.shop||r.name||'未知')===shop);
+  if(!shopRecs.length)return;
+  document.getElementById('smo-title').textContent=shop;
+  document.getElementById('smo-meta').textContent=`${shopRecs.length} 次到访`;
+  const body=document.getElementById('smo-body');
+  body.innerHTML=shopRecs.map((r,i)=>`
+    <div class="smo-rec" id="smo-rec-${r.id}">
+      <div class="smo-rec-date">${r.date||''}${r.scanData?.name&&r.scanData.name!==shop?' · '+r.scanData.name:''}</div>
+      ${r.wow?'<div class="smo-rec-wow">✦ 惊艳时刻</div>':''}
+      <div class="smo-rec-feel" id="smo-feel-${r.id}">${r.feel||r.notes||'没有留下感受描述'}</div>
+      <button class="smo-rec-edit" onclick="smoToggleEdit('${r.id}')">重新描述这一杯 ✏</button>
+      <div id="smo-edit-${r.id}" style="display:none">
+        <textarea class="smo-edit-area" id="smo-ta-${r.id}" rows="3">${r.feel||r.notes||''}</textarea>
+        <button class="smo-save-btn" onclick="smoSaveFeel('${r.id}')">保存</button>
+      </div>
+    </div>`).join('');
+  const ov=document.getElementById('shop-memory-overlay');
+  ov.style.display='flex';
+  setTimeout(()=>ov.classList.add('on'),10);
+}
+function smoToggleEdit(id){
+  const ed=document.getElementById('smo-edit-'+id);
+  if(!ed)return;
+  const open=ed.style.display==='none';
+  ed.style.display=open?'block':'none';
+  if(open) document.getElementById('smo-ta-'+id)?.focus();
+}
+function smoSaveFeel(id){
+  const ta=document.getElementById('smo-ta-'+id);
+  if(!ta)return;
+  const newFeel=ta.value.trim();
+  if(!newFeel)return;
+  const idx=recs.findIndex(r=>r.id===id);
+  if(idx<0)return;
+  recs[idx].feel=newFeel;
+  delete recs[idx].summary; // invalidate AI summary cache
+  saveRecs();
+  document.getElementById('smo-feel-'+id).textContent=newFeel;
+  document.getElementById('smo-edit-'+id).style.display='none';
+  renderStarMap();
+}
+function smFindSimilar(){
+  closeShopMemoryDirect();
+  if(!_smCurrentShop)return;
+  const shopRecs=recs.filter(r=>(r.scanData?.shop||r.name||'未知')===_smCurrentShop);
   if(!shopRecs.length)return;
   let sumA=0,sumB=0;
   shopRecs.forEach(r=>{
@@ -4554,9 +4700,18 @@ function smShopFilter(encodedShop){
     avgA:sumA/shopRecs.length,avgB:sumB/shopRecs.length,
     wowRate:shopRecs.filter(r=>r.wow).length/shopRecs.length,
     exploreRate:0,visitedShops:new Set(),count:shopRecs.length,
-    _fromStar:true,_shopName:shop
+    _fromStar:true,_shopName:_smCurrentShop
   };
+  _shopAutoOpen=true;
   go('shop');
+}
+function closeShopMemory(e){
+  if(e.target===document.getElementById('shop-memory-overlay')) closeShopMemoryDirect();
+}
+function closeShopMemoryDirect(){
+  const ov=document.getElementById('shop-memory-overlay');
+  ov.classList.remove('on');
+  setTimeout(()=>ov.style.display='none',300);
 }
 
 let _smTrail=true; // toggleable trail layer
@@ -4613,6 +4768,42 @@ function initStarMapInteraction(){
       smCloseDetail();
     }
   });
+}
+
+// ── 特征码生成（12位伪随机哈希，基于首条记录时间戳，稳定不变） ──
+function generateFeatureCode(recs){
+  if(!recs.length) return {code:'CF-——',zenStyle:'',identity:''};
+  const n=recs.length;
+  const isExp=new Set(recs.map(r=>r.scanData?.shop||r.name||'?')).size/n>.65;
+  const wowRate=recs.filter(r=>r.wow).length/n;
+  let base;
+  if(isExp&&recs.some(r=>r.feel?.includes('酸'))) base='产区猎人';
+  else if(isExp) base='风味探险家';
+  else if(wowRate>=.25) base='惊喜收集者';
+  else base='深耕者';
+  const zenAdj={'产区猎人':'沉静的','风味探险家':'敏锐的','惊喜收集者':'细腻的','深耕者':'专注的'};
+  const zenStyle=zenAdj[base]+base;
+  const identityMap={
+    '产区猎人':'每一杯都是产地的自白，我在寻找最诚实的那一口。',
+    '风味探险家':'边界之外才是有趣的地方，我的杯子从不重复。',
+    '惊喜收集者':'不求每杯都好，但那一口惊喜，值得等待。',
+    '深耕者':'熟悉的味道越喝越深，深处有不同的东西。'
+  };
+  const identity=identityMap[base];
+  const desc={'产区猎人':'在不同产区和处理法之间游走，对风味的细微差异有敏锐感知。',
+    '风味探险家':'享受探索不同咖啡的过程，口味版图持续扩展。',
+    '惊喜收集者':'审美清晰，对真正打动自己的咖啡有极强的感知力。',
+    '深耕者':'在自己喜欢的范围内越喝越准，对细节越来越敏感。'}[base];
+  // deterministic hash from first record ts
+  const seed=(recs[0]?.ts||Date.now())^(n*7919);
+  let h=(seed>>>0);
+  for(let i=0;i<6;i++) h=(Math.imul(h,1664525)+1013904223)>>>0;
+  const p1=h.toString(36).padStart(7,'0');
+  let h2=(recs.reduce((a,r)=>a+((r.ts||0)%99991),0)^(n*31337))>>>0;
+  for(let i=0;i<5;i++) h2=(Math.imul(h2,22695477)+1)>>>0;
+  const p2=h2.toString(36).padStart(5,'0');
+  const hash=(p1+p2).slice(0,12).toUpperCase();
+  return{code:`CF-${hash}`,zenStyle,identity,desc};
 }
 
 let _starUserOverride=null; // 星图导航到探店时，临时用这颗星的感官向量匹配
