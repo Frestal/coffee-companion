@@ -335,30 +335,54 @@ textarea.fi{resize:none;line-height:1.65}
 
 /* Prescription card */
 .rx-card{background:linear-gradient(140deg,var(--s2),var(--s1));
-  border:1px solid var(--b2);border-radius:var(--r);padding:18px;
+  border:1px solid var(--b2);border-radius:var(--r-lg);padding:20px 18px 16px;
   cursor:pointer;position:relative;overflow:hidden}
 .rx-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,var(--a),transparent)}
-.rx-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-.rx-title{font-family:var(--font-display);font-size:22px;font-weight:300;
+.rx-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.rx-title{font-family:var(--font-display);font-size:23px;font-weight:300;
   font-style:italic;color:var(--ink);line-height:1.2}
 .rx-hcode{font-family:var(--font-mono);font-size:10px;color:var(--a);
   letter-spacing:.06em;margin-top:4px;text-align:right}
-.rx-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+/* voice: large hero quote */
+.rx-voice{font-family:var(--font-display);font-size:19px;font-style:italic;
+  color:var(--ink);line-height:1.72;margin-bottom:10px;
+  border-left:2px solid var(--a);padding-left:13px}
+/* insight: emotional sub-line */
+.rx-insight{font-size:12px;color:var(--i2);line-height:1.6;margin-bottom:16px;
+  padding-left:15px;letter-spacing:.01em}
+.rx-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
 .rx-row{background:var(--s3);border-radius:var(--r-sm);padding:9px 11px}
 .rx-k{font-size:10px;color:var(--i3);display:block;margin-bottom:3px;
   letter-spacing:.06em;text-transform:uppercase;font-weight:600}
 .rx-v{font-size:13px;color:var(--ink);font-weight:500}
-.rx-voice{font-family:var(--font-display);font-size:17px;font-style:italic;
-  color:var(--ink);line-height:1.75;margin-bottom:14px;
-  border-left:2px solid var(--a);padding-left:13px}
-.rx-barista{font-size:13px;color:var(--i2);line-height:1.65;margin-bottom:12px;
-  background:var(--s3);border-radius:var(--r-sm);padding:10px 13px}
-.rx-barista-lbl{font-size:10px;color:var(--a);letter-spacing:.06em;margin-bottom:4px;font-weight:600;text-transform:uppercase}
+/* barista: prominent action box */
+.rx-barista{margin-bottom:12px;background:rgba(200,155,90,.08);
+  border:1px solid rgba(200,155,90,.22);border-radius:var(--r-sm);padding:12px 14px}
+.rx-barista-lbl{font-size:10px;color:var(--a);letter-spacing:.07em;margin-bottom:6px;font-weight:700;text-transform:uppercase}
+.rx-barista-text{font-size:14px;color:var(--ink);line-height:1.7;font-weight:400}
+.rx-barista-hint{font-size:10px;color:var(--i3);margin-top:6px;letter-spacing:.04em}
 .rx-copy{font-size:11px;color:var(--a);letter-spacing:.06em;text-align:center;
   padding-top:10px;border-top:1px solid var(--b1);font-weight:500}
 .rx-refresh{font-size:11px;color:var(--i3);text-align:right;
   margin-top:9px;cursor:pointer;letter-spacing:.03em}
+
+/* Shop footprint */
+.sm-shops-hd{font-size:10px;color:var(--i3);letter-spacing:.07em;text-transform:uppercase;
+  font-weight:600;margin-bottom:8px}
+.sm-shop-row{display:flex;align-items:center;gap:10px;padding:9px 12px;
+  background:var(--s2);border-radius:var(--r-sm);margin-bottom:6px;cursor:pointer;
+  transition:background .18s}
+.sm-shop-row:active{background:var(--s3)}
+.sm-shop-dot{width:32px;height:32px;border-radius:50%;background:var(--s3);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-size:10px;color:var(--a);font-weight:700;font-family:var(--font-mono)}
+.sm-shop-info{flex:1;min-width:0}
+.sm-shop-name{font-size:13px;color:var(--ink);font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sm-shop-meta{font-size:11px;color:var(--i3);margin-top:2px}
+.sm-shop-zone{font-size:10px;color:var(--a);font-family:var(--font-mono);
+  letter-spacing:.04em;white-space:nowrap}
 
 /* Save btn */
 .save-btn{display:block;margin:14px 16px 0;width:calc(100% - 32px);
@@ -1182,8 +1206,13 @@ textarea.fi{resize:none;line-height:1.65}
   <div class="sec" id="fl-lbl" style="display:none">风味星图</div>
   <div class="star-map-card" id="star-map-card" style="display:none">
     <div class="sm-header">
-      <div class="sm-title">你的味觉宇宙</div>
-      <div class="sm-sub">每一杯是一颗星 · 轻触查看</div>
+      <div>
+        <div class="sm-title">你的味觉宇宙</div>
+        <div class="sm-sub">每一杯是一颗星 · 轻触查看</div>
+      </div>
+      <button id="sm-trail-btn" onclick="smToggleTrail()" style="background:transparent;border:1px solid var(--b2);
+        border-radius:var(--r-full);padding:4px 10px;font-size:10px;font-family:inherit;
+        color:var(--i2);cursor:pointer;letter-spacing:.04em;transition:all .2s">轨迹 ·</button>
     </div>
     <div class="sm-canvas-wrap" id="sm-canvas-wrap">
       <canvas id="star-canvas"></canvas>
@@ -1202,6 +1231,8 @@ textarea.fi{resize:none;line-height:1.65}
       <div class="sm-lg-item"><span class="sm-lg-icon">●</span>其他</div>
       <div class="sm-lg-item"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EFC840;box-shadow:0 0 5px rgba(239,200,64,.8);vertical-align:middle;margin-right:1px"></span>惊艳时刻</div>
     </div>
+    <!-- Shop footprint -->
+    <div id="sm-shops" style="padding:0 16px 14px"></div>
     <!-- Detail drawer: slides in on star tap -->
     <div class="sm-detail" id="sm-detail">
       <div class="sm-d-hd">
@@ -2603,7 +2634,12 @@ function renderMy(){
   if(recs.length){
     document.getElementById('fl-lbl').style.display='block';
     document.getElementById('star-map-card').style.display='block';
-    requestAnimationFrame(()=>{renderStarMap();initStarMapInteraction();});
+    requestAnimationFrame(()=>{
+      renderStarMap();initStarMapInteraction();renderShopFootprint();
+      // sync trail button initial state
+      const tb=document.getElementById('sm-trail-btn');
+      if(tb){tb.textContent='轨迹 ·';tb.style.color='var(--a)';tb.style.borderColor='rgba(200,155,90,.4)';}
+    });
   }
 
 }
@@ -3562,14 +3598,14 @@ async function loadPrescription(force){
   const processOpts=av>=65?'水洗/日晒':bv>=65?'日晒/蜜处理/厌氧发酵':'水洗/蜜处理';
   const brewOpts=bv>=65?'意式浓缩/法压/摩卡壶':bv<=40?'手冲/爱乐压/冷萃':'手冲/美式/澳白';
 
-  const sys=`你是用户口味的记录员，帮助他用最直接的语言告诉咖啡师想要什么。
+  const sys=`你是一面镜子，不是推荐人。任务是帮用户看见他/她自己真正喜欢什么，用他们的语言说出来。
 规则（必须遵守）：
-①origin/process/roast/brew只能从提供的"建议范围"中选，不能使用范围外的词
-②如果扫码记录中有真实产区/处理法，优先参考这些真实数据
-③barista必须包含：酸度偏好（酸/不酸）+ 甜苦偏好 + 是否加奶 + 一个具体感受词，≤40字
-④voice是第一人称口语，≤30字，不用专业术语，说感受不说参数
+①origin/process/roast/brew只能从"建议范围"中选，不能使用范围外的词
+②voice是核心：第一人称，像他们在心里说话，写那个最深的感受偏好，≤28字，不要专业术语
+③insight是一句让用户有"说的就是我"感觉的洞察，≤20字，口语化，不用专业词
+④barista留空字符串（系统本地生成）
 只返回JSON：
-{"title":"≤8字标题","voice":"我通常追求…","origin":"产区","process":"处理法","roast":"烘焙度","brew":"冲煮方式","barista":"告诉咖啡师：…"}`;
+{"title":"≤8字，描述这个人的咖啡性格","voice":"我最迷恋的是…","insight":"那种___的感觉，每次都会让我…","origin":"产区","process":"处理法","roast":"烘焙度","brew":"冲煮方式","barista":""}`;
 
   const prompt=`记录${recs.length}杯，惊艳：${wowNames}
 ${svLine}
@@ -3608,6 +3644,7 @@ ${summary}`;
 
 function showPrescription(rx){
   const code=document.getElementById('fc-code')?.textContent||'';
+  const barista=rx.barista||buildBaristaSay('',null);
   document.getElementById('rx-content').innerHTML=`
     <div class="rx-card" onclick="copyPrescription()">
       <div class="rx-header">
@@ -3615,6 +3652,7 @@ function showPrescription(rx){
         <div class="rx-hcode">${code}</div>
       </div>
       <div class="rx-voice">${rx.voice||''}</div>
+      ${rx.insight?`<div class="rx-insight">${rx.insight}</div>`:''}
       <div class="rx-grid">
         <div class="rx-row"><span class="rx-k">产区</span><span class="rx-v">${rx.origin||'—'}</span></div>
         <div class="rx-row"><span class="rx-k">处理法</span><span class="rx-v">${rx.process||'—'}</span></div>
@@ -3623,12 +3661,12 @@ function showPrescription(rx){
       </div>
       <div class="rx-barista">
         <div class="rx-barista-lbl">进店开口说这句话</div>
-        <div style="font-size:14px;color:var(--ink);line-height:1.7;margin-top:4px">${rx.barista||''}</div>
-        <div style="font-size:10px;color:var(--i3);margin-top:6px;letter-spacing:.04em">咖啡师听到这句话就能为你调配</div>
+        <div class="rx-barista-text">${barista}</div>
+        <div class="rx-barista-hint">把这句话说给咖啡师，他就明白了</div>
       </div>
       <div class="rx-copy" id="rx-copy-hint">点击复制 · 出示给咖啡师</div>
     </div>
-    <button onclick="go('shop')" style="display:block;width:100%;margin-top:10px;padding:11px;
+    <button onclick="go('shop')" style="display:block;width:100%;margin-top:10px;padding:12px;
       background:transparent;border:1px solid var(--b2);border-radius:var(--r);
       font-size:12px;font-family:inherit;color:var(--a);cursor:pointer;letter-spacing:.05em">
       附近找这个风格的店 →
@@ -3639,7 +3677,8 @@ function showPrescription(rx){
 function copyPrescription(){
   const rx=JSON.parse(localStorage.getItem('cf6_rx')||'{}');
   const code=document.getElementById('fc-code')?.textContent||'';
-  const text=`☕ 咖啡伴侣 · 我的口味\n${rx.title||''}\n\n${rx.voice||''}\n\n产区：${rx.origin||''}\n处理法：${rx.process||''}\n烘焙度：${rx.roast||''}\n冲煮：${rx.brew||''}\n\n${rx.barista||''}\n\n特征码：${code}`;
+  const barista=rx.barista||buildBaristaSay('',null);
+  const text=`☕ 咖啡伴侣 · 我的口味\n${rx.title||''}\n\n${rx.voice||''}${rx.insight?'\n'+rx.insight:''}\n\n产区：${rx.origin||''}\n处理法：${rx.process||''}\n烘焙度：${rx.roast||''}\n冲煮：${rx.brew||''}\n\n${barista}\n\n特征码：${code}`;
   navigator.clipboard?.writeText(text).then(()=>{
     const hint=document.getElementById('rx-copy-hint');
     if(hint){hint.textContent='已复制 ✓';setTimeout(()=>{hint.textContent='点击复制 · 出示给门店';},2000);}
@@ -3840,14 +3879,29 @@ function renderStarMap(){
     ctx.fillStyle=g2;ctx.fillRect(0,0,W,H);
   }
 
-  // Trail lines
-  if(pts.length>1){
+  // Trail lines + direction arrows
+  if(_smTrail&&pts.length>1){
     const sorted=[...pts].sort((a,b)=>a.ts-b.ts);
-    ctx.strokeStyle='rgba(200,152,104,0.18)';ctx.lineWidth=0.8;
+    // Dashed path
+    ctx.strokeStyle='rgba(200,152,104,0.22)';ctx.lineWidth=0.9;
     ctx.setLineDash([2,6]);
     ctx.beginPath();
     sorted.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
     ctx.stroke();ctx.setLineDash([]);
+    // Arrowhead at each segment midpoint
+    ctx.fillStyle='rgba(200,152,104,0.42)';
+    for(let i=1;i<sorted.length;i++){
+      const ax=sorted[i-1].x,ay=sorted[i-1].y;
+      const bx=sorted[i].x,by=sorted[i].y;
+      const mx=(ax+bx)/2,my=(ay+by)/2;
+      const angle=Math.atan2(by-ay,bx-ax);
+      const sz=3.5;
+      ctx.save();ctx.translate(mx,my);ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(sz,0);ctx.lineTo(-sz,-sz*0.6);ctx.lineTo(-sz,sz*0.6);
+      ctx.closePath();ctx.fill();
+      ctx.restore();
+    }
   }
 
   // Stars — larger, stronger glow, two-layer rendering
@@ -3866,6 +3920,82 @@ function renderStarMap(){
   });
 
   canvas._stars=pts;
+}
+
+// ── SHOP FOOTPRINT — grouped shop list below star map ──
+function renderShopFootprint(){
+  const el=document.getElementById('sm-shops');
+  if(!el)return;
+  // Group records by shop name
+  const groups={};
+  recs.forEach(r=>{
+    const shop=r.scanData?.shop||r.name||'未知';
+    if(!groups[shop])groups[shop]={shop,count:0,wowCount:0,svA:[],svB:[],latest:0};
+    const g=groups[shop];
+    g.count++;
+    if(r.wow)g.wowCount++;
+    if(r.ts>g.latest)g.latest=r.ts;
+    const sv=extractSensoryVector(r.feel,r.scanData,r.id);
+    g.svA.push(sv.acidity);g.svB.push(sv.body);
+  });
+  const list=Object.values(groups).sort((a,b)=>b.latest-a.latest);
+  if(list.length===0){el.innerHTML='';return;}
+  // Zone label from avg sensory position
+  function zoneLabel(avgA,avgB){
+    const acid=avgA>0.58,body=avgB>0.58;
+    if(acid&&body) return '果酸 · 厚重';
+    if(acid&&!body)return '明亮 · 轻盈';
+    if(!acid&&body)return '醇苦 · 浓郁';
+    return '平衡 · 柔顺';
+  }
+  el.innerHTML=`<div class="sm-shops-hd">店铺足迹 · ${list.length} 家</div>`+
+    list.map(g=>{
+      const avgA=g.svA.reduce((s,v)=>s+v,0)/g.svA.length;
+      const avgB=g.svB.reduce((s,v)=>s+v,0)/g.svB.length;
+      const zone=zoneLabel(avgA,avgB);
+      const wowTxt=g.wowCount?` · ✦${g.wowCount}`:'';
+      const initials=g.shop.slice(0,2);
+      return `<div class="sm-shop-row" onclick="smShopFilter('${encodeURIComponent(g.shop)}')">
+        <div class="sm-shop-dot">${initials}</div>
+        <div class="sm-shop-info">
+          <div class="sm-shop-name">${g.shop}</div>
+          <div class="sm-shop-meta">${g.count} 杯${wowTxt}</div>
+        </div>
+        <div class="sm-shop-zone">${zone}</div>
+      </div>`;
+    }).join('');
+}
+
+function smShopFilter(encodedShop){
+  // Highlight stars from this shop on the map (future: dim others)
+  // For now: tap navigates to explore with this shop's avg sensory profile
+  const shop=decodeURIComponent(encodedShop);
+  const shopRecs=recs.filter(r=>(r.scanData?.shop||r.name||'未知')===shop);
+  if(!shopRecs.length)return;
+  let sumA=0,sumB=0;
+  shopRecs.forEach(r=>{
+    const sv=extractSensoryVector(r.feel,r.scanData,r.id);
+    sumA+=sv.acidity;sumB+=sv.body;
+  });
+  _starUserOverride={
+    avgA:sumA/shopRecs.length,avgB:sumB/shopRecs.length,
+    wowRate:shopRecs.filter(r=>r.wow).length/shopRecs.length,
+    exploreRate:0,visitedShops:new Set(),count:shopRecs.length,
+    _fromStar:true,_shopName:shop
+  };
+  go('shop');
+}
+
+let _smTrail=true; // toggleable trail layer
+function smToggleTrail(){
+  _smTrail=!_smTrail;
+  const btn=document.getElementById('sm-trail-btn');
+  if(btn){
+    btn.textContent=_smTrail?'轨迹 ·':'轨迹 ○';
+    btn.style.color=_smTrail?'var(--a)':'var(--i3)';
+    btn.style.borderColor=_smTrail?'rgba(200,155,90,.4)':'var(--b2)';
+  }
+  renderStarMap();
 }
 
 // ── STAR MAP INTERACTION — bottom drawer ──
