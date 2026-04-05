@@ -3526,16 +3526,14 @@ function getLocation(){
 
 function amapSearch(lng,lat,radius){
   const r=radius||5000;
-  const mk=`https://restapi.amap.com/v3/place/around?key=${AMAP_KEY}&location=${lng},${lat}&keywords=咖啡&radius=${r}&offset=25&extensions=all&output=json`;
-  // 同时请求：距离排序(近的) + 权重排序(受欢迎的/更广范围)，合并去重
-  return Promise.all([
-    fetch(mk+'&sortrule=distance').then(r=>r.json()).catch(()=>({status:'0'})),
-    fetch(mk+'&sortrule=weight').then(r=>r.json()).catch(()=>({status:'0'}))
-  ]).then(([d1,d2])=>{
-    const p1=d1.status==='1'?d1.pois||[]:[];
-    const p2=d2.status==='1'?d2.pois||[]:[];
+  const mk=`https://restapi.amap.com/v3/place/around?key=${AMAP_KEY}&location=${lng},${lat}&keywords=咖啡&radius=${r}&offset=25&extensions=all&sortrule=distance&output=json`;
+  // 并发取3页距离排序结果：page1≈0-1km, page2≈1-2km, page3≈2-5km
+  return Promise.all([1,2,3].map(p=>
+    fetch(mk+`&page=${p}`).then(r=>r.json()).catch(()=>({status:'0'}))
+  )).then(pages=>{
     const seen=new Set();
-    const merged=[...p1,...p2].filter(p=>{if(seen.has(p.id))return false;seen.add(p.id);return true;});
+    const merged=pages.flatMap(d=>d.status==='1'?d.pois||[]:[] )
+      .filter(p=>{if(seen.has(p.id))return false;seen.add(p.id);return true;});
     if(merged.length) return merged;
     if(r<10000) return amapSearch(lng,lat,Math.min(r*2,10000));
     throw new Error('附近未找到咖啡馆，换个位置试试');
@@ -4009,10 +4007,11 @@ function renderFilterBar(){
       ${_sfChip('连锁品牌','venue','chain',f.venue)}
     </div>
     <div class="sfb-divider"></div>`+
-    // 口味方向 — ① 入口
+    // 口味方向 — ①② 入口（用喝咖啡的真实需求表述）
     `<div class="sfb-group">
-      ${_sfChip('偏酸亮','flavor','bright',f.flavor)}
-      ${_sfChip('偏醇厚','flavor','rich',f.flavor)}
+      ${_sfChip('果香手冲','flavor','bright',f.flavor)}
+      ${_sfChip('加奶好喝','flavor','milky',f.flavor)}
+      ${_sfChip('浓缩劲道','flavor','bold',f.flavor)}
     </div>
     <div class="sfb-divider"></div>`+
     // 距离 — ② 入口
@@ -4046,8 +4045,12 @@ function applyShopFilterToGroups(groups){
     // 口味方向
     if(f.flavor!=='all'){
       const p=inferShopProfile(s);
-      if(f.flavor==='bright'&&p.acidity[0]<0.52) return false;  // 偏酸亮：下限>=0.52
-      if(f.flavor==='rich'&&p.body[1]<0.60) return false;        // 偏醇厚：上限>=0.60
+      // 果香手冲：酸质下限高（整体偏明亮），specialty 偏高
+      if(f.flavor==='bright'&&(p.acidity[0]<0.50||p.specialty<0.60)) return false;
+      // 加奶好喝：醇度上限高（奶咖底座足），不要太酸
+      if(f.flavor==='milky'&&(p.body[1]<0.55||p.acidity[0]>0.72)) return false;
+      // 浓缩劲道：醇度高且酸质不太高（深烘/意式风格）
+      if(f.flavor==='bold'&&(p.body[1]<0.58||p.acidity[1]>0.65)) return false;
     }
     // 距离
     if(f.dist!=='all'&&+s.distance>+f.dist) return false;
