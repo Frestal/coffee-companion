@@ -821,7 +821,9 @@ textarea.fi{resize:none;line-height:1.65}
 .sd-bar-track{flex:1;height:4px;background:var(--s4);border-radius:2px;position:relative;overflow:hidden}
 .sd-bar-fill{position:absolute;top:0;height:100%;background:var(--a);border-radius:2px}
 .sd-bar-end{font-size:11px;color:var(--i2);width:56px;text-align:right;flex-shrink:0}
-.sd-kb-note{font-size:12px;color:var(--i2);font-style:italic;line-height:1.6;margin-top:9px}
+.sd-kb-identity{font-size:13px;color:var(--ink);line-height:1.65;margin-top:11px;
+  padding-top:10px;border-top:1px solid var(--b1)}
+.sd-kb-note{font-size:12px;color:var(--i2);font-style:italic;line-height:1.6;margin-top:7px}
 .sd-match-line{font-size:13px;color:var(--a);font-style:italic;
   font-family:var(--font-display);line-height:1.55;margin-top:9px;padding-top:9px;border-top:1px solid var(--b1)}
 .sd-shop-style{font-size:13px;color:var(--i2);line-height:1.7;margin-bottom:11px}
@@ -1068,22 +1070,28 @@ textarea.fi{resize:none;line-height:1.65}
 .auth-btn.primary{background:var(--a);border-color:var(--a);color:#1A0E06}
 
 /* ── 进店说这句话 card (shop detail top) ── */
-.sd-say-card{background:linear-gradient(148deg,var(--s3),var(--s2));
-  border:1px solid var(--b2);border-radius:var(--r);padding:16px 18px 14px;
+/* ── 出发前 departure block ── */
+.sd-departure{background:linear-gradient(148deg,var(--s3),var(--s2));
+  border:1px solid var(--b2);border-radius:var(--r);padding:16px 18px 16px;
   margin-bottom:18px;position:relative;overflow:hidden}
-.sd-say-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(200,155,108,.6),transparent)}
-.sd-say-lbl{font-size:10px;color:var(--a);letter-spacing:.09em;text-transform:uppercase;
-  font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.sd-say-lbl::after{content:'';flex:1;height:1px;background:var(--b1)}
-.sd-say-sentence{font-family:var(--font-display);font-size:18px;font-style:italic;
-  color:var(--ink);line-height:1.68;margin-bottom:12px;letter-spacing:.01em}
-.sd-say-copy{width:100%;padding:11px;background:var(--a);color:var(--bg);
+.sd-departure::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--a),transparent)}
+.sd-dep-eyebrow{font-size:10px;color:var(--a);letter-spacing:.12em;text-transform:uppercase;
+  font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.sd-dep-eyebrow::before{content:'';width:3px;height:11px;background:var(--a);border-radius:2px;flex-shrink:0}
+.sd-dep-sentence{font-family:var(--font-display);font-size:17px;font-style:italic;
+  color:var(--ink);line-height:1.68;margin-bottom:13px;letter-spacing:.01em}
+.sd-dep-copy{width:100%;padding:11px;background:var(--a);color:var(--bg);
   border:none;border-radius:var(--r-sm);font-size:13px;font-family:inherit;font-weight:700;
   cursor:pointer;letter-spacing:.02em;
   box-shadow:0 3px 12px rgba(200,152,104,.3),0 1px 0 rgba(255,255,255,.1) inset;
   transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
-.sd-say-copy:active{transform:scale(.96)}
+.sd-dep-copy:active{transform:scale(.97)}
+.sd-dep-code-wrap{border-top:1px solid var(--b1);padding-top:13px;margin-top:14px}
+.sd-dep-voice{font-size:13px;color:var(--i2);line-height:1.65;margin-bottom:10px}
+.sd-dep-code{font-family:var(--font-mono);font-size:14px;color:var(--a);
+  display:flex;align-items:center;gap:8px;cursor:pointer}
+.sd-dep-hint{font-size:11px;color:var(--i3);margin-top:5px}
 
 /* 今天点什么 AI section */
 .sd-order{border-radius:var(--r-sm);padding:4px 0 6px}
@@ -3572,63 +3580,82 @@ const BRAND_KB=[
   // ── 顶级精品 (specialty ≥ 0.85) ──
   {aliases:['%arabica','arabica'],mark:'%',color:'#1a1410',
     acidity:[.70,.88],body:[.18,.42],specialty:.92,weight:1,
+    identity:'去这里的人把极简美学当作生活方式，会直接问产地，不看其他',
     note:'2013年香港创立，2025年中国116家（内地+港澳），全球最大市场。浅烘极简，柑橘花香，单一产区'},
   {aliases:['blue bottle','bluebottle','蓝瓶'],mark:'BB',color:'#0e1f2e',
     acidity:[.60,.82],body:[.25,.52],specialty:.90,weight:1,
+    identity:'去这里的人认同咖啡可以像设计一样被对待，愿意为理念付溢价',
     note:'2002年加州创立，Nestle 2017年入股。48小时新鲜烘焙，2022年上海首店，2025年中国15家。果酸花香明亮'},
   {aliases:['greybox','灰盒子'],mark:'GB',color:'#2a2a2a',
     acidity:[.62,.82],body:[.38,.58],specialty:.85,weight:1,
+    identity:'去这里的人知道冠军团队意味着什么，会主动问今天拼配里有什么豆',
     note:'世界冠军 Dale Harris 团队，全单 SCA 84+ 豆，Coffee Review 评分95分。平衡果甜，干净余味'},
   {aliases:['soe coffee','soe'],mark:'SOE',color:'#181210',
     acidity:[.60,.82],body:[.20,.45],specialty:.88,weight:1,
+    identity:'去这里的人知道SOE是什么意思，不会问"拿铁和美式哪个好喝"',
     note:'2017年北京创立，世界咖啡师大赛冠军团队运营。主打单一产地浓缩（SOE），约7家精品门店'},
   {aliases:["eagle's coffee",'eagles coffee','eagle\'s','鹰集'],mark:'鹰集',color:'#1c1408',
     acidity:[.62,.85],body:[.18,.40],specialty:.82,weight:1,
+    identity:'去这里的人欣赏本土精品的文化叙事，对上海精品咖啡场景有归属感',
     note:'2016年上海新天地创立，自有烘焙工厂，自控生豆贸易。浅烘轻盈果香，强调本土文化空间'},
   {aliases:['metal hands','铁手'],mark:'MH',color:'#141414',
     acidity:[.38,.62],body:[.35,.55],specialty:.85,weight:1,
+    identity:'去这里的人对中深烘意式有自己的见解，不迷信浅烘就是精品',
     note:'2016年北京创立，自烘焙，亚洲Top50。以"脏脏咖啡"和氮气冷萃著称，中/中深烘意式风格'},
   {aliases:['gee coffee','gee coffee roasters','gee咖啡','啡猫记咖啡','gee'],mark:'GEE',color:'#1a1208',
     acidity:[.65,.88],body:[.20,.42],specialty:.88,weight:1,
+    identity:'去这里的人通常知道耶加雪菲在哪，进门不会问"有什么推荐"',
     note:'2012年深圳创立，创始人郭锦为中国大陆首位COE&BOP双料国际评审。产地直采+自主烘焙，"香水系列"日晒耶加雪菲为招牌，Coffee Review 91-93分。8-12家门店（深圳+广州）'},
   // ── 精品连锁 (specialty 0.70–0.84) ──
   {aliases:['mellower','麦隆'],mark:'ML',color:'#1a1006',
     acidity:[.55,.78],body:[.30,.55],specialty:.78,weight:1,
+    identity:'去这里的人对精品咖啡有好奇心，乐于在精品和创意之间探索',
     note:'2011年云南昆明创立，20+门店，已拓展新加坡/韩国。自建烘焙厂+咖啡学院，创意咖啡兼精品豆零售'},
   {aliases:['algebraist','代数学家'],mark:'代数',color:'#0e0e18',
     acidity:[.55,.80],body:[.25,.50],specialty:.80,weight:.8,
+    identity:'去这里的人对咖啡有一套自己的认知框架，不轻易被菜单引导',
     note:'上海精品独立品牌，数学/理性理念，主打精品手冲与意式，主要集中于上海新天地一带'},
   {aliases:['seesaw'],mark:'SS',color:'#1e1812',
     acidity:[.65,.85],body:[.22,.48],specialty:.80,weight:.40,
+    identity:'去这里的人可能是精品咖啡的早期跟随者，有情怀但选择越来越谨慎',
     note:'2012年上海创立，曾是国内精品先驱。2023年资金链危机，门店从百家骤降至不足50家，持续收缩'},
   // ── 品质连锁 (specialty 0.50–0.69) ──
   {aliases:['fisheye','鱼眼'],mark:'FE',color:'#162218',
     acidity:[.45,.70],body:[.28,.52],specialty:.62,weight:.9,
+    identity:'去这里的人把精品咖啡当日常仪式感，健康和出品同样重要',
     note:'2010年成立，国内较早精品化品牌。主打0糖低脂健康，北京/上海约16家，亲民精品路线'},
   {aliases:['manner'],mark:'MN',color:'#1a1a1a',
     acidity:[.22,.68],body:[.58,.82],specialty:.65,weight:1,
+    identity:'去这里的人不想为环境买单，但对豆子有基本要求，实用主义',
     note:'2015年上海创立，全国2000+直营店，人均10-20元平价精品标杆。鲜牛奶拿铁为核心，不突出产区'},
   {aliases:['m stand','mstand'],mark:'M/',color:'#1e1010',
     acidity:[.18,.42],body:[.55,.72],specialty:.52,weight:1,
+    identity:'去这里的人重视空间氛围和拍照体验，咖啡是配角不是主角',
     note:'2017年上海成立，每店不同主题装修，以空间美学和创意特调著称，咖啡环境溢价明显'},
   {aliases:["peet's",'peets','皮爷'],mark:"P's",color:'#1c1206',
     acidity:[.25,.52],body:[.58,.80],specialty:.58,weight:1,
+    identity:'去这里的人喜欢稳定经典的西式咖啡体验，不追新，不折腾',
     note:'1966年美国伯克利创立，培育了星巴克创始人。经典深烘，坚果焦糖调，中国300+门店目标400家'},
   // ── 大众连锁 (specialty < 0.35) ──
   {aliases:['starbucks','星巴克'],mark:'★',color:'#00382a',
     acidity:[.18,.45],body:[.55,.75],specialty:.28,weight:1,
+    identity:'去这里的人要的是熟悉感和便利性，咖啡是日常能量补给',
     note:'中国约8000家直营店，目标扩至2万家。中深烘标准化，杏仁榛果焦糖口味系列多'},
   {aliases:['luckin','瑞幸'],mark:'LK',color:'#00214a',
     acidity:[.28,.52],body:[.42,.65],specialty:.18,weight:1,
+    identity:'去这里的人把咖啡当高性价比日常饮料，价格是第一优先级',
     note:'2017年北京创立，2025年全国31000+门店。曾发起9.9元价格战，饮料化咖啡，月活过亿'},
   {aliases:['nowwa','挪瓦'],mark:'NW',color:'#002b28',
     acidity:[.22,.48],body:[.42,.62],specialty:.20,weight:1,
+    identity:'去这里的人把健康和便利放在前面，咖啡属于饮品消费，不是咖啡文化',
     note:'2019年上海创立，主打0糖低脂健康。全国10000+门店，奶茶化咖啡体验，强调外卖渠道'},
   {aliases:['costa'],mark:'Co.',color:'#4a1410',
     acidity:[.22,.48],body:[.55,.75],specialty:.30,weight:.85,
+    identity:'去这里的人偏好传统连锁体验，不在意精品定义，求稳不求新',
     note:'英系传统连锁，2018年被可口可乐收购。中国约380家，策略趋于保守，不再盲目扩张'},
   {aliases:['tim hortons','tims','天好'],mark:'TH',color:'#6e1a00',
     acidity:[.22,.45],body:[.55,.72],specialty:.30,weight:1,
+    identity:'去这里的人对加式咖啡文化有亲切感，接受稳定标准化出品',
     note:'1964年加拿大创立，2022年入华。上海22+门店，目标10年1500家，加拿大甜甜圈+咖啡风格'},
 ];
 
@@ -3764,28 +3791,56 @@ function getOpenTimeStr(poi){
   return`${m[1].padStart(2,'0')}:${m[2]}–${m[3].padStart(2,'0')}:${m[4]}`;
 }
 
+function getUserIdentityCluster(user){
+  if(!user||user.count<3)return'casual';
+  const visited=[...(user.visitedShops||[])];
+  if(!visited.length)return user.exploreRate>.5?'explorer':'casual';
+  const matched=visited.map(shopName=>{
+    const n=shopName.toLowerCase();
+    return BRAND_KB.find(b=>b.aliases.some(a=>n.includes(a)));
+  }).filter(Boolean);
+  if(!matched.length)return user.count>=5?'explorer':'casual';
+  const avgSpec=matched.reduce((s,b)=>s+b.specialty,0)/matched.length;
+  const highSpec=matched.filter(b=>b.specialty>.80).length;
+  if(highSpec>=2||avgSpec>.82)return'specialty_seeker';
+  if(avgSpec>.62)return'quality_conscious';
+  if(user.exploreRate>.65)return'explorer';
+  return'pragmatist';
+}
+
 function getMatchReason(user,profile,score){
   if(!user||user.count<3)return'附近的精品咖啡馆';
   const{avgA,avgB,wowRate,exploreRate,visitedShops,count}=user;
   const nm=profile._name||'';
-  const visited=[...visitedShops].some(s=>nm.includes(s.slice(0,5)));
-  const wowPct=Math.round(wowRate*100);
-  if(score.forYou){
-    if(avgA>.68&&profile.acidity[0]>.60&&wowRate>.25)
-      return`你 ${wowPct}% 的惊艳时刻都偏亮酸，这里豆子风格和你对上了`;
-    if(avgA>.65&&profile.acidity[0]>.55)
-      return`你喝了 ${count} 杯，果酸倾向明显，这里的豆子正好在这个区间`;
-    if(avgB>.62&&profile.body[0]>.55)
-      return`你偏醇厚口感，这里的豆子厚度和你的记录匹配`;
-    if(wowRate>.3&&profile.specialty>.80)
-      return`你有 ${wowPct}% 的惊艳记录，精品豆比例高的地方更容易复现`;
-    return`综合你 ${count} 条记录，这里和你现在的口味最近`;
-  }
-  if(!visited&&profile.specialty>.82)return'精品为主，你还没来过';
+  const visited=[...visitedShops].some(s=>nm.includes(s.slice(0,4)));
+  // 来过了 — 最高优先级
   if(visited)return'你来过，也许豆单又换了';
+  const cluster=getUserIdentityCluster(user);
+  const sp=profile.specialty;
+  const wowPct=Math.round(wowRate*100);
+  // 身份层优先
+  if(cluster==='specialty_seeker'){
+    if(sp>.85)return'你选的都是这个圈子的店，这里的人和你是同类';
+    if(sp>.72)return'比你常去的档次稍低，出品有保障';
+    return'偏大众向，和你通常的选择不太一样';
+  }
+  if(cluster==='quality_conscious'){
+    if(sp>.78)return'你在建立自己的精品地图，这家值得加进去';
+    if(sp>.60)return'品质有保障，是可靠的日常选项';
+    return'比你常去的更日常';
+  }
+  if(cluster==='explorer'){
+    return`你记了 ${count} 杯还没来过这里，风格你大概会感兴趣`;
+  }
+  // 风味层兜底（pragmatist / casual）
+  if(score.forYou){
+    if(avgA>.68&&profile.acidity[0]>.60)return`你 ${wowPct}% 的惊艳时刻偏亮酸，这里风格和你对上了`;
+    if(avgB>.62&&profile.body[0]>.55)return'你偏醇厚，这里的豆子厚度和你的记录匹配';
+    return`综合你 ${count} 条记录，这里和你现在最近`;
+  }
+  if(sp>.82)return'精品为主，你还没来过';
   if(avgA>.6&&profile.acidity[1]>.65)return'有你偏爱的明亮风格';
   if(avgB>.6&&profile.body[1]>.65)return'有你偏好的醇厚选择';
-  if(profile.specialty>.75)return'精品豆比例不低';
   return'附近的咖啡馆';
 }
 
@@ -4176,6 +4231,7 @@ function openShopDetailAmap(idx){
       <div class="sd-bar-track"><div class="sd-bar-fill" style="left:${profile.body[0]*100}%;width:${(profile.body[1]-profile.body[0])*100}%"></div></div>
       <span class="sd-bar-end">${bodyLabel(profile.body)}</span>
     </div>
+    ${profile.identity?`<div class="sd-kb-identity">${profile.identity}</div>`:''}
     ${profile.note?`<div class="sd-kb-note">${profile.note}</div>`:''}
     ${matchLine}
   </div>`;
@@ -4187,7 +4243,7 @@ function openShopDetailAmap(idx){
     ${realShop.priceRange?`<span class="sd-shop-feature">¥${realShop.priceRange}</span>`:''}
     </div></div>`:'';
 
-  // ── 咖啡师沟通桥 ──
+  // ── 出发前：句子 + 特征码（合并原 sayCard + bridge） ──
   const fcCode=document.getElementById('fc-code')?.textContent||'';
   const rxVoice=(()=>{
     const el=document.getElementById('rx-content'); if(!el)return'';
@@ -4195,23 +4251,21 @@ function openShopDetailAmap(idx){
     return m?m[0]:'';
   })();
   const hasBridge=fcCode&&fcCode!=='——';
-  const bridgeHtml=hasBridge?`<div class="sd-bridge">
-    <div class="sd-bridge-title">告诉咖啡师</div>
-    ${rxVoice?`<div class="sd-bridge-voice">${rxVoice}</div>`:''}
-    <div class="sd-bridge-code" id="sd-bridge-code-el">${fcCode}
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(200,152,104,.5)" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    </div>
-    <div class="sd-bridge-hint">特征码 · 点击复制，出示给咖啡师</div>
-  </div>`:'';
-
   const loc=typeof s.location==='string'?s.location:(s.location?.getLng?.()+','+s.location?.getLat?.());
-  // 进店说这句话 — 本地即时生成，无需 API
   const user=getUserProfile();
   const shopSentence=buildShopSentence(profile,user);
-  const sayCard=`<div class="sd-say-card">
-    <div class="sd-say-lbl">进门说这句话</div>
-    <div class="sd-say-sentence">${shopSentence}</div>
-    <button class="sd-say-copy" id="sd-say-copy-btn" onclick="copyShopSentence('${shopSentence.replace(/'/g,"\\'")}')">带走这句话</button>
+  const escapedSentence=shopSentence.replace(/'/g,"\\'");
+  const departureHtml=`<div class="sd-departure">
+    <div class="sd-dep-eyebrow">出发前</div>
+    <div class="sd-dep-sentence">${shopSentence}</div>
+    <button class="sd-dep-copy" onclick="showSentenceCard('${escapedSentence}')">带走这句话</button>
+    ${hasBridge?`<div class="sd-dep-code-wrap">
+      ${rxVoice?`<div class="sd-dep-voice">${rxVoice}</div>`:''}
+      <div class="sd-dep-code" id="sd-bridge-code-el">${fcCode}
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(200,152,104,.5)" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </div>
+      <div class="sd-dep-hint">你的特征码 · 点击复制出示给咖啡师</div>
+    </div>`:''}
   </div>`;
 
   // 今天点什么：有 API Key 时异步补充 AI 分析
@@ -4220,8 +4274,8 @@ function openShopDetailAmap(idx){
     ?`<div class="sd-sec"><h3>更多分析</h3><div class="sd-order" id="sd-order"><div class="sd-order-loading">AI 正在分析…</div></div></div>`
     :'';
   document.getElementById('sd-body').innerHTML=`
-    ${sayCard}
     ${kbHtml}
+    ${departureHtml}
     ${orderBlock}
     ${realHtml}
     <div class="sd-sec"><h3>基本信息</h3><div class="ig">
@@ -4232,8 +4286,7 @@ function openShopDetailAmap(idx){
     </div></div>
     <div class="sd-sec"><h3>地址</h3><div class="dd">${s.address||s.adname||'暂无地址'}</div></div>
     ${photos}
-    ${bridgeHtml}
-    <button class="buy-btn" style="margin-top:${hasBridge?'14':'0'}px"
+    <button class="buy-btn"
       onclick="window.open('https://uri.amap.com/navigation?to=${loc},${encodeURIComponent(s.name)}&mode=walking&src=coffee-companion','_blank')">导航去这里 →</button>
   `;
   document.getElementById('sd-bridge-code-el')?.addEventListener('click',function(){
