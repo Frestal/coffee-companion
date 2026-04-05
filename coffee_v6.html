@@ -2816,11 +2816,11 @@ function calcMatchScore(user,profile,poi){
   const distScore=Math.max(0,1-dist/2500);
   const raw=(flavor*.40+specAff*.20+novelty*.25+distScore*.15)*profile.weight*(recent?.7:1);
   const total=Math.min(1,Math.max(0,raw));
-  // For You: 用户记录≥3，且综合分或风味分达标即可（新用户画像不完整时放宽）
+  // For You: 综合分+风味分+精品度三重满足，放宽 specialty 门槛让精品连锁也能入选
   const profileWeak=user.count<8;
   const forYou=profileWeak
-    ?(total>.60&&profile.specialty>.78&&user.count>=3)
-    :(total>.68&&flavor>.55&&user.count>=3);
+    ?(total>.52&&profile.specialty>.68&&flavor>.48&&user.count>=3)
+    :(total>.62&&flavor>.55&&profile.specialty>.65&&user.count>=3);
   return{total,flavor,forYou};
 }
 
@@ -2956,15 +2956,17 @@ function renderPoiGroups(groups,user){
   });
   const hasProfile=user&&user.count>=3;
   let fyCount=0;
-  scored.forEach(item=>{
+  scored.forEach((item,idx)=>{
     item.isForYou=hasProfile&&item.score.forYou&&fyCount<2&&item.openStatus!==false;
     if(item.isForYou)fyCount++;
-    // 有画像用户：0.55以上进横向；无画像用户：前8全部进横向
-    item.isFeatured=!item.isForYou&&(hasProfile?item.score.total>.55:true)&&item.openStatus!==false;
+    // 有画像用户：0.63以上进横向（提高门槛，让更多店流入列表）
+    // 无画像用户：前5进横向，其余进列表，保持三层结构
+    const featThresh=hasProfile?item.score.total>.63:idx<5;
+    item.isFeatured=!item.isForYou&&featThresh&&item.openStatus!==false;
   });
   const forYou=scored.filter(i=>i.isForYou);
-  const featured=scored.filter(i=>i.isFeatured).slice(0,hasProfile?8:12);
-  const standard=hasProfile?scored.filter(i=>!i.isForYou&&!i.isFeatured):[];
+  const featured=scored.filter(i=>i.isFeatured).slice(0,8);
+  const standard=scored.filter(i=>!i.isForYou&&!i.isFeatured);
   const openStd=standard.filter(i=>i.openStatus!==false).slice(0,10);
   const closedStd=standard.filter(i=>i.openStatus===false).slice(0,3);
   let html='';
