@@ -2052,7 +2052,7 @@ function feelKeywords(feel){
 }
 function renderHistRow(r){
   const kws=feelKeywords(r.feel);
-  const dateShort=(r.date||'').replace(/\d{4}[年\/\-]/,'').replace(/日?$/,'').replace('月','/');
+  const dateShort=(r.date||'').replace(/\d{4}[年\/\-]/,'').replace(/日$/,'');
   const shop=r.scanData?.shop||r.shop||'';
   const navBtn=shop
     ?`<button class="rc-hist-nav" onclick="goFindShop('${shop.replace(/'/g,"\\'")}')">再次品尝 · 找这家店 →</button>`
