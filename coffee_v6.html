@@ -150,8 +150,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;
 /* 最新一杯：清洁卡片，白底感，内容优先，无琥珀色污染 */
 .rc{background:var(--s1);border-radius:var(--r-lg);
   padding:18px 18px;margin-bottom:6px;
-  box-shadow:0 2px 16px rgba(0,0,0,.22),0 1px 0 rgba(255,255,255,.03) inset;
-  border:1px solid rgba(255,255,255,.04);
+  box-shadow:var(--shadow);
+  border:1px solid var(--b1);
   transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
 .rc:active{transform:scale(.985)}
 .rc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
@@ -839,6 +839,15 @@ textarea.fi{resize:none;line-height:1.65}
   box-shadow:0 8px 40px rgba(0,0,0,.5),0 1px 0 rgba(200,155,108,.18) inset}
 .sentence-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent 0%,rgba(200,155,108,.7) 35%,rgba(220,175,120,.9) 55%,transparent 100%)}
+/* 日间：深琥珀暖调，深于其他卡片，高对比度可读 */
+:root.light .sentence-hero{
+  background:linear-gradient(160deg,#DFC090 0%,#E8CC9E 55%,#DFC090 100%);
+  border-color:rgba(140,78,14,.28);
+  box-shadow:0 4px 24px rgba(110,58,10,.16),0 1px 0 rgba(255,255,255,.5) inset}
+@media(prefers-color-scheme:light){:root:not(.dark) .sentence-hero{
+  background:linear-gradient(160deg,#DFC090 0%,#E8CC9E 55%,#DFC090 100%);
+  border-color:rgba(140,78,14,.28);
+  box-shadow:0 4px 24px rgba(110,58,10,.16),0 1px 0 rgba(255,255,255,.5) inset}}
 .sh-ctx{display:flex;align-items:center;gap:7px;margin-bottom:14px}
 .sh-ctx-dot{width:5px;height:5px;border-radius:50%;background:var(--a);animation:pulse 2.4s infinite}
 .sh-ctx-lbl{font-size:11px;color:var(--a);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
@@ -861,7 +870,7 @@ textarea.fi{resize:none;line-height:1.65}
 .sh-chip.on{background:rgba(200,155,108,.18);border-color:var(--b3);
   color:var(--a);transform:scale(1.04)}
 .sh-actions{display:flex;gap:9px}
-.sh-copy{flex:1;padding:13px 16px;background:var(--a);color:#1A0E06;
+.sh-copy{flex:1;padding:13px 16px;background:var(--a);color:var(--bg);
   border:none;border-radius:var(--r);font-size:14px;font-family:var(--font-ui);
   font-weight:700;cursor:pointer;letter-spacing:.02em;
   box-shadow:0 4px 18px rgba(200,152,104,.38),0 1px 0 rgba(255,255,255,.12) inset;
@@ -985,7 +994,7 @@ textarea.fi{resize:none;line-height:1.65}
 .sd-say-lbl::after{content:'';flex:1;height:1px;background:var(--b1)}
 .sd-say-sentence{font-family:var(--font-display);font-size:18px;font-style:italic;
   color:var(--ink);line-height:1.68;margin-bottom:12px;letter-spacing:.01em}
-.sd-say-copy{width:100%;padding:11px;background:var(--a);color:#1A0E06;
+.sd-say-copy{width:100%;padding:11px;background:var(--a);color:var(--bg);
   border:none;border-radius:var(--r-sm);font-size:13px;font-family:inherit;font-weight:700;
   cursor:pointer;letter-spacing:.02em;
   box-shadow:0 3px 12px rgba(200,152,104,.3),0 1px 0 rgba(255,255,255,.1) inset;
@@ -2330,6 +2339,8 @@ function initScanEntry(shopId,ctxHint){
 
 
 function closeScanEntry(){
+  // 标记已完成，下次不再自动开屏
+  localStorage.setItem('cf6_scan_done','1');
   const el=document.getElementById('scan-entry');
   if(el){
     el.style.opacity='0';
@@ -2343,6 +2354,14 @@ function closeScanEntry(){
   // 恢复底部导航
   document.querySelector('.bnav')?.style.removeProperty('display');
   renderSentenceHero();
+  // 若是首次进入且没有账号，短暂延迟后引导注册
+  const hasProfile=!!localStorage.getItem('cf6_profile');
+  if(!hasProfile&&!_supaSession){
+    setTimeout(()=>{
+      document.getElementById('onboard').style.display='flex';
+      obShowStep('ob-s0');
+    },600);
+  }
 }
 
 let _seAnswers={};
@@ -2409,11 +2428,11 @@ function seComputeSentence(){
 }
 
 function seCopySentence(){
+  localStorage.setItem('cf6_scan_done','1');
   const sentence=document.getElementById('se-sentence')?.textContent||'';
   const btn=document.querySelector('.se-btn-copy');
   navigator.clipboard?.writeText(sentence).catch(()=>{});
-  if(btn){btn.textContent='已复制 ✓';setTimeout(()=>{btn.textContent='复制这句话';},2000);}
-  // Also sync to main hero
+  if(btn){btn.textContent='已带走 ✓';setTimeout(()=>{btn.textContent='带走这句话';},2000);}
   _sentenceMood=null;
   renderSentenceHero();
 }
@@ -4889,7 +4908,19 @@ async function authSubmit(){
 function obInit(){
   const hasProfile=!!localStorage.getItem('cf6_profile');
   supaRestoreSession();
+  // 已有账号 / 已完成 profile 设置 → 直接进入
   if(hasProfile||_supaUser){updateAccountUI();return;}
+  // URL 参数触发的扫码流优先级更高，不重复触发
+  const fromQR=new URLSearchParams(window.location.search).get('scan')||
+               new URLSearchParams(window.location.search).get('shop');
+  if(fromQR) return;
+  // 首次使用（从未做过扫码问答）→ 开屏展示扫码问答
+  const scanDone=!!localStorage.getItem('cf6_scan_done');
+  if(!scanDone){
+    initScanEntry(null,null);
+    return;
+  }
+  // 做过扫码但没有账号 → 展示账号引导
   document.getElementById('onboard').style.display='flex';
   obShowStep('ob-s0');
 }
