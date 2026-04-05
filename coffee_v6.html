@@ -4075,11 +4075,48 @@ function reApplyShopFilter(){
     return;
   }
   const anyActive=f=>f.open||f.venue!=='all'||f.flavor!=='all'||f.dist!=='all';
+  const active=anyActive(_shopFilter);
   if(resultEl){
-    resultEl.textContent=anyActive(_shopFilter)?`找到 ${filtered.length} 家`:'';
-    resultEl.style.display=anyActive(_shopFilter)?'block':'none';
+    resultEl.textContent=active?`找到 ${filtered.length} 家`:'';
+    resultEl.style.display=active?'block':'none';
   }
-  wrap.innerHTML=renderPoiGroups(filtered,user);
+  // 有筛选条件时：绕过按分数的三层排版，改按精品度+距离平铺
+  // 这样距离筛选选到的远端店铺会真正出现在屏幕上
+  if(active){
+    wrap.innerHTML=renderFilteredGrid(filtered,user);
+  } else {
+    wrap.innerHTML=renderPoiGroups(filtered,user);
+  }
+}
+
+// 筛选模式下的平铺网格：按精品度+口味不含距离惩罚排序
+function renderFilteredGrid(groups,user){
+  _shopUser=user;
+  const items=groups.map(group=>{
+    const s=group[0];
+    const profile=inferShopProfile(s);
+    const openStatus=isShopOpen(s);
+    // 筛选排序：专注精品度+口味匹配，不惩罚距离
+    const flavorScore=user&&user.count>=3
+      ?(()=>{const clamp=(v,lo,hi)=>Math.max(0,1-Math.max(0,v<lo?lo-v:v>hi?v-hi:0)*4);
+             return clamp(user.avgA,profile.acidity[0],profile.acidity[1])*.6
+                   +clamp(user.avgB,profile.body[0],profile.body[1])*.4;})()
+      :.5;
+    const sortScore=profile.specialty*.5+flavorScore*.3+profile.weight*.2;
+    return{group,s,profile,openStatus,score:{total:sortScore,flavor:flavorScore,forYou:false},sortScore};
+  });
+  // 营业中优先，同状态内按精品/匹配分
+  items.sort((a,b)=>{
+    const aOk=a.openStatus!==false,bOk=b.openStatus!==false;
+    if(aOk!==bOk)return aOk?-1:1;
+    return b.sortScore-a.sortScore;
+  });
+  if(!items.length) return'';
+  let html='<div class="sco-grid">';
+  html+=`<div class="sco-section-lbl">筛选结果 · 按品质排序</div>`;
+  html+=items.map(i=>renderGridCard(i,user,false,false)).join('');
+  html+='</div>';
+  return html;
 }
 
 function resetShopFilter(){
