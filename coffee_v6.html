@@ -635,21 +635,29 @@ textarea.fi{resize:none;line-height:1.65}
 .search-tip-back{color:var(--a);cursor:pointer;text-decoration:underline;text-underline-offset:2px;font-weight:500}
 
 /* ── SHOP SCREEN ── */
-.code-show-card{margin:0 16px 16px;background:var(--s1);border-radius:var(--r);
-  padding:20px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
-.code-show-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+.code-show-card{margin:0 16px 16px;background:var(--s1);border-radius:var(--r-lg);
+  padding:20px 20px 16px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.code-show-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;
   background:linear-gradient(90deg,transparent,var(--a),transparent)}
-.csc-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--a);
-  margin-bottom:9px;font-weight:600}
-.csc-code{font-family:var(--font-mono);font-size:20px;color:var(--ink);
-  letter-spacing:.1em;margin-bottom:5px;font-weight:500}
-.csc-style{font-family:var(--font-display);font-size:17px;font-style:italic;color:var(--a2);margin-bottom:8px}
-.csc-hint{font-size:12px;color:var(--i3);line-height:1.55;margin-bottom:14px}
-.csc-btn{padding:10px 22px;background:transparent;border:1.5px solid var(--b2);border-radius:var(--r-lg);
-  font-size:13px;color:var(--a);cursor:pointer;font-family:var(--font-ui);
-  font-weight:500;transition:all .15s}
-.csc-btn:active{background:var(--a3)}
-.csc-identity{font-size:12px;color:var(--i2);line-height:1.65;font-style:italic;margin-top:6px;margin-bottom:14px;padding-top:6px;border-top:1px solid var(--b1)}
+.csc-eyebrow{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--a);
+  margin-bottom:10px;font-weight:600;opacity:.8}
+.csc-sentence{font-family:var(--font-display);font-size:19px;font-style:italic;
+  color:var(--ink);line-height:1.7;margin-bottom:14px;letter-spacing:.01em}
+.csc-say-btn{width:100%;padding:13px;background:var(--a);color:var(--bg);
+  border:none;border-radius:var(--r);font-size:14px;font-family:var(--font-ui);
+  font-weight:700;cursor:pointer;letter-spacing:.02em;margin-bottom:14px;
+  box-shadow:0 3px 14px rgba(200,152,104,.3);transition:opacity .15s}
+.csc-say-btn:active{opacity:.85}
+.csc-sep{height:1px;background:var(--b1);margin-bottom:12px}
+.csc-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.csc-id-wrap{flex:1;min-width:0}
+.csc-style{font-family:var(--font-display);font-size:14px;font-style:italic;color:var(--a);
+  margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.csc-code{font-family:var(--font-mono);font-size:12px;color:var(--i3);letter-spacing:.06em}
+.csc-copy-mini{padding:7px 14px;background:transparent;border:1.5px solid var(--b2);
+  border-radius:var(--r-full);font-size:12px;color:var(--a);cursor:pointer;
+  font-family:var(--font-ui);font-weight:500;white-space:nowrap;flex-shrink:0;transition:all .15s}
+.csc-copy-mini:active{background:var(--a3)}
 
 /* ── 句子展示卡 overlay ── */
 .sentence-display-overlay{position:fixed;inset:0;z-index:500;background:rgba(11,8,6,.92);
@@ -709,19 +717,37 @@ textarea.fi{resize:none;line-height:1.65}
   cursor:pointer;letter-spacing:.02em;transition:all .15s}
 .smo-explore-btn:active{background:var(--a);color:var(--bg)}
 
-/* ── 探店卡片 ── */
-/* Hero card — For You 精准推荐 */
-.sco-hero{margin:0 16px 14px;background:var(--s1);border-radius:var(--r);overflow:hidden;
-  cursor:pointer;transition:transform .15s;box-shadow:var(--shadow);
-  border-top:2.5px solid var(--a)}
-.sco-hero:active{transform:scale(.99)}
-.sco-hero-label{font-size:10px;color:var(--a);letter-spacing:.12em;text-transform:uppercase;
-  padding:13px 17px 0;font-weight:600}
-.sco-hero-name{font-family:var(--font-display);font-size:22px;font-weight:400;
-  color:var(--ink);padding:3px 17px 0;line-height:1.2}
-.sco-hero-reason{font-size:13px;color:var(--i2);font-style:italic;
-  font-family:var(--font-display);padding:5px 17px 0;line-height:1.55}
-.sco-hero-foot{display:flex;justify-content:space-between;align-items:center;padding:10px 17px 15px}
+/* ── 探店网格卡片 ── */
+.sco-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 24px}
+.sco-gc{border-radius:var(--r);overflow:hidden;cursor:pointer;position:relative;
+  aspect-ratio:4/5;background:var(--s2);
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 2px 12px rgba(0,0,0,.18)}
+.sco-gc:active{transform:scale(.96)}
+.sco-gc.wide{grid-column:span 2;aspect-ratio:21/9}
+.sco-gc.dimmed{opacity:.45;pointer-events:none}
+.sco-gc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.sco-gc-grad{position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(0,0,0,.06) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%)}
+.sco-gc-foot{position:absolute;bottom:0;left:0;right:0;padding:9px 12px 12px}
+.sco-gc-name{font-size:14px;color:#fff;font-weight:600;
+  line-height:1.25;margin-bottom:5px;letter-spacing:-.01em;
+  text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.sco-gc.wide .sco-gc-name{font-size:18px}
+.sco-gc-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.sco-gc-status-open{font-size:10px;color:#5ee87a;font-weight:600;letter-spacing:.03em}
+.sco-gc-status-closed{font-size:10px;color:rgba(255,255,255,.45)}
+.sco-gc-dist{font-size:10px;color:rgba(255,255,255,.6)}
+.sco-gc-foryou{position:absolute;top:10px;left:10px;
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  background:var(--a);color:#0b0806;padding:4px 9px;border-radius:var(--r-full)}
+.sco-gc-spec{position:absolute;top:10px;right:10px;
+  font-size:9px;letter-spacing:.07em;font-weight:700;text-transform:uppercase;
+  background:rgba(255,255,255,.15);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  color:rgba(255,255,255,.9);padding:3px 8px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.2)}
+.sco-gc-branches{font-size:10px;color:rgba(255,255,255,.55);
+  background:rgba(255,255,255,.1);padding:2px 7px;border-radius:10px;margin-left:4px}
 
 /* ── 店铺筛选栏 ── */
 .shop-filter-bar{display:flex;gap:8px;padding:0 16px 14px;overflow-x:auto;
@@ -736,38 +762,9 @@ textarea.fi{resize:none;line-height:1.65}
 .sfb-chip.on{background:var(--a);color:var(--bg);border-color:var(--a);font-weight:600}
 .sfb-result{font-size:11px;color:var(--i3);padding:0 16px 4px;letter-spacing:.02em}
 
-/* Section headers */
-.sco-section{margin-bottom:22px}
-.sco-section-title{font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--i3);padding:0 16px 10px;font-weight:600}
-
-/* Horizontal scroll shelf (Featured) */
-.sco-hscroll{display:flex;gap:11px;overflow-x:auto;padding:0 16px 12px;
-  scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.sco-hscroll::-webkit-scrollbar{display:none}
-.sco-hscroll::after{content:'';display:block;width:6px;flex-shrink:0}
-
-/* Square card */
-.sco-sq{flex-shrink:0;width:168px;background:var(--s1);border-radius:var(--r);
-  overflow:hidden;cursor:pointer;transition:transform .18s cubic-bezier(.34,1.56,.64,1);
-  box-shadow:var(--shadow);border:1px solid var(--b1)}
-.sco-sq:active{transform:scale(.96)}
-.sco-sq-art{height:96px;position:relative;display:flex;align-items:flex-end;justify-content:flex-start;padding:10px 13px}
-.sco-sq-mark{font-family:var(--font-display);font-size:38px;font-weight:300;
-  color:rgba(255,255,255,.22);letter-spacing:-.02em;user-select:none;pointer-events:none;
-  line-height:1;text-shadow:0 2px 12px rgba(0,0,0,.3)}
-.sco-sq-specialty{position:absolute;top:10px;right:10px;
-  font-size:9px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;
-  background:rgba(255,255,255,.12);backdrop-filter:blur(4px);
-  color:rgba(255,255,255,.75);padding:3px 7px;border-radius:10px;
-  border:1px solid rgba(255,255,255,.14)}
-.sco-sq-body{padding:11px 13px 12px}
-.sco-sq-name{font-family:var(--font-display);font-size:16px;color:var(--ink);
-  line-height:1.25;margin-bottom:5px;font-weight:400}
-.sco-sq-trait{font-size:11px;color:var(--i3);font-style:italic;line-height:1.35;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.sco-sq-foot{display:flex;justify-content:space-between;align-items:center;margin-top:9px;
-  padding-top:8px;border-top:1px solid var(--b1)}
+/* 分区小标题 */
+.sco-section-lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--i3);padding:14px 16px 6px;font-weight:600;grid-column:span 2}
 
 /* List wrapper + Row card */
 .sco-list-wrap{margin:0 16px;border-radius:var(--r);overflow:hidden;
@@ -1485,14 +1482,19 @@ textarea.fi{resize:none;line-height:1.65}
     <button class="ssb-btn" onclick="doShopSearch()">搜索</button>
   </div>
 
-  <!-- 特征码出示区 -->
+  <!-- 特征码出示区 → 句子优先 -->
   <div class="code-show-card" id="code-show-card">
-    <div class="csc-label">我的咖啡特征码</div>
-    <div class="csc-code" id="csc-code">CF-——</div>
-    <div class="csc-style" id="csc-style">积累记录后自动生成</div>
-    <div class="csc-identity" id="csc-identity" style="display:none"></div>
-    <div class="csc-hint">出示给咖啡馆，让店员立刻了解你的口味偏好</div>
-    <button class="csc-btn" onclick="copyFeatureCode()">复制特征码</button>
+    <div class="csc-eyebrow">进店可以这样说</div>
+    <div class="csc-sentence" id="csc-sentence">积累几杯记录后，这里会出现专属于你的一句话</div>
+    <button class="csc-say-btn" onclick="copyCscSentence()">带走这句话</button>
+    <div class="csc-sep"></div>
+    <div class="csc-bottom">
+      <div class="csc-id-wrap">
+        <div class="csc-style" id="csc-style">——</div>
+        <div class="csc-code" id="csc-code">CF-——</div>
+      </div>
+      <button class="csc-copy-mini" onclick="copyFeatureCode()">复制码</button>
+    </div>
   </div>
 
   <!-- 筛选栏 -->
@@ -3524,10 +3526,11 @@ function getLocation(){
 
 function amapSearch(lng,lat,radius){
   const r=radius||5000;
-  const base=`https://restapi.amap.com/v3/place/around?key=${AMAP_KEY}&location=${lng},${lat}&keywords=咖啡&radius=${r}&offset=25&extensions=all&output=json`;
+  const mk=`https://restapi.amap.com/v3/place/around?key=${AMAP_KEY}&location=${lng},${lat}&keywords=咖啡&radius=${r}&offset=25&extensions=all&output=json`;
+  // 同时请求：距离排序(近的) + 权重排序(受欢迎的/更广范围)，合并去重
   return Promise.all([
-    fetch(base+'&page=1').then(res=>res.json()),
-    fetch(base+'&page=2').then(res=>res.json())
+    fetch(mk+'&sortrule=distance').then(r=>r.json()).catch(()=>({status:'0'})),
+    fetch(mk+'&sortrule=weight').then(r=>r.json()).catch(()=>({status:'0'}))
   ]).then(([d1,d2])=>{
     const p1=d1.status==='1'?d1.pois||[]:[];
     const p2=d2.status==='1'?d2.pois||[]:[];
@@ -3536,7 +3539,7 @@ function amapSearch(lng,lat,radius){
     if(merged.length) return merged;
     if(r<10000) return amapSearch(lng,lat,Math.min(r*2,10000));
     throw new Error('附近未找到咖啡馆，换个位置试试');
-    });
+  });
 }
 
 // 品牌名归一化：去掉括号内容和末尾店名后缀
@@ -3788,65 +3791,40 @@ function _openEl(openStatus,timeStr){
     :timeStr?`<span class="sco-time">${timeStr}</span>`:'';
 }
 
-function renderHeroCard({group,s,profile,openStatus,score},user){
+function renderGridCard({group,s,profile,openStatus,score},user,wide,isForYou){
   const name=normBrand(s.name);
   const dist=s.distance?distStr(s.distance):'';
   const timeStr=getOpenTimeStr(s);
-  const dimCls=openStatus===false?' sco-dimmed':'';
-  const reason=getMatchReason(user,{...profile,_name:s.name},score);
-  const branches=group.length>1?`<div class="sco-branches">${
-    group.map(b=>`<div class="sco-branch" onclick="event.stopPropagation();openShopDetailAmap(${b._idx})">
-      <span class="sco-branch-name">${b.address||b.name}</span>
-      <span class="sco-branch-dist">${b.distance?distStr(b.distance):''}</span>
-    </div>`).join('')}</div>`:'';
-  return`<div class="sco-hero${dimCls}" onclick="openShopDetailAmap(${s._idx})">
-    <div class="sco-hero-label">For You</div>
-    <div class="sco-hero-name">${name}</div>
-    <div class="sco-hero-reason">${reason}</div>
-    <div class="sco-hero-foot">${_openEl(openStatus,timeStr)}<span class="sco-dist">${dist}</span></div>
-    ${branches}
-  </div>`;
-}
-
-function renderSquareCard({group,s,profile,openStatus,score},user){
-  const name=normBrand(s.name);
-  const dist=s.distance?distStr(s.distance):'';
-  const timeStr=getOpenTimeStr(s);
-  const trait=shopTrait(profile)+(group.length>1?` · ${group.length}家`:'');
-  const dimCls=openStatus===false?' sco-dimmed':'';
-  const mark=profile.mark||name.slice(0,2);
-  const specLabel=profile.specialty>.88?'精品顶级':profile.specialty>.78?'精品':profile.specialty>.60?'品质连锁':'';
-  return`<div class="sco-sq${dimCls}" onclick="openShopDetailAmap(${s._idx})">
-    <div class="sco-sq-art" style="background:${shopGradient(profile)}">
-      ${specLabel?`<div class="sco-sq-specialty">${specLabel}</div>`:''}
-      <span class="sco-sq-mark">${mark}</span>
-    </div>
-    <div class="sco-sq-body">
-      <div class="sco-sq-name">${name}</div>
-      <div class="sco-sq-trait">${trait}</div>
-      <div class="sco-sq-foot">${_openEl(openStatus,timeStr)}<span class="sco-dist">${dist}</span></div>
+  const dimCls=openStatus===false?' dimmed':'';
+  const wideCls=wide?' wide':'';
+  // 照片背景（优先用高德返回的实拍图）
+  const photoArr=Array.isArray(s.photos)?s.photos:(s.photos?[s.photos]:[]);
+  const photoUrl=photoArr.length?(typeof photoArr[0]==='string'?photoArr[0]:photoArr[0].url):'';
+  const bgStyle=photoUrl
+    ?`background-image:url('${photoUrl}');background-size:cover;background-position:center`
+    :`background:${shopGradient(profile)}`;
+  // 徽章
+  const specLabel=profile.specialty>.88?'顶级精品':profile.specialty>.78?'精品':profile.specialty>.60?'品质':'';
+  const forYouBadge=isForYou?`<div class="sco-gc-foryou">为你挑选</div>`:'';
+  const specBadge=specLabel&&!isForYou?`<div class="sco-gc-spec">${specLabel}</div>`:'';
+  const branchBadge=group.length>1?`<span class="sco-gc-branches">${group.length}家</span>`:'';
+  // 营业状态
+  const statusHtml=openStatus===true
+    ?`<span class="sco-gc-status-open">营业中</span>`
+    :openStatus===false
+    ?`<span class="sco-gc-status-closed">已打烊</span>`:'';
+  return`<div class="sco-gc${wideCls}${dimCls}" style="${bgStyle}" onclick="openShopDetailAmap(${s._idx})">
+    <div class="sco-gc-img-bg"></div>
+    <div class="sco-gc-grad"></div>
+    ${forYouBadge}${specBadge}
+    <div class="sco-gc-foot">
+      <div class="sco-gc-name">${name}${branchBadge}</div>
+      <div class="sco-gc-meta">
+        ${statusHtml}
+        ${dist?`<span class="sco-gc-dist">${dist}</span>`:''}
+      </div>
     </div>
   </div>`;
-}
-
-function renderRowCard({group,s,profile,openStatus,score},user){
-  const name=normBrand(s.name);
-  const dist=s.distance?distStr(s.distance):'';
-  const timeStr=getOpenTimeStr(s);
-  const reason=getMatchReason(user,{...profile,_name:s.name},score);
-  const dimCls=openStatus===false?' sco-dimmed':'';
-  const branches=group.length>1?`<div class="sco-branches">${
-    group.map(b=>`<div class="sco-branch" onclick="event.stopPropagation();openShopDetailAmap(${b._idx})">
-      <span class="sco-branch-name">${b.address||b.name}</span>
-      <span class="sco-branch-dist">${b.distance?distStr(b.distance):''}</span>
-    </div>`).join('')}</div>`:'';
-  return`<div class="sco-row${dimCls}" ${group.length===1?`onclick="openShopDetailAmap(${s._idx})"`:''}>
-    <div class="sco-row-left">
-      <div class="sco-row-name">${name}${group.length>1?`<span class="sco-chain-badge">${group.length}家</span>`:''}</div>
-      <div class="sco-row-sub">${reason}</div>
-    </div>
-    <div class="sco-row-right">${_openEl(openStatus,timeStr)}<div class="sco-dist">${dist}</div></div>
-  </div>${branches}`;
 }
 
 function renderPoiGroups(groups,user){
@@ -3868,49 +3846,44 @@ function renderPoiGroups(groups,user){
   scored.forEach((item,idx)=>{
     item.isForYou=hasProfile&&item.score.forYou&&fyCount<2&&item.openStatus!==false;
     if(item.isForYou)fyCount++;
-    // 有画像用户：0.63以上进横向（提高门槛，让更多店流入列表）
-    // 无画像用户：前5进横向，其余进列表，保持三层结构
-    const featThresh=hasProfile?item.score.total>.63:idx<5;
-    item.isFeatured=!item.isForYou&&featThresh&&item.openStatus!==false;
+    item.isFeatured=!item.isForYou&&(hasProfile?item.score.total>.58:idx<8)&&item.openStatus!==false;
   });
   const forYou=scored.filter(i=>i.isForYou);
-  const featured=scored.filter(i=>i.isFeatured).slice(0,8);
+  const featured=scored.filter(i=>i.isFeatured).slice(0,10);
   const standard=scored.filter(i=>!i.isForYou&&!i.isFeatured);
-  const openStd=standard.filter(i=>i.openStatus!==false).slice(0,10);
-  const closedStd=standard.filter(i=>i.openStatus===false).slice(0,3);
-  let html='';
-  if(forYou.length)html+=`<div class="sco-section">
-    <div class="sco-section-title">为你挑选</div>
-    ${forYou.map(i=>renderHeroCard(i,user)).join('')}
-  </div>`;
-  if(featured.length)html+=`<div class="sco-section">
-    <div class="sco-section-title">也许会喜欢</div>
-    <div class="sco-hscroll">${featured.map(i=>renderSquareCard(i,user)).join('')}</div>
-  </div>`;
-  const allStd=[...openStd,...closedStd];
-  if(allStd.length){
-    const title=forYou.length||featured.length?'附近还有':'附近的咖啡馆';
-    html+=`<div class="sco-section">
-      <div class="sco-section-title">${title}</div>
-      <div class="sco-list-wrap">${allStd.map(i=>renderRowCard(i,user)).join('')}</div>
-    </div>`;
+  const allStd=[...standard.filter(i=>i.openStatus!==false),...standard.filter(i=>i.openStatus===false).slice(0,4)];
+  if(!scored.length) return'<div style="padding:40px 20px;text-align:center;color:var(--i3);font-size:12px">附近暂时没有咖啡馆</div>';
+  // 全部放进一个网格，ForYou 全宽，其余双栏
+  let html='<div class="sco-grid">';
+  if(forYou.length) html+=`<div class="sco-section-lbl">为你挑选</div>${forYou.map(i=>renderGridCard(i,user,true,true)).join('')}`;
+  if(featured.length){
+    const featLbl=forYou.length?'也许会喜欢':'附近的咖啡馆';
+    html+=`<div class="sco-section-lbl">${featLbl}</div>${featured.map(i=>renderGridCard(i,user,false,false)).join('')}`;
   }
-  return html||'<div style="padding:40px 20px;text-align:center;color:var(--i3);font-size:12px">附近暂时没有咖啡馆</div>';
+  if(allStd.length){
+    html+=`<div class="sco-section-lbl">${forYou.length||featured.length?'附近还有':'全部'}</div>`;
+    html+=allStd.map(i=>renderGridCard(i,user,false,false)).join('');
+  }
+  html+='</div>';
+  return html;
 }
 
 let _userPos=null; // 保存用户位置，供搜索复用
 
 async function renderShopScreen(){
-  // 特征码同步
+  // 特征码 + 句子同步
   if(recs.length>=3){
     const fc=generateFeatureCode(recs);
     const codeEl=document.getElementById('csc-code');
     const styleEl=document.getElementById('csc-style');
-    const idEl=document.getElementById('csc-identity');
     if(codeEl) codeEl.textContent=fc.code;
     if(styleEl) styleEl.textContent=fc.zenStyle;
-    if(idEl){idEl.textContent=fc.identity;idEl.style.display='block';}
-    // 同步到我的页面（如果已经渲染过）
+    const senEl=document.getElementById('csc-sentence');
+    if(senEl){
+      const profile=getUserProfile();
+      const sentence=buildDynamicSentence(profile,{scene:'explore'},null);
+      senEl.textContent=sentence;
+    }
     const fcCode=document.getElementById('fc-code');
     if(fcCode&&fcCode.textContent==='——') fcCode.textContent=fc.code;
   }
@@ -4315,12 +4288,17 @@ function installPWA(){
 }
 
 function copyFeatureCode(){
-  const code = document.getElementById('csc-code')?.textContent;
-  if(!code || code==='CF-——') return;
+  const code=document.getElementById('csc-code')?.textContent;
+  if(!code||code==='CF-——') return;
   navigator.clipboard?.writeText(code).then(()=>{
-    const btn = document.querySelector('.csc-btn');
-    if(btn){btn.textContent='已复制 ✓';setTimeout(()=>btn.textContent='复制特征码',1500);}
+    const btn=document.querySelector('.csc-copy-mini');
+    if(btn){btn.textContent='已复制 ✓';setTimeout(()=>btn.textContent='复制码',1500);}
   });
+}
+function copyCscSentence(){
+  const sentence=document.getElementById('csc-sentence')?.textContent||'';
+  if(!sentence||sentence.includes('积累几杯')) return;
+  showSentenceCard(sentence);
 }
 
 init();
